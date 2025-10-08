@@ -10,6 +10,7 @@ class ItemHabitModel {
   final String iconString;
   final DateTime createdAt;
   final String typeHabit;
+  final int dailyGoal;
   final List<HabitProgress> progress;
 
   ItemHabitModel({
@@ -20,6 +21,7 @@ class ItemHabitModel {
     required this.createdAt,
     required this.typeHabit,
     required this.iconString,
+    required this.dailyGoal,
     required this.progress
   });
 
@@ -33,7 +35,7 @@ class ItemHabitModel {
       description: description,
       icon: iconString,
       type: typeHabitEntity,
-      dailyGoal: 1,
+      dailyGoal: dailyGoal,
       initialDate: createdAt.toIso8601String(),
       progress: progress
     );
@@ -70,6 +72,7 @@ class ItemHabitModel {
       createdAt: DateTime.parse(json['initial_date'] as String),
       typeHabit: json['type'] as String,
       iconString: json['icon'] as String,
+      dailyGoal: json['daily_goal'] as int,
       progress: progressEntityList
     );
   }

@@ -4,6 +4,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
+import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +75,7 @@ class _MainAppState extends State<MainApp> {
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
-      home: Scaffold(
+      home:  Scaffold(
         appBar: const CustomAppBar(),
         body: Padding(
           padding: const EdgeInsets.only(
@@ -82,7 +83,9 @@ class _MainAppState extends State<MainApp> {
             left: 15,
             right: 15
           ),
-          child: screensProvider.currentPageWidget,
+          child: AnimatedScreenTransition(
+            child: screensProvider.currentPageWidget,
+          ),
         ),
         bottomNavigationBar: const CustomBottomBar(),
       ),

@@ -1,3 +1,4 @@
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,8 +26,8 @@ class CustomBorderContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
         border: Border.all(
           color: themeProvider.themeMode == ThemeMode.light
-            ? const Color(0xFF2A2A2A)
-            : const Color(0xFFFFFFFF),
+            ? AppColors.darkBackground
+            : const Color.fromARGB(255, 89, 85, 85),
           width: 0.4,
         )
       ),
