@@ -3,36 +3,89 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class DailyGoalCounter extends StatelessWidget {
-  const DailyGoalCounter({super.key});
+  final int? initialValue;
+  final ValueChanged<int>? onChanged;
+  final bool useProvider;
+
+  const DailyGoalCounter({
+    super.key,
+    this.initialValue,
+    this.onChanged,
+    this.useProvider = true,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Si useProvider es true, usa el NewHabitProvider (para crear hábitos)
+    // Si es false, usa el valor local (para editar hábitos)
+    if (useProvider) {
+      return _buildWithProvider(context);
+    } else {
+      return _buildWithLocalState(context);
+    }
+  }
+
+  Widget _buildWithProvider(BuildContext context) {
     NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
 
-    return  Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          onPressed: () => {
-            newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal - 1) 
+          onPressed: () {
+            if (newHabitProvider.dailyGoal > 1) {
+              newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal - 1);
+            }
           },
-          icon: const Icon(Icons.remove)
+          icon: const Icon(Icons.remove),
         ),
-
         Text(
           newHabitProvider.dailyGoal.toString(),
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.white
+            color: Colors.white,
           ),
         ),
-
         IconButton(
-          onPressed: () => {
-            newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal + 1)
+          onPressed: () {
+            newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal + 1);
           },
-          icon: const Icon(Icons.add)
+          icon: const Icon(Icons.add),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWithLocalState(BuildContext context) {
+    final int currentValue = initialValue ?? 1;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          onPressed: () {
+            if (currentValue > 1 && onChanged != null) {
+              onChanged!(currentValue - 1);
+            }
+          },
+          icon: const Icon(Icons.remove),
+        ),
+        Text(
+          currentValue.toString(),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            if (onChanged != null) {
+              onChanged!(currentValue + 1);
+            }
+          },
+          icon: const Icon(Icons.add),
         ),
       ],
     );

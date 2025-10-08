@@ -1,3 +1,4 @@
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +28,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               color: isDarkTheme
-                ? const Color(0xFF2A2A2A)
+                ? AppColors.darkBackground
                 : const Color(0xFFFFFFFF),
             ),
             padding: const EdgeInsets.all(5),
@@ -56,7 +57,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(10)),
                 color: isDarkTheme
-                  ? const Color(0xFF2A2A2A)
+                  ? AppColors.darkBackground
                   : const Color(0xFFFFFFFF),
               ),
               padding: const EdgeInsets.all(5),
@@ -84,7 +85,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: isDarkTheme
-                ? const Color(0xFF2A2A2A)
+                ? AppColors.darkBackground
                 : const Color(0xFFFFFFFF),
             ),
             padding: const EdgeInsets.all(5),

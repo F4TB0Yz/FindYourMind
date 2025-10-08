@@ -1,4 +1,5 @@
 import 'package:find_your_mind/core/data/supabase_habits_service.dart';
+import 'package:find_your_mind/core/utils/date_utils.dart' as custom_date_utils;
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
@@ -153,7 +154,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
 
     newHabitProvider.clear();
 
-    final String todayString =  DateTime.now().toIso8601String().substring(0, 10);
+    final String todayString = custom_date_utils.DateUtils.todayString();
 
     final String? progressId = await supabaseService.createHabitProgress(
       habitId: habitId!, 
@@ -173,8 +174,6 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     );
 
     habitsProvider.updateHabitProgress(todayProgress);
-
-    
   }
 
   bool _verifyFields(HabitEntity habit) {

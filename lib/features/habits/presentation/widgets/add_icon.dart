@@ -5,15 +5,28 @@ import 'package:flutter_svg/svg.dart';
 
 class AddIcon extends StatefulWidget {
   final ValueChanged<String> saveIcon;
+  final bool withText;
+  final String? initialIcon;
 
-  const AddIcon({super.key, required this.saveIcon});
+  const AddIcon({
+    super.key, 
+    required this.saveIcon, 
+    this.withText = true,
+    this.initialIcon,
+  });
 
   @override
   State<AddIcon> createState() => _AddIconState();
 }
 
 class _AddIconState extends State<AddIcon> {
-  String selectedIcon = 'assets/icons/mind.svg';
+  late String selectedIcon;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIcon = widget.initialIcon ?? 'assets/icons/mind.svg';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,17 +53,18 @@ class _AddIconState extends State<AddIcon> {
 
         const SizedBox(width: 15),
 
-        GestureDetector(
-          onTap: () => _onTapChangeIcon(context: context),
-          child: const Text(
-            'Agregar Icono',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.white38
+        if (widget.withText)
+          GestureDetector(
+            onTap: () => _onTapChangeIcon(context: context),
+            child: const Text(
+              'Agregar Icono',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.white38
+              ),
             ),
-          ),
-        )
+          )
       ],
     );
   }
