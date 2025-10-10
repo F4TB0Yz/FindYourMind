@@ -99,8 +99,6 @@ class _ItemHabitState extends State<ItemHabit> {
   
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-
     final currentTime = widget.itemHabit.timeSinceStart;
     if (_timeSinceStart != currentTime) {
       _timeSinceStart = currentTime;

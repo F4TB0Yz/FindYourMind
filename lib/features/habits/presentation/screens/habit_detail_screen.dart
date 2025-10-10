@@ -73,10 +73,15 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           _buildHabitInfoContainer(currentHabit),
 
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4.0),
-              child: isEditing ? _buildEditingMode() : _buildViewMode(currentHabit),
-            ),
+            child: !isEditing
+              ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4.0),
+                child: _buildViewMode(currentHabit),
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4.0),
+                child: _buildEditingMode(),
+              ),
           ),
         ],
       ),
@@ -93,8 +98,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         Center(
           child: SvgPicture.asset(
             currentHabit.icon,
-            width: 40,
-            height: 40,
+            width: 100,
+            height: 100,
           ),
         ),
         const SizedBox(height: 10),
@@ -103,7 +108,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           child: Text(
             'Tú Semana',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 18,
               fontWeight: FontWeight.w500,
               color: Colors.white60,
             ),
@@ -119,28 +124,28 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         // Estadísticas
         StatisticsHabit(habit: currentHabit),
 
-        const SizedBox(height: 40),
+        const Spacer(),
 
         // Botones
-          Row(
-          children: [
-            Expanded(
-            child: CustomButton(
-              title: 'CANCELAR',
-              onTap: () {
-                screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
-              },
-            ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-            child: CustomButton(
-              title: 'GUARDAR',
-              onTap: () => _saveHabit(habitsProvider, screensProvider),
-            ),
-            ),
-          ],
+        Row(
+        children: [
+          Expanded(
+          child: CustomButton(
+            title: 'CANCELAR',
+            onTap: () {
+              screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+            },
           ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+          child: CustomButton(
+            title: 'GUARDAR',
+            onTap: () => _saveHabit(habitsProvider, screensProvider),
+          ),
+          ),
+        ],
+        ),
 
         const SizedBox(height: 15),
     ],
@@ -266,19 +271,19 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           Text(
             totalDays.toString(),
             style: const TextStyle(
-              fontSize: 52,
+              fontSize: 64,
               color: Colors.white,
               fontWeight: FontWeight.w500,
               height: 1.0, // Reduce el espacio vertical entre líneas
             ),
           ),
 
-          const SizedBox(height: 5),
+          const SizedBox(height: 10),
 
           Text(
             totalDays == 1 ? 'Día' : 'Días',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 24,
               color: Colors.white60,
               fontWeight: FontWeight.w500,
               height: 1.0,
