@@ -11,6 +11,7 @@ import 'package:find_your_mind/features/habits/presentation/widgets/container_bo
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/type_habit_selector.dart';
+import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
@@ -145,7 +146,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     habitsProvider.addHabit(habit.copyWith(id: habitId));
 
     if (!context.mounted) return;
-    screensProvider.setScreenWidget(const HabitsScreen());
+    screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
 
     CustomToast.showToast(
       context: context, 

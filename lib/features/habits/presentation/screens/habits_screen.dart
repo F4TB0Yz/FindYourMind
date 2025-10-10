@@ -4,6 +4,7 @@ import 'package:find_your_mind/features/habits/presentation/screens/new_habit_sc
 import 'package:find_your_mind/features/habits/presentation/widgets/container_border_habits.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit.dart';
+import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
@@ -131,7 +132,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
           CustomButton(
             title: 'AGREGAR NUEVO HABITO',
             onTap: () {
-              screensProvider.setScreenWidget(const NewHabitScreen());
+              screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
             },
           ),
       

@@ -2,6 +2,8 @@ import 'package:find_your_mind/config/theme/app_theme.dart';
 import 'package:find_your_mind/core/config/supabase_config.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
+import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
+import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
@@ -24,7 +26,7 @@ void main() async {
           create: (_) => ThemeProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => ScreensProvider(),
+          create: (_) => ScreensProvider(const HabitsScreen(), ScreenType.habits),
         ),
         ChangeNotifierProvider(
           create: (_) => NewHabitProvider(),
