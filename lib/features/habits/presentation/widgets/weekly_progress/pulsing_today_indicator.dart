@@ -52,8 +52,8 @@ class PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
       animation: _animation,
       builder: (context, child) {
         return Container(
-          width: 35,
-          height: 35,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: widget.isCompleted

@@ -42,7 +42,7 @@ class WeeklyProgress extends StatelessWidget {
             Text(
               weekDays[index],
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 14,
                 color: isToday 
                     ? (isCompleted ? const Color(0xFF00FF41) : const Color(0xFFFF1744))
                     : Colors.white38,
@@ -68,8 +68,8 @@ class WeeklyProgress extends StatelessWidget {
 
   Widget _buildNormalDayIndicator(int day, bool isCompleted) {
     return Container(
-      width: 35,
-      height: 35,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isCompleted
@@ -77,14 +77,14 @@ class WeeklyProgress extends StatelessWidget {
             : Colors.red.withValues(alpha: 0.3),
         border: Border.all(
           color: isCompleted ? Colors.green : Colors.red,
-          width: 0.8,
+          width: 1.5,
         ),
       ),
       child: Center(
         child: Text(
           '$day',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             color: isCompleted ? Colors.green : Colors.red,
             fontWeight: FontWeight.w600,
           ),

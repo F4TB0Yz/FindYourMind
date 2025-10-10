@@ -8,6 +8,7 @@ import 'package:find_your_mind/features/habits/presentation/widgets/custom_butto
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/statistics_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/weekly_progress/weekly_progress.dart';
+import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
@@ -72,10 +73,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           _buildHabitInfoContainer(currentHabit),
 
           Expanded(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4.0),
-              child: isEditing ? _buildEditingMode() : _buildViewMode(currentHabit),
-            ),
+              child: !isEditing 
+                ? _buildViewMode(currentHabit)
+                : _buildEditingMode()
+            )
           ),
         ],
       ),
@@ -92,8 +95,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         Center(
           child: SvgPicture.asset(
             currentHabit.icon,
-            width: 40,
-            height: 40,
+            width: 100,
+            height: 100,
           ),
         ),
         const SizedBox(height: 10),
@@ -102,7 +105,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           child: Text(
             'Tú Semana',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 18,
               fontWeight: FontWeight.w500,
               color: Colors.white60,
             ),
@@ -118,28 +121,28 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         // Estadísticas
         StatisticsHabit(habit: currentHabit),
 
-        const SizedBox(height: 40),
+        const Spacer(),
 
         // Botones
-          Row(
-          children: [
-            Expanded(
-            child: CustomButton(
-              title: 'CANCELAR',
-              onTap: () {
-                screensProvider.setScreenWidget(const HabitsScreen());
-              },
-            ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-            child: CustomButton(
-              title: 'GUARDAR',
-              onTap: () => _saveHabit(habitsProvider, screensProvider),
-            ),
-            ),
-          ],
+        Row(
+        children: [
+          Expanded(
+          child: CustomButton(
+            title: 'CANCELAR',
+            onTap: () {
+              screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+            },
           ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+          child: CustomButton(
+            title: 'GUARDAR',
+            onTap: () => _saveHabit(habitsProvider, screensProvider),
+          ),
+          ),
+        ],
+        ),
 
         const SizedBox(height: 15),
     ],
@@ -156,21 +159,38 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         const Text(
           'Icono del Hábito',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.white38,
           ),
         ),
         const SizedBox(height: 10),
 
-        AddIcon(
-          saveIcon: (newIcon) {
-            setState(() {
-              _selectedIcon = newIcon;
-            });
-          }, 
-          withText: false,
-          initialIcon: _selectedIcon,
+        Stack(
+          children: [
+            AddIcon(
+              size: 64,
+              saveIcon: (newIcon) {
+                setState(() {
+                  _selectedIcon = newIcon;
+                });
+              }, 
+              withText: false,
+              initialIcon: _selectedIcon,
+            ),
+
+            const SizedBox(width: 10),
+
+            Positioned(
+              left: 60,
+              top: 0,
+              child: Icon(
+                Icons.mode_edit_outline_outlined,
+                color: Colors.amber.shade300,
+                size: 24,
+              ),
+            )
+          ],
         ),
 
         const SizedBox(height: 20),
@@ -216,7 +236,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           },
         ),
 
-        const SizedBox(height: 30),
+        const Spacer(),
 
         // Botones de acción
         Row(
@@ -265,19 +285,19 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           Text(
             totalDays.toString(),
             style: const TextStyle(
-              fontSize: 52,
+              fontSize: 64,
               color: Colors.white,
               fontWeight: FontWeight.w500,
               height: 1.0, // Reduce el espacio vertical entre líneas
             ),
           ),
 
-          const SizedBox(height: 5),
+          const SizedBox(height: 10),
 
           Text(
             totalDays == 1 ? 'Día' : 'Días',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 24,
               color: Colors.white60,
               fontWeight: FontWeight.w500,
               height: 1.0,
@@ -300,21 +320,19 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: isEditing 
-              ? const Color(0xFFD1F312).withAlpha(51)
+              ? const Color.fromARGB(40, 163, 36, 36)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: isEditing 
-                ? const Color(0xFFD1F312)
+                ? const Color.fromARGB(255, 83, 8, 8)
                 : Colors.transparent,
             width: 1,
           ),
         ),
         child: Icon(
           isEditing ? Icons.close : Icons.edit,
-          color: isEditing 
-              ? const Color(0xFFD1F312)
-              : Colors.white,
+          color: Colors.white,
           size: 14,
         ),
       ),
@@ -333,7 +351,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
             color: isSubtitle ? Colors.white24 : Colors.white38,
           ),
@@ -341,6 +359,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         const SizedBox(height: 5),
         TextField(
           controller: controller,
+          maxLength: isSubtitle ? null : 30,
           style: TextStyle(
             fontSize: fontSize,
             color: Colors.white,
@@ -387,6 +406,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
       setState(() {
         isEditing = false;
+        screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
       });
 
     } catch (e) {

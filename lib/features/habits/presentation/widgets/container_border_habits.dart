@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 class ContainerBorderHabits extends StatelessWidget {
   final Widget child;
   final Widget? endWidget;
+  final double rightSpacing = 10;
   final CrossAxisAlignment crossAxisAlignment;
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
@@ -59,7 +60,7 @@ class ContainerBorderHabits extends StatelessWidget {
                 // Widget al final (si existe)
                 if (endWidget != null)
                   Positioned(
-                    right: 0,
+                    right: rightSpacing,
                     top: 0,
                     bottom: 0,
                     child: Center(child: endWidget!),

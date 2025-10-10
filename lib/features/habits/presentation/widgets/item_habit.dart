@@ -9,6 +9,7 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_progress.da
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/delete_habit_dialog.dart';
+import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
@@ -114,7 +115,6 @@ class _ItemHabitState extends State<ItemHabit> {
         ? widget.itemHabit.progress[todayIndex].dailyCounter 
         : 0;
     
-    // El dailyGoal SIEMPRE viene del hábito, no del progreso
     final int dailyGoal = widget.itemHabit.dailyGoal;
 
     return Padding(
@@ -137,7 +137,7 @@ class _ItemHabitState extends State<ItemHabit> {
                   final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
 
                   habitsProvider.changeTitle(widget.itemHabit.title);
-                  screensProvider.setScreenWidget(HabitDetailScreen(habit: widget.itemHabit));
+                  screensProvider.setScreenWidget(HabitDetailScreen(habit: widget.itemHabit), ScreenType.habits);
                 },
                 backgroundColor: const Color.fromARGB(84, 80, 78, 78),
                 foregroundColor: Colors.white,
@@ -204,8 +204,7 @@ class _ItemHabitState extends State<ItemHabit> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               width: double.infinity,
-              height: 69,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               margin: const EdgeInsets.symmetric(horizontal: 5),
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
@@ -232,48 +231,48 @@ class _ItemHabitState extends State<ItemHabit> {
                 children: [
                   SvgPicture.asset(
                     widget.itemHabit.icon,
-                    width: 32,
-                    height: 32,
+                    width: 42,
+                    height: 42,
                   ),
                   const SizedBox(width: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.itemHabit.title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '$counterToday de $dailyGoal completados',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white30,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
-                    ],
-                  ),
-                  const Spacer(),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FittedBox(
-                        child: Text(
-                          _timeSinceStart,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.itemHabit.title,
+                          overflow: TextOverflow.clip,
                           style: const TextStyle(
-                            fontSize: 10,
-                            color: Color.fromARGB(255, 209, 243, 18),
-                            fontWeight: FontWeight.w500
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '$counterToday de $dailyGoal completados',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white30,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  FittedBox(
+                    child: Text(
+                      _timeSinceStart,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 63, 243, 18),
+                        fontWeight: FontWeight.w500
                       ),
-                    ],
+                    ),
                   )
                 ],
               ),

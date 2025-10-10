@@ -25,12 +25,12 @@ class StatisticsHabit extends StatelessWidget {
           const Text(
             'Estadísticas',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -69,8 +69,9 @@ class StatisticsHabit extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: 14,
             color: Colors.white38,
+            fontWeight: FontWeight.w500
           ),
         ),
       ],
