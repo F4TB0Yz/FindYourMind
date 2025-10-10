@@ -48,33 +48,35 @@ class _CustomItemBarState extends State<CustomItemBar> {
 
   Container _buildButton(Size size) {
     return Container(
-    width: size.width * 0.18,
-    height: size.height * 0.1,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: const Color(0xFF717171).withValues(alpha: 0.73),
-    ),
-    child: Center(
-      child: Container(
-        padding: const EdgeInsets.all(5),
-        width: size.width * 0.15,
-        height: size.height * 0.08,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: backgroundColor,
-        ),
-        child: FittedBox(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Icon(
-              widget.icon,
-              weight: 700,
-              color: const Color.fromARGB(255, 39, 37, 37)
+      margin: EdgeInsets.symmetric(vertical: 5),
+      width: size.width * 0.18,
+      height: size.height * 0.1,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFF717171).withValues(alpha: 0.73),
+      ),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(5),
+          width: size.width * 0.15,
+          height: size.height * 0.08,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: backgroundColor,
+          ),
+          child: FittedBox(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                widget.icon,
+                weight: 700,
+                color: const Color.fromARGB(255, 39, 37, 37)
+              ),
             ),
           ),
         ),
-      ),
-    )
-  );
+      )
+    );
   }
 }

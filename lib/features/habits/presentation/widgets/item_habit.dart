@@ -98,6 +98,8 @@ class _ItemHabitState extends State<ItemHabit> {
   
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+
     final currentTime = widget.itemHabit.timeSinceStart;
     if (_timeSinceStart != currentTime) {
       _timeSinceStart = currentTime;
@@ -114,7 +116,6 @@ class _ItemHabitState extends State<ItemHabit> {
         ? widget.itemHabit.progress[todayIndex].dailyCounter 
         : 0;
     
-    // El dailyGoal SIEMPRE viene del hábito, no del progreso
     final int dailyGoal = widget.itemHabit.dailyGoal;
 
     return Padding(
@@ -204,7 +205,7 @@ class _ItemHabitState extends State<ItemHabit> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               width: double.infinity,
-              height: 69,
+              height: size.height * 0.09,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               margin: const EdgeInsets.symmetric(horizontal: 5),
               decoration: BoxDecoration(
