@@ -4,14 +4,12 @@ import 'package:provider/provider.dart';
 
 class CustomItemBar extends StatefulWidget {
   final IconData icon;
-  final String label;
   final Widget screen;
   final VoidCallback? onTap;
 
   const CustomItemBar({
     super.key, 
     required this.icon, 
-    required this.label,
     required this.screen,
     this.onTap,
   });
@@ -26,6 +24,7 @@ class _CustomItemBarState extends State<CustomItemBar> {
   @override
   Widget build(BuildContext context) {
     final ScreensProvider screensProvider = Provider.of<ScreensProvider>(context);
+    final Size size = MediaQuery.of(context).size;
 
     return MouseRegion(
       onHover: (_) => setState(() {
@@ -42,15 +41,15 @@ class _CustomItemBarState extends State<CustomItemBar> {
             widget.onTap!();
           }
         },
-        child: _buildButton()
+        child: _buildButton(size)
       )
     );
   }
 
-  Container _buildButton() {
+  Container _buildButton(Size size) {
     return Container(
-    width: 50,
-    height: 50,
+    width: size.width * 0.18,
+    height: size.height * 0.1,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
       color: const Color(0xFF717171).withValues(alpha: 0.73),
@@ -58,27 +57,19 @@ class _CustomItemBarState extends State<CustomItemBar> {
     child: Center(
       child: Container(
         padding: const EdgeInsets.all(5),
-        width: 42,
-        height: 42,
+        width: size.width * 0.15,
+        height: size.height * 0.08,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: backgroundColor,
         ),
         child: FittedBox(
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 2, left: 1, right: 1),
-            child: Column(
-              children: [
-                Icon(widget.icon, color: Colors.black),
-                Text(
-                  widget.label,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700         
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.all(8),
+            child: Icon(
+              widget.icon,
+              weight: 700,
+              color: const Color.fromARGB(255, 39, 37, 37)
             ),
           ),
         ),

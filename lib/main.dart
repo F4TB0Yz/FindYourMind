@@ -75,19 +75,21 @@ class _MainAppState extends State<MainApp> {
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
-      home:  Scaffold(
-        appBar: const CustomAppBar(),
-        body: Padding(
-          padding: const EdgeInsets.only(
-            top: 15,
-            left: 15,
-            right: 15
+      home:  SafeArea(
+        child: Scaffold(
+          appBar: const CustomAppBar(),
+          body: Padding(
+            padding: const EdgeInsets.only(
+              top: 15,
+              left: 15,
+              right: 15
+            ),
+            child: AnimatedScreenTransition(
+              child: screensProvider.currentPageWidget,
+            ),
           ),
-          child: AnimatedScreenTransition(
-            child: screensProvider.currentPageWidget,
-          ),
+          bottomNavigationBar: const CustomBottomBar(),
         ),
-        bottomNavigationBar: const CustomBottomBar(),
       ),
     );
   }

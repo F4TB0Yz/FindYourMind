@@ -1,5 +1,4 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
-import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/features/notes/presentation/screens/notes_screen.dart';
 import 'package:find_your_mind/features/tasks/presentation/screens/tasks_screen.dart';
@@ -12,9 +11,12 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    
+
     return Container(
       margin: const EdgeInsets.all(15),
-      height: 60,
+      height: size.height * 0.1,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: AppColors.darkBackground
@@ -26,17 +28,14 @@ class CustomBottomBar extends StatelessWidget {
           children: [
             CustomItemBar(
               icon: LucideIcons.penTool,
-              label: 'Notas',
               screen: NotesScreen(),
             ),
             CustomItemBar(
               icon: LucideIcons.checkSquare,
-              label: 'Tareas',
               screen: TasksScreen(),
             ),
             CustomItemBar(
               icon: LucideIcons.clock,
-              label: AppStrings.habitsLabel,
               screen: HabitsScreen(),
             ),
           ],
