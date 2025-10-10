@@ -206,8 +206,7 @@ class _ItemHabitState extends State<ItemHabit> {
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               width: double.infinity,
-              height: size.height * 0.09,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               margin: const EdgeInsets.symmetric(horizontal: 5),
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
@@ -234,48 +233,48 @@ class _ItemHabitState extends State<ItemHabit> {
                 children: [
                   SvgPicture.asset(
                     widget.itemHabit.icon,
-                    width: 32,
-                    height: 32,
+                    width: 42,
+                    height: 42,
                   ),
                   const SizedBox(width: 20),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.itemHabit.title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '$counterToday de $dailyGoal completados',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.white30,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
-                    ],
-                  ),
-                  const Spacer(),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FittedBox(
-                        child: Text(
-                          _timeSinceStart,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.itemHabit.title,
+                          overflow: TextOverflow.clip,
                           style: const TextStyle(
-                            fontSize: 10,
-                            color: Color.fromARGB(255, 209, 243, 18),
-                            fontWeight: FontWeight.w500
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '$counterToday de $dailyGoal completados',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white30,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  FittedBox(
+                    child: Text(
+                      _timeSinceStart,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 63, 243, 18),
+                        fontWeight: FontWeight.w500
                       ),
-                    ],
+                    ),
                   )
                 ],
               ),
