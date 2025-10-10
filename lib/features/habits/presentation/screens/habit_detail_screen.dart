@@ -73,7 +73,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           _buildHabitInfoContainer(currentHabit),
 
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4.0),
               child: !isEditing 
                 ? _buildViewMode(currentHabit)
@@ -121,7 +121,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         // Estadísticas
         StatisticsHabit(habit: currentHabit),
 
-        const Spacer(),
+        const SizedBox(height: 50),
 
         // Botones
         Row(
@@ -181,12 +181,12 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
             const SizedBox(width: 10),
 
-            Positioned(
+            const Positioned(
               left: 60,
               top: 0,
               child: Icon(
                 Icons.mode_edit_outline_outlined,
-                color: Colors.amber.shade300,
+                color: Color.fromARGB(255, 187, 180, 155),
                 size: 24,
               ),
             )
@@ -236,7 +236,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           },
         ),
 
-        const Spacer(),
+        const SizedBox(height: 50),
 
         // Botones de acción
         Row(
