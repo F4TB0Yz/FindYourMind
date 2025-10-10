@@ -7,12 +7,14 @@ class AddIcon extends StatefulWidget {
   final ValueChanged<String> saveIcon;
   final bool withText;
   final String? initialIcon;
+  final double size;
 
   const AddIcon({
     super.key, 
     required this.saveIcon, 
     this.withText = true,
     this.initialIcon,
+    this.size = 32,
   });
 
   @override
@@ -45,8 +47,8 @@ class _AddIconState extends State<AddIcon> {
             child: SvgPicture.asset(
               selectedIcon,
               key: ValueKey<String>(selectedIcon), // Para que detecte el cambio
-              width: 32,
-              height: 32,
+              width: widget.size,
+              height: widget.size,
             ),
           ),
         ),
