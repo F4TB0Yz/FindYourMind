@@ -17,7 +17,6 @@ class UpdateHabitUseCase {
   /// - El título está vacío
   /// - El dailyGoal es menor a 1
   Future<void> execute(HabitEntity habit) async {
-    // Validaciones de negocio
     if (habit.title.trim().isEmpty) {
       throw Exception('El título del hábito no puede estar vacío');
     }

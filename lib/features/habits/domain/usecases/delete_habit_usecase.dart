@@ -13,16 +13,11 @@ class DeleteHabitUseCase {
   /// 
   /// Lanza [ArgumentError] si el habitId está vacío
   Future<void> execute(String habitId) async {
-    print('🟢 UseCase: execute llamado con habitId: $habitId');
-    // Validación
     if (habitId.isEmpty) {
-      print('🔴 UseCase: Error - ID vacío');
       throw ArgumentError('El ID del hábito no puede estar vacío');
     }
-
-    print('🟢 UseCase: Llamando al repositorio...');
+    
     // Ejecutar eliminación
     await repository.deleteHabit(habitId);
-    print('🟢 UseCase: Repositorio completó la eliminación');
   }
 }

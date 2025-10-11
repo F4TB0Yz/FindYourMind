@@ -3,13 +3,9 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 /// Repositorio abstracto para las operaciones de hábitos
 /// Define el contrato que debe cumplir la implementación
 abstract class HabitRepository {
-  /// Obtiene todos los hábitos de un usuario por email
   Future<List<HabitEntity>> getHabitsByEmail(String email);
   
   /// Obtiene hábitos paginados de un usuario por email
-  /// [email] Email del usuario
-  /// [limit] Cantidad de hábitos por página (default: 10)
-  /// [offset] Offset para la paginación (default: 0)
   Future<List<HabitEntity>> getHabitsByEmailPaginated({
     required String email,
     int limit = 10,
