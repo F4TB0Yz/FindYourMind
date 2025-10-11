@@ -101,6 +101,11 @@ class HabitEntity {
     if (now.day < start.day) {
       months--;
     }
+
+    if (months == 1) {
+      return '1 mes';
+    }
+
     
     if (months < 12) {
       return '$months meses';
@@ -110,6 +115,10 @@ class HabitEntity {
     final years = (months / 12).floor();
     final remainingMonths = months % 12;
     if (remainingMonths == 0) {
+      if (years == 1) {
+        return '1 año';
+      }
+
       return '$years años';
     } else {
       return '$years años $remainingMonths m';
