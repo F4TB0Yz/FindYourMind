@@ -76,10 +76,18 @@ class HabitEntity {
       final minutes = difference.inMinutes % 60;
       return '${difference.inHours} h $minutes m';
     }
+
+    if (difference.inDays == 1) {
+      return '1 día';
+    }
     
     // Si han pasado menos de una semana (7 días)
     if (difference.inDays < 7) {
       return '${difference.inDays} días';
+    }
+
+    if (difference.inDays < 14) {
+      return '1 semana';
     }
     
     // Si han pasado menos de un mes (aproximadamente 30 días)
