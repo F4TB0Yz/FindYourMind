@@ -218,7 +218,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         const Text(
           'Meta Diaria',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
             color: Colors.white38,
           ),
@@ -351,7 +351,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
             color: isSubtitle ? Colors.white24 : Colors.white38,
           ),
