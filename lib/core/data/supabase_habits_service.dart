@@ -8,18 +8,22 @@ class SupabaseHabitsService {
 
   Future<String?> saveHabit(HabitEntity habit) async {
     try {
-      final response = await client.from('habits').insert({
-        'title': habit.title,
-        'user_id': habit.userId,
-        'description': habit.description,
-        'icon': habit.icon,
-        'type': TypeHabitModel().typeToString(habit.type),
-        'daily_goal': habit.dailyGoal,
-        'initial_date': habit.initialDate,
-      }).select('id').single();
-      if (response['id'] != null) {
-        return response['id'] as String;
-      }
+      final response = await client
+        .from('habits')
+        .insert({
+          'title': habit.title,
+          'user_id': habit.userId,
+          'description': habit.description,
+          'icon': habit.icon,
+          'type': TypeHabitModel().typeToString(habit.type),
+          'daily_goal': habit.dailyGoal,
+          'initial_date': habit.initialDate,
+        })
+        .select('id')
+        .single();
+
+      if (response['id'] != null) return response['id'] as String;
+      
     } catch (e) {
       throw Exception('Error al guardar el hábito en el servicio.');
     }
@@ -63,7 +67,7 @@ class SupabaseHabitsService {
       if (response['id'] != null) {
         return response['id'] as String;
       } else {
-        throw Exception('User not found');
+        throw Exception('Usuario no encontrado');
       }
     } catch (e) {
       throw Exception('Error al obtener el ID del usuario');
@@ -160,30 +164,23 @@ class SupabaseHabitsService {
   Future<void> deleteHabit(String habitId) async {
     try {
       // Primero eliminar todos los progresos asociados al hábito
-      final progressResult = await client
+      await client
         .from('habit_progress')
         .delete()
         .eq('habit_id', habitId)
         .select();
-      
-      print('Progresos eliminados: ${progressResult.length}');
-      
+            
       // Luego eliminar el hábito
       final habitResult = await client
         .from('habits')
         .delete()
         .eq('id', habitId)
         .select();
-      
-      print('Hábito eliminado: $habitResult');
-      
+            
       if (habitResult.isEmpty) {
         throw Exception('No se encontró el hábito con ID: $habitId');
       }
-      
-      print('Habit deleted successfully');
     } catch (e) {
-      print('Error detallado al eliminar el hábito: $e');
       throw Exception('Error al eliminar el hábito: ${e.toString()}');
     }
   }
@@ -204,11 +201,8 @@ class SupabaseHabitsService {
         'daily_goal': habit.dailyGoal,
       })
       .eq('id', habit.id);
-      print('Habit updated successfully');
   } catch (e) {
     throw Exception('Error al actualizar el hábito');
   }
 }
-
-  
 }
