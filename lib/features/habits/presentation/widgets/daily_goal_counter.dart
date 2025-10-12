@@ -38,11 +38,12 @@ class DailyGoalCounter extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.remove),
+          iconSize: 52,
         ),
         Text(
           newHabitProvider.dailyGoal.toString(),
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 24,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -52,6 +53,7 @@ class DailyGoalCounter extends StatelessWidget {
             newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal + 1);
           },
           icon: const Icon(Icons.add),
+          iconSize: 52,
         ),
       ],
     );
@@ -70,11 +72,12 @@ class DailyGoalCounter extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.remove),
+          iconSize: 52,
         ),
         Text(
           currentValue.toString(),
           style: const TextStyle(
-            fontSize: 16,
+            fontSize: 24,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -86,6 +89,7 @@ class DailyGoalCounter extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.add),
+          iconSize: 52,
         ),
       ],
     );

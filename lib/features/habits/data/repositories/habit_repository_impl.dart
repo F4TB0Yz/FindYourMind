@@ -2,7 +2,7 @@ import 'package:find_your_mind/core/data/supabase_habits_service.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 
-/// Implementación concreta del repositorio de hábitos
+/// Implementación del repositorio de hábitos
 /// Utiliza SupabaseHabitsService para las operaciones de datos
 class HabitRepositoryImpl implements HabitRepository {
   final SupabaseHabitsService _habitsService;
@@ -67,13 +67,10 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<void> deleteHabit(String habitId) async {
-    print('🟣 Repository: deleteHabit llamado con ID: $habitId');
     try {
       await _habitsService.deleteHabit(habitId);
-      print('🟣 Repository: Servicio completó la eliminación');
     } catch (e) {
-      print('🔴 Repository: Error en deleteHabit: $e');
-      rethrow;
+      throw Exception('Error al eliminar el hábito');
     }
   }
 }

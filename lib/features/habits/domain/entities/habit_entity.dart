@@ -76,10 +76,18 @@ class HabitEntity {
       final minutes = difference.inMinutes % 60;
       return '${difference.inHours} h $minutes m';
     }
+
+    if (difference.inDays == 1) {
+      return '1 día';
+    }
     
     // Si han pasado menos de una semana (7 días)
     if (difference.inDays < 7) {
       return '${difference.inDays} días';
+    }
+
+    if (difference.inDays < 14) {
+      return '1 semana';
     }
     
     // Si han pasado menos de un mes (aproximadamente 30 días)
@@ -93,6 +101,11 @@ class HabitEntity {
     if (now.day < start.day) {
       months--;
     }
+
+    if (months == 1) {
+      return '1 mes';
+    }
+
     
     if (months < 12) {
       return '$months meses';
@@ -102,6 +115,10 @@ class HabitEntity {
     final years = (months / 12).floor();
     final remainingMonths = months % 12;
     if (remainingMonths == 0) {
+      if (years == 1) {
+        return '1 año';
+      }
+
       return '$years años';
     } else {
       return '$years años $remainingMonths m';

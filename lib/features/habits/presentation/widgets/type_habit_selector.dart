@@ -16,7 +16,7 @@ class TypeHabitSelector extends StatelessWidget {
         Text(
           'Tipo de Habito',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
             color: Colors.white38
           ),

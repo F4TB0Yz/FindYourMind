@@ -1,7 +1,4 @@
 /// Constantes de animación utilizadas en toda la aplicación
-/// 
-/// Este archivo centraliza todas las duraciones de animaciones para
-/// mantener consistencia y facilitar cambios globales
 class AnimationConstants {
   // Prevenir instanciación
   AnimationConstants._();

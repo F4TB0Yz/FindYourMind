@@ -39,13 +39,14 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 20,
-          vertical: 4.0,
+          vertical: 20,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Agregar Icono
             AddIcon(
+              size: 52,
               saveIcon: (String iconPath) => {
                 newHabitProvider.setSelectedIcon(iconPath),
               },
@@ -62,22 +63,22 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
             _buildTextField(
               textController: newHabitProvider.descriptionController,
               title: 'Descripcion del Habito', 
-              fontSize: 12, 
+              fontSize: 16, 
               isSubtitle: true
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
 
             // Tipo de Habito
             const TypeHabitSelector(),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
 
             // Meta
             const Text(
               'Meta Diaria',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Colors.white38
               ),
@@ -88,7 +89,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
             const Text(
               '¿Cuantas veces al dia quieres cumplir tu habito?, como beber agua (5) veces al dia',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Colors.white24
               ),
