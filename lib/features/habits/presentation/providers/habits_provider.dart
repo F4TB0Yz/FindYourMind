@@ -5,7 +5,7 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class HabitsProvider extends ChangeNotifier {
   String _titleScreen = AppStrings.habitsTitle;
@@ -30,6 +30,7 @@ class HabitsProvider extends ChangeNotifier {
   bool get hasMore => _hasMore;
 
   void changeTitle(String newTitle) {
+    if (_titleScreen == newTitle) return;
     _titleScreen = newTitle;
     notifyListeners();
   }
@@ -66,14 +67,12 @@ class HabitsProvider extends ChangeNotifier {
         limit: _pageSize,
         offset: 0,
       );
-
-      print('Habits loaded: ${habits.length}');
       
       _habits.addAll(habits);
       _hasMore = habits.length == _pageSize;
       _currentPage = 1;
     } catch (e) {
-      print('Error al cargar hábitos: $e');
+      if (kDebugMode) print('Error loadHabits: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -96,14 +95,12 @@ class HabitsProvider extends ChangeNotifier {
         limit: _pageSize,
         offset: _currentPage * _pageSize,
       );
-
-      print('More habits loaded: ${newHabits.length}');
       
       _habits.addAll(newHabits);
       _hasMore = newHabits.length == _pageSize;
       _currentPage++;
     } catch (e) {
-      print('Error al cargar más hábitos: $e');
+      if (kDebugMode) print('Error loadMoreHabits: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -115,26 +112,25 @@ class HabitsProvider extends ChangeNotifier {
     final habitIndex = _habits.indexWhere(
       (habit) => habit.id == todayProgress.habitId);
 
-    if (habitIndex == -1) return;
+    if (habitIndex == -1) return; // Hábito no encontrado
 
     // Verificar si el progreso ya existe
-    final progressIndex = _habits[habitIndex].progress.indexWhere(
-      (p) => p.id == todayProgress.id
-    );
+    final progressIndex = _habits[habitIndex]
+      .progress
+      .indexWhere((p) => p.id == todayProgress.id);
 
     if (progressIndex == -1) {
       // Agregar nuevo progreso
-      final updatedHabit = _habits[habitIndex].copyWith(
-      progress: [..._habits[habitIndex].progress, todayProgress]
-      );
+      final updatedHabit = _habits[habitIndex]
+        .copyWith( progress: [..._habits[habitIndex].progress, todayProgress] );
       _habits[habitIndex] = updatedHabit;
     } else {
       // Actualizar progreso existente
       final updatedProgress = [..._habits[habitIndex].progress];
       updatedProgress[progressIndex] = todayProgress;
-      final updatedHabit = _habits[habitIndex].copyWith(
-        progress: updatedProgress
-      );
+
+      final updatedHabit = _habits[habitIndex]
+        .copyWith( progress: updatedProgress );
       _habits[habitIndex] = updatedHabit;
     }
     
@@ -145,7 +141,7 @@ class HabitsProvider extends ChangeNotifier {
   /// 
   /// Utiliza el caso de uso UpdateHabitUseCase que incluye validaciones
   /// y actualiza tanto la base de datos como el estado local
-  Future<void> updateHabit(HabitEntity updatedHabit) async {
+  Future<bool> updateHabit(HabitEntity updatedHabit) async {
     try {
       // Ejecutar el caso de uso (incluye validaciones)
       await _updateHabitUseCase.execute(updatedHabit);
@@ -156,24 +152,20 @@ class HabitsProvider extends ChangeNotifier {
         _habits[habitIndex] = updatedHabit;
         notifyListeners();
       }
+      return true;
     } catch (e) {
-      throw Exception('Error al actualizar el hábito');
+      if (kDebugMode) print('Error updateHabit: $e');
+      return false;
     }
   }
 
   Future<void> deleteHabit(String habitId) async {
-    print('🟡 Provider: deleteHabit llamado con ID: $habitId');
     try {
-      print('🟡 Provider: Ejecutando use case...');
       await _deleteHabitUseCase.execute(habitId);
-      print('🟡 Provider: Use case completado, removiendo de lista local...');
       _habits.removeWhere((h) => h.id == habitId);
-      print('🟡 Provider: Hábito removido de lista, notificando listeners...');
       notifyListeners();
-      print('🟡 Provider: Eliminación completada exitosamente');
     } catch (e) {
-      print('🔴 Provider: Error al eliminar el hábito: $e');
-      throw Exception('Error al eliminar el hábito: ${e.toString()}');
+      if (kDebugMode) print('Error deleteHabit: $e');
     }
   }
 }
