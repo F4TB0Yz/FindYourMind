@@ -3,7 +3,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/container_border_habits.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/item_habit.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
