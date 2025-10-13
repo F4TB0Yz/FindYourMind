@@ -9,10 +9,11 @@ import 'package:flutter/foundation.dart';
 
 class HabitsProvider extends ChangeNotifier {
   String _titleScreen = AppStrings.habitsTitle;
-  final List<HabitEntity> _habits = [];
+  bool _isEditing = false;
   bool _isLoading = false;
   bool _hasMore = true;
   int _currentPage = 0;
+  final List<HabitEntity> _habits = [];
   static const int _pageSize = 10;
   
   // Casos de uso - inicialización directa
@@ -25,6 +26,7 @@ class HabitsProvider extends ChangeNotifier {
   );
 
   String get titleScreen => _titleScreen;
+  bool get isEditing => _isEditing;
   List<HabitEntity> get habits => _habits;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
@@ -42,6 +44,11 @@ class HabitsProvider extends ChangeNotifier {
       // por lo que se cambia antes de construir el widget
       // notifyListeners();
     }
+  }
+
+  void changeIsEditing(bool editing) {
+    if (_isEditing != editing) _isEditing = editing;;
+    notifyListeners();
   }
 
   void addHabit(HabitEntity habit) {

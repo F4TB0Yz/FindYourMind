@@ -143,6 +143,7 @@ class _EditingViewState extends State<EditingView> {
                 onTap: () {
                   setState(() {
                     // Restaurar valores originales
+                    habitsProvider.changeIsEditing(false);
                     _titleController.text = widget.habit.title;
                     _descriptionController.text = widget.habit.description;
                     _selectedIcon = widget.habit.icon;

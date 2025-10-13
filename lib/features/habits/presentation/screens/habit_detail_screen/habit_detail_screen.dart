@@ -21,7 +21,7 @@ class HabitDetailScreen extends StatefulWidget {
 }
 
 class _HabitDetailScreenState extends State<HabitDetailScreen> {
-  bool isEditing = false;
+  late bool isEditing;
   late ScreensProvider screensProvider;
   late HabitsProvider habitsProvider;
 
@@ -29,6 +29,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   Widget build(BuildContext context) {
     habitsProvider = Provider.of<HabitsProvider>(context);
     screensProvider = Provider.of<ScreensProvider>(context);
+    isEditing = habitsProvider.isEditing;
 
     // Obtener el hábito actualizado del provider
     final currentHabit = habitsProvider.habits.firstWhere(
@@ -97,9 +98,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
   Widget _buildToggleEditButton() {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          isEditing = !isEditing;
-        });
+        habitsProvider.changeIsEditing(!isEditing);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
