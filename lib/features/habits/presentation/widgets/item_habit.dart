@@ -7,7 +7,7 @@ import 'package:find_your_mind/core/utils/date_utils.dart' as custom_date_utils;
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen.dart';
+import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/habit_detail_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/delete_habit_dialog.dart';
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
