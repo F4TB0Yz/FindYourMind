@@ -1,3 +1,4 @@
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,10 +20,21 @@ class DailyGoalCounter extends StatelessWidget {
     // Si useProvider es true, usa el NewHabitProvider (para crear hábitos)
     // Si es false, usa el valor local (para editar hábitos)
     if (useProvider) {
-      return _buildWithProvider(context);
+      return _buildBackground(_buildWithProvider(context));
     } else {
-      return _buildWithLocalState(context);
+      return _buildBackground(_buildWithLocalState(context));
     }
+  }
+
+  Widget _buildBackground(Widget child) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: AppColors.darkBackground,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: child,
+    );
   }
 
   Widget _buildWithProvider(BuildContext context) {
@@ -72,7 +84,7 @@ class DailyGoalCounter extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.remove),
-          iconSize: 52,
+          iconSize: 32,
         ),
         Text(
           currentValue.toString(),
@@ -89,7 +101,7 @@ class DailyGoalCounter extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.add),
-          iconSize: 52,
+          iconSize: 32,
         ),
       ],
     );

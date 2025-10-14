@@ -15,7 +15,6 @@ import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class NewHabitScreen extends StatefulWidget {
