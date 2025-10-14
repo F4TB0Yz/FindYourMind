@@ -50,8 +50,6 @@ class HabitProgressManager {
   }
 
   /// Incrementa el contador de progreso del día actual
-  /// 
-  /// Retorna true si la operación fue exitosa, false en caso contrario
   Future<bool> incrementProgress() async {
     final todayProgress = _getTodayProgress();
     
@@ -78,8 +76,6 @@ class HabitProgressManager {
   }
 
   /// Decrementa el contador de progreso del día actual
-  /// 
-  /// Retorna true si la operación fue exitosa, false en caso contrario
   Future<bool> decrementProgress() async {
     final todayProgress = _getTodayProgress();
     
