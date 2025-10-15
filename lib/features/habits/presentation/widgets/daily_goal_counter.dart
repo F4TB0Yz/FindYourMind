@@ -50,7 +50,7 @@ class DailyGoalCounter extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.remove),
-          iconSize: 52,
+          iconSize: 32,
         ),
         Text(
           newHabitProvider.dailyGoal.toString(),
@@ -65,7 +65,7 @@ class DailyGoalCounter extends StatelessWidget {
             newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal + 1);
           },
           icon: const Icon(Icons.add),
-          iconSize: 52,
+          iconSize: 32,
         ),
       ],
     );

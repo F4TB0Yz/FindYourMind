@@ -1,4 +1,4 @@
-import 'package:find_your_mind/core/data/supabase_habits_service.dart';
+import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/utils/date_utils.dart' as custom_date_utils;
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
@@ -133,16 +133,24 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
 
     if (!_verifyFields(habit)) return;
 
-    final supabaseService = SupabaseHabitsService();
-    final String? habitId = await supabaseService.saveHabit(habit);
+    final repository = DependencyInjection().habitRepository;
+    final result = await repository.createHabit(habit);
 
-    if (habitId == null && context.mounted) {
-      CustomToast.showToast(
-        context: context, 
-        message: 'Error al guardar el habito'
-      );
-      return;
-    } 
+    final String? habitId = result.fold(
+      (failure) {
+        if (context.mounted) {
+          // Como Failure es abstracto, mostramos un mensaje genérico
+          CustomToast.showToast(
+            context: context, 
+            message: 'Error al guardar el hábito'
+          );
+        }
+        return null;
+      },
+      (id) => id,
+    );
+
+    if (habitId == null) return; 
 
     habitsProvider.addHabit(habit.copyWith(id: habitId));
 
@@ -158,8 +166,8 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
 
     final String todayString = custom_date_utils.DateUtils.todayString();
 
-    final String? progressId = await supabaseService.createHabitProgress(
-      habitId: habitId!, 
+    final String? progressId = await repository.createHabitProgress(
+      habitId: habitId, 
       date: todayString, 
       dailyCounter: 0, 
       dailyGoal: habit.dailyGoal

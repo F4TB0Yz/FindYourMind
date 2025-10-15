@@ -1,8 +1,9 @@
 import 'dart:developer' as developer;
-import 'package:find_your_mind/core/data/supabase_habits_service.dart';
+import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/utils/date_utils.dart' as custom_date_utils;
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 
 /// Gestiona las operaciones de progreso de un hábito (incrementar/decrementar)
@@ -15,13 +16,13 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 class HabitProgressManager {
   final HabitEntity habit;
   final HabitsProvider provider;
-  final SupabaseHabitsService supabaseService;
+  final HabitRepository _repository;
 
   HabitProgressManager({
     required this.habit,
     required this.provider,
-    SupabaseHabitsService? supabaseService,
-  }) : supabaseService = supabaseService ?? SupabaseHabitsService();
+    HabitRepository? repository,
+  }) : _repository = repository ?? DependencyInjection().habitRepository;
 
   /// Obtiene el progreso de hoy o crea uno nuevo si no existe
   HabitProgress _getTodayProgress() {
@@ -103,7 +104,7 @@ class HabitProgressManager {
   Future<bool> _createNewProgress() async {
     final String todayString = custom_date_utils.DateUtils.todayString();
     
-    final newProgressId = await supabaseService.createHabitProgress(
+    final newProgressId = await _repository.createHabitProgress(
       habitId: habit.id,
       date: todayString,
       dailyGoal: habit.dailyGoal,
@@ -139,7 +140,7 @@ class HabitProgressManager {
         ? progress.dailyCounter + 1
         : progress.dailyCounter - 1;
 
-    await supabaseService.updateHabitProgress(
+    await _repository.updateHabitProgress(
       habit.id,
       progress.id,
       newCounter,

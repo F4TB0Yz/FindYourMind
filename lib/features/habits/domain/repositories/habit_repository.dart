@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 
 /// Repositorio abstracto para las operaciones de hábitos
@@ -13,7 +15,7 @@ abstract class HabitRepository {
   });
   
   /// Guarda un nuevo hábito
-  Future<String?> saveHabit(HabitEntity habit);
+  Future<Either<Failure, String>> createHabit(HabitEntity habit);
   
   /// Actualiza un hábito existente
   Future<void> updateHabit(HabitEntity habit);

@@ -15,6 +15,8 @@ class NewHabitProvider extends ChangeNotifier {
   String get selectedIcon => _selectedIcon;
   TypeHabit get typeHabitSelected => _typeHabitSelected;
 
+  NewHabitProvider();
+
   void setTypeHabit(TypeHabit type) {
     _typeHabitSelected = type;
     _isSelectedTypeHabit = true;
