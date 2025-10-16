@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 
 /// Repositorio abstracto para las operaciones de hábitos
@@ -13,13 +15,15 @@ abstract class HabitRepository {
   });
   
   /// Guarda un nuevo hábito
-  Future<String?> saveHabit(HabitEntity habit);
+  Future<Either<Failure, String>> createHabit(HabitEntity habit);
   
   /// Actualiza un hábito existente
-  Future<void> updateHabit(HabitEntity habit);
+  /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló
+  Future<Either<Failure, void>> updateHabit(HabitEntity habit);
   
   /// Actualiza el progreso de un hábito
-  Future<void> updateHabitProgress(
+  /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló
+  Future<Either<Failure, void>> updateHabitProgress(
     String habitId, 
     String progressId, 
     int newCounter
@@ -34,5 +38,6 @@ abstract class HabitRepository {
   });
   
   /// Elimina un hábito y todo su progreso asociado
-  Future<void> deleteHabit(String habitId);
+  /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló
+  Future<Either<Failure, void>> deleteHabit(String habitId);
 }

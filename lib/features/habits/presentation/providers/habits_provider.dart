@@ -1,10 +1,10 @@
+import 'dart:async';
+import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/constants/string_constants.dart';
-import 'package:find_your_mind/core/data/supabase_habits_service.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:flutter/foundation.dart';
 
 class HabitsProvider extends ChangeNotifier {
@@ -16,20 +16,72 @@ class HabitsProvider extends ChangeNotifier {
   final List<HabitEntity> _habits = [];
   static const int _pageSize = 10;
   
-  // Casos de uso - inicialización directa
-  final UpdateHabitUseCase _updateHabitUseCase = UpdateHabitUseCase(
-    HabitRepositoryImpl(SupabaseHabitsService())
-  );
+  // Repositorio con lógica offline-first
+  final HabitRepository _repository = DependencyInjection().habitRepository;
   
-  final DeleteHabitUseCase _deleteHabitUseCase = DeleteHabitUseCase(
-    HabitRepositoryImpl(SupabaseHabitsService())
-  );
+  // Timer para sincronización automática
+  Timer? _syncTimer;
+  
+  // UUID del usuario de Supabase
+  final String _userId = 'c2fa89e9-ab8e-4592-b14e-223d7d7aa55d';
 
   String get titleScreen => _titleScreen;
   bool get isEditing => _isEditing;
   List<HabitEntity> get habits => _habits;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
+
+  HabitsProvider() {
+    _startAutoSync();
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Inicia la sincronización automática cada 5 minutos
+  void _startAutoSync() {
+    _syncTimer = Timer.periodic(const Duration(minutes: 5), (_) async {
+      await _syncInBackground();
+    });
+  }
+
+  /// Sincroniza en segundo plano sin bloquear la UI
+  Future<void> _syncInBackground() async {
+    try {
+      // Delay para asegurar que las operaciones de escritura anteriores terminen
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      final repo = _repository as HabitRepositoryImpl;
+      await repo.syncWithRemote(_userId);
+      
+      // Otro delay antes de refrescar
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Recargar datos actualizados
+      await _refreshHabitsFromLocal();
+    } catch (e) {
+      // Sincronización silenciosa, no mostrar error al usuario
+      if (kDebugMode) print('🔄 Sincronización en segundo plano (no crítico): $e');
+    }
+  }
+
+  /// Recarga hábitos desde SQLite sin mostrar loading
+  Future<void> _refreshHabitsFromLocal() async {
+    try {
+      print('🔄 [PROVIDER] Refrescando desde SQLite...');
+      final updatedHabits = await _repository.getHabitsByEmail(_userId);
+      _habits.clear();
+      _habits.addAll(updatedHabits);
+      notifyListeners();
+      print('✅ [PROVIDER] Refrescado exitoso - ${updatedHabits.length} hábitos');
+    } catch (e) {
+      // Error no crítico - los datos ya están cargados en memoria
+      if (kDebugMode) print('⚠️ Error al refrescar desde SQLite (datos ya en memoria): $e');
+    }
+  }
 
   void changeTitle(String newTitle) {
     if (_titleScreen == newTitle) return;
@@ -40,14 +92,11 @@ class HabitsProvider extends ChangeNotifier {
   void resetTitle() {
     if ( _titleScreen != AppStrings.habitsTitle) {
       _titleScreen = AppStrings.habitsTitle;
-      // No es necesario notificar ya que se llama en initState
-      // por lo que se cambia antes de construir el widget
-      // notifyListeners();
     }
   }
 
   void changeIsEditing(bool editing) {
-    if (_isEditing != editing) _isEditing = editing;;
+    if (_isEditing != editing) _isEditing = editing;
     notifyListeners();
   }
 
@@ -56,37 +105,43 @@ class HabitsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Carga la primera página de hábitos
+  /// Carga hábitos desde SQLite (instantáneo) y sincroniza en segundo plano
   Future<void> loadHabits() async {
     if (_isLoading) return;
     
+    print('🚀 [PROVIDER] Iniciando loadHabits()...');
     _isLoading = true;
     _currentPage = 0;
     _habits.clear();
     notifyListeners();
 
     try {
-      final SupabaseHabitsService supabaseService = SupabaseHabitsService();
-      final HabitRepositoryImpl repository = HabitRepositoryImpl(supabaseService);
-      
-      final List<HabitEntity> habits = await repository.getHabitsByEmailPaginated(
-        email: 'jfduarte09@gmail.com',
+      print('📞 [PROVIDER] Llamando a repository.getHabitsByEmailPaginated...');
+      // Cargar desde SQLite (offline-first, instantáneo)
+      final List<HabitEntity> habits = await _repository.getHabitsByEmailPaginated(
+        email: _userId,
         limit: _pageSize,
         offset: 0,
       );
       
+      print('✅ [PROVIDER] Recibidos ${habits.length} hábitos del repository');
       _habits.addAll(habits);
       _hasMore = habits.length == _pageSize;
       _currentPage = 1;
+      
+      // Sincronización en segundo plano (no bloquea la UI)
+      _syncInBackground();
     } catch (e) {
-      if (kDebugMode) print('Error loadHabits: $e');
+      print('❌ [PROVIDER] Error loadHabits: $e');
+      if (kDebugMode) print('❌ Error loadHabits: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+      print('🏁 [PROVIDER] loadHabits() finalizado - ${_habits.length} hábitos en memoria');
     }
   }
 
-  /// Carga más hábitos (lazy loading)
+  /// Carga más hábitos con paginación
   Future<void> loadMoreHabits() async {
     if (_isLoading || !_hasMore) return;
 
@@ -94,11 +149,8 @@ class HabitsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final SupabaseHabitsService supabaseService = SupabaseHabitsService();
-      final HabitRepositoryImpl repository = HabitRepositoryImpl(supabaseService);
-      
-      final List<HabitEntity> newHabits = await repository.getHabitsByEmailPaginated(
-        email: 'jfduarte09@gmail.com',
+      final List<HabitEntity> newHabits = await _repository.getHabitsByEmailPaginated(
+        email: _userId,
         limit: _pageSize,
         offset: _currentPage * _pageSize,
       );
@@ -107,72 +159,169 @@ class HabitsProvider extends ChangeNotifier {
       _hasMore = newHabits.length == _pageSize;
       _currentPage++;
     } catch (e) {
-      if (kDebugMode) print('Error loadMoreHabits: $e');
+      if (kDebugMode) print('❌ Error loadMoreHabits: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> updateHabitProgress(HabitProgress todayProgress) async {
-    // Buscar el hábito por ID  
-    final habitIndex = _habits.indexWhere(
-      (habit) => habit.id == todayProgress.habitId);
-
-    if (habitIndex == -1) return; // Hábito no encontrado
-
-    // Verificar si el progreso ya existe
-    final progressIndex = _habits[habitIndex]
-      .progress
-      .indexWhere((p) => p.id == todayProgress.id);
-
-    if (progressIndex == -1) {
-      // Agregar nuevo progreso
-      final updatedHabit = _habits[habitIndex]
-        .copyWith( progress: [..._habits[habitIndex].progress, todayProgress] );
-      _habits[habitIndex] = updatedHabit;
-    } else {
-      // Actualizar progreso existente
-      final updatedProgress = [..._habits[habitIndex].progress];
-      updatedProgress[progressIndex] = todayProgress;
-
-      final updatedHabit = _habits[habitIndex]
-        .copyWith( progress: updatedProgress );
-      _habits[habitIndex] = updatedHabit;
-    }
-    
-    notifyListeners();
-  }
-
-  /// Actualiza un hábito existente
-  /// 
-  /// Utiliza el caso de uso UpdateHabitUseCase que incluye validaciones
-  /// y actualiza tanto la base de datos como el estado local
-  Future<bool> updateHabit(HabitEntity updatedHabit) async {
+  /// Actualiza el progreso de un hábito (funciona offline)
+  Future<bool> updateHabitProgress(HabitProgress todayProgress) async {
     try {
-      // Ejecutar el caso de uso (incluye validaciones)
-      await _updateHabitUseCase.execute(updatedHabit);
-      
-      // Actualizar el estado local
-      final habitIndex = _habits.indexWhere((h) => h.id == updatedHabit.id);
-      if (habitIndex != -1) {
-        _habits[habitIndex] = updatedHabit;
-        notifyListeners();
-      }
-      return true;
+      // Actualizar en el repositorio (SQLite + sync automático)
+      final result = await _repository.updateHabitProgress(
+        todayProgress.habitId,
+        todayProgress.id,
+        todayProgress.dailyCounter,
+      );
+
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al actualizar progreso: ${failure.message}');
+          return false;
+        },
+        (_) {
+          // Actualizar el estado local
+          final habitIndex = _habits.indexWhere(
+            (habit) => habit.id == todayProgress.habitId
+          );
+
+          if (habitIndex == -1) return true;
+
+          final progressIndex = _habits[habitIndex]
+            .progress
+            .indexWhere((p) => p.id == todayProgress.id);
+
+          if (progressIndex == -1) {
+            // Agregar nuevo progreso
+            final updatedHabit = _habits[habitIndex]
+              .copyWith(progress: [..._habits[habitIndex].progress, todayProgress]);
+            _habits[habitIndex] = updatedHabit;
+          } else {
+            // Actualizar progreso existente
+            final updatedProgress = [..._habits[habitIndex].progress];
+            updatedProgress[progressIndex] = todayProgress;
+
+            final updatedHabit = _habits[habitIndex]
+              .copyWith(progress: updatedProgress);
+            _habits[habitIndex] = updatedHabit;
+          }
+          
+          notifyListeners();
+          return true;
+        },
+      );
     } catch (e) {
-      if (kDebugMode) print('Error updateHabit: $e');
+      if (kDebugMode) print('❌ Error updateHabitProgress: $e');
       return false;
     }
   }
 
-  Future<void> deleteHabit(String habitId) async {
+  /// Actualiza un hábito existente (funciona offline)
+  Future<bool> updateHabit(HabitEntity updatedHabit) async {
     try {
-      await _deleteHabitUseCase.execute(habitId);
-      _habits.removeWhere((h) => h.id == habitId);
-      notifyListeners();
+      // Actualizar en el repositorio (SQLite + sync automático)
+      final result = await _repository.updateHabit(updatedHabit);
+      
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al actualizar hábito: ${failure.message}');
+          return false;
+        },
+        (_) {
+          // Actualizar el estado local
+          final habitIndex = _habits.indexWhere((h) => h.id == updatedHabit.id);
+          if (habitIndex != -1) {
+            _habits[habitIndex] = updatedHabit;
+            notifyListeners();
+          }
+          return true;
+        },
+      );
     } catch (e) {
-      if (kDebugMode) print('Error deleteHabit: $e');
+      if (kDebugMode) print('❌ Error updateHabit: $e');
+      return false;
+    }
+  }
+
+  /// Crea un nuevo hábito (funciona offline)
+  Future<String?> createHabit(HabitEntity habit) async {
+    try {
+      // Crear en el repositorio (SQLite + sync automático)
+      final result = await _repository.createHabit(habit);
+      
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al crear hábito: ${failure.message}');
+          return null;
+        },
+        (habitId) {
+          // Actualizar el estado local
+          final habitWithId = habit.copyWith(id: habitId);
+          _habits.insert(0, habitWithId); // Agregar al principio (más reciente)
+          notifyListeners();
+          return habitId;
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print('❌ Error createHabit: $e');
+      return null;
+    }
+  }
+
+  /// Elimina un hábito (funciona offline)
+  Future<bool> deleteHabit(String habitId) async {
+    try {
+      // Eliminar del repositorio (SQLite + sync automático)
+      final result = await _repository.deleteHabit(habitId);
+      
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al eliminar hábito: ${failure.message}');
+          return false;
+        },
+        (_) {
+          // Actualizar el estado local
+          _habits.removeWhere((h) => h.id == habitId);
+          notifyListeners();
+          return true;
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print('❌ Error deleteHabit: $e');
+      return false;
+    }
+  }
+
+  /// Sincronización manual (para botón de refresh)
+  Future<bool> syncWithServer() async {
+    try {
+      if (_repository is! HabitRepositoryImpl) return false;
+      
+      final result = await (_repository as dynamic).syncWithRemote(_userId);
+      
+      if (result.isFullSuccess || result.success > 0) {
+        // Recargar datos actualizados
+        await loadHabits();
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      if (kDebugMode) print('❌ Error syncWithServer: $e');
+      return false;
+    }
+  }
+
+  /// Obtiene el número de cambios pendientes de sincronización
+  Future<int> getPendingChangesCount() async {
+    try {
+      if (_repository is! HabitRepositoryImpl) return 0;
+      return await (_repository as dynamic).getPendingSyncCount();
+    } catch (e) {
+      if (kDebugMode) print('❌ Error getPendingChangesCount: $e');
+      return 0;
     }
   }
 }

@@ -24,18 +24,18 @@ class TypeHabitModel {
     }
   }
 
-  String typeToString(TypeHabit type) {
+  static String typeToString(TypeHabit type) {
     switch (type) {
       case TypeHabit.health:
-        return health;
+        return 'health';
       case TypeHabit.personal:
-        return personal;
+        return 'personal';
       case TypeHabit.productivity:
-        return productivity;
+        return 'productivity';
       case TypeHabit.other:
-        return other;
+        return 'other';
       case TypeHabit.none:
-        return none;
+        return 'none';
     }
   }
 }

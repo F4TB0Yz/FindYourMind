@@ -1,4 +1,5 @@
 import 'package:find_your_mind/config/theme/app_theme.dart';
+import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/config/supabase_config.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
@@ -17,7 +18,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicializar variables de entorno y Supabase
   await _loadEnv();
+
+  // Inicializar todas las dependencias (incluye DatabaseHelper/SQLite)
+  await DependencyInjection().initialize();
 
   runApp(
     MultiProvider(
