@@ -167,44 +167,54 @@ class HabitsProvider extends ChangeNotifier {
   }
 
   /// Actualiza el progreso de un hábito (funciona offline)
-  Future<void> updateHabitProgress(HabitProgress todayProgress) async {
+  Future<bool> updateHabitProgress(HabitProgress todayProgress) async {
     try {
       // Actualizar en el repositorio (SQLite + sync automático)
-      await _repository.updateHabitProgress(
+      final result = await _repository.updateHabitProgress(
         todayProgress.habitId,
         todayProgress.id,
         todayProgress.dailyCounter,
       );
 
-      // Actualizar el estado local
-      final habitIndex = _habits.indexWhere(
-        (habit) => habit.id == todayProgress.habitId
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al actualizar progreso: ${failure.message}');
+          return false;
+        },
+        (_) {
+          // Actualizar el estado local
+          final habitIndex = _habits.indexWhere(
+            (habit) => habit.id == todayProgress.habitId
+          );
+
+          if (habitIndex == -1) return true;
+
+          final progressIndex = _habits[habitIndex]
+            .progress
+            .indexWhere((p) => p.id == todayProgress.id);
+
+          if (progressIndex == -1) {
+            // Agregar nuevo progreso
+            final updatedHabit = _habits[habitIndex]
+              .copyWith(progress: [..._habits[habitIndex].progress, todayProgress]);
+            _habits[habitIndex] = updatedHabit;
+          } else {
+            // Actualizar progreso existente
+            final updatedProgress = [..._habits[habitIndex].progress];
+            updatedProgress[progressIndex] = todayProgress;
+
+            final updatedHabit = _habits[habitIndex]
+              .copyWith(progress: updatedProgress);
+            _habits[habitIndex] = updatedHabit;
+          }
+          
+          notifyListeners();
+          return true;
+        },
       );
-
-      if (habitIndex == -1) return;
-
-      final progressIndex = _habits[habitIndex]
-        .progress
-        .indexWhere((p) => p.id == todayProgress.id);
-
-      if (progressIndex == -1) {
-        // Agregar nuevo progreso
-        final updatedHabit = _habits[habitIndex]
-          .copyWith(progress: [..._habits[habitIndex].progress, todayProgress]);
-        _habits[habitIndex] = updatedHabit;
-      } else {
-        // Actualizar progreso existente
-        final updatedProgress = [..._habits[habitIndex].progress];
-        updatedProgress[progressIndex] = todayProgress;
-
-        final updatedHabit = _habits[habitIndex]
-          .copyWith(progress: updatedProgress);
-        _habits[habitIndex] = updatedHabit;
-      }
-      
-      notifyListeners();
     } catch (e) {
       if (kDebugMode) print('❌ Error updateHabitProgress: $e');
+      return false;
     }
   }
 
@@ -212,32 +222,75 @@ class HabitsProvider extends ChangeNotifier {
   Future<bool> updateHabit(HabitEntity updatedHabit) async {
     try {
       // Actualizar en el repositorio (SQLite + sync automático)
-      await _repository.updateHabit(updatedHabit);
+      final result = await _repository.updateHabit(updatedHabit);
       
-      // Actualizar el estado local
-      final habitIndex = _habits.indexWhere((h) => h.id == updatedHabit.id);
-      if (habitIndex != -1) {
-        _habits[habitIndex] = updatedHabit;
-        notifyListeners();
-      }
-      return true;
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al actualizar hábito: ${failure.message}');
+          return false;
+        },
+        (_) {
+          // Actualizar el estado local
+          final habitIndex = _habits.indexWhere((h) => h.id == updatedHabit.id);
+          if (habitIndex != -1) {
+            _habits[habitIndex] = updatedHabit;
+            notifyListeners();
+          }
+          return true;
+        },
+      );
     } catch (e) {
       if (kDebugMode) print('❌ Error updateHabit: $e');
       return false;
     }
   }
 
+  /// Crea un nuevo hábito (funciona offline)
+  Future<String?> createHabit(HabitEntity habit) async {
+    try {
+      // Crear en el repositorio (SQLite + sync automático)
+      final result = await _repository.createHabit(habit);
+      
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al crear hábito: ${failure.message}');
+          return null;
+        },
+        (habitId) {
+          // Actualizar el estado local
+          final habitWithId = habit.copyWith(id: habitId);
+          _habits.insert(0, habitWithId); // Agregar al principio (más reciente)
+          notifyListeners();
+          return habitId;
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print('❌ Error createHabit: $e');
+      return null;
+    }
+  }
+
   /// Elimina un hábito (funciona offline)
-  Future<void> deleteHabit(String habitId) async {
+  Future<bool> deleteHabit(String habitId) async {
     try {
       // Eliminar del repositorio (SQLite + sync automático)
-      await _repository.deleteHabit(habitId);
+      final result = await _repository.deleteHabit(habitId);
       
-      // Actualizar el estado local
-      _habits.removeWhere((h) => h.id == habitId);
-      notifyListeners();
+      return result.fold(
+        (failure) {
+          if (kDebugMode) print('❌ Error al eliminar hábito: ${failure.message}');
+          return false;
+        },
+        (_) {
+          // Actualizar el estado local
+          _habits.removeWhere((h) => h.id == habitId);
+          notifyListeners();
+          return true;
+        },
+      );
     } catch (e) {
       if (kDebugMode) print('❌ Error deleteHabit: $e');
+      return false;
     }
   }
 

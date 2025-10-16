@@ -140,57 +140,80 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<void> updateHabit(HabitEntity habit) async {
-    // 1. Actualizar en SQLite primero
-    await _localDataSource.updateHabit(habit);
+  Future<Either<Failure, void>> updateHabit(HabitEntity habit) async {
+    try {
+      // 1. Actualizar en SQLite primero
+      await _localDataSource.updateHabit(habit);
 
-    // 2. Intentar actualizar en Supabase si hay internet
-    if (await _networkInfo.isConnected) {
-      try {
-        await _remoteDataSource.updateHabit(habit);
-      } catch (e) {
-        // Si falla, marcar como pendiente de sincronización
+      // 2. Intentar actualizar en Supabase si hay internet
+      if (await _networkInfo.isConnected) {
+        try {
+          await _remoteDataSource.updateHabit(habit);
+          return const Right(null);
+        } catch (e) {
+          // Si falla, marcar como pendiente de sincronización
+          await _syncService.markPendingSync(
+            entityType: 'habit',
+            entityId: habit.id,
+            action: 'update',
+            data: _habitToJson(habit),
+          );
+          return const Right(null); // Éxito local, sincronización pendiente
+        }
+      } else {
+        // Sin internet, marcar para sincronizar después
         await _syncService.markPendingSync(
           entityType: 'habit',
           entityId: habit.id,
           action: 'update',
           data: _habitToJson(habit),
         );
+        return const Right(null); // Éxito local, sincronización pendiente
       }
-    } else {
-      // Sin internet, marcar para sincronizar después
-      await _syncService.markPendingSync(
-        entityType: 'habit',
-        entityId: habit.id,
-        action: 'update',
-        data: _habitToJson(habit),
-      );
+    } catch (e) {
+      return Left(CacheFailure(message: 'Error al actualizar hábito: ${e.toString()}'));
     }
   }
 
   @override
-  Future<void> updateHabitProgress(
+  Future<Either<Failure, void>> updateHabitProgress(
     String habitId,
     String progressId,
     int newCounter,
   ) async {
-    // 1. Actualizar en SQLite primero
-    await _localDataSource.incrementHabitProgress(
-      habitId: habitId,
-      progressId: progressId,
-      newCounter: newCounter,
-    );
+    try {
+      // 1. Actualizar en SQLite primero
+      await _localDataSource.incrementHabitProgress(
+        habitId: habitId,
+        progressId: progressId,
+        newCounter: newCounter,
+      );
 
-    // 2. Intentar actualizar en Supabase si hay internet
-    if (await _networkInfo.isConnected) {
-      try {
-        await _remoteDataSource.incrementHabitProgress(
-          habitId: habitId,
-          progressId: progressId,
-          newCounter: newCounter,
-        );
-      } catch (e) {
-        // Si falla, marcar como pendiente de sincronización
+      // 2. Intentar actualizar en Supabase si hay internet
+      if (await _networkInfo.isConnected) {
+        try {
+          await _remoteDataSource.incrementHabitProgress(
+            habitId: habitId,
+            progressId: progressId,
+            newCounter: newCounter,
+          );
+          return const Right(null);
+        } catch (e) {
+          // Si falla, marcar como pendiente de sincronización
+          await _syncService.markPendingSync(
+            entityType: 'progress',
+            entityId: progressId,
+            action: 'update',
+            data: {
+              'id': progressId,
+              'habit_id': habitId,
+              'daily_counter': newCounter,
+            },
+          );
+          return const Right(null); // Éxito local, sincronización pendiente
+        }
+      } else {
+        // Sin internet, marcar para sincronizar después
         await _syncService.markPendingSync(
           entityType: 'progress',
           entityId: progressId,
@@ -201,19 +224,10 @@ class HabitRepositoryImpl implements HabitRepository {
             'daily_counter': newCounter,
           },
         );
+        return const Right(null); // Éxito local, sincronización pendiente
       }
-    } else {
-      // Sin internet, marcar para sincronizar después
-      await _syncService.markPendingSync(
-        entityType: 'progress',
-        entityId: progressId,
-        action: 'update',
-        data: {
-          'id': progressId,
-          'habit_id': habitId,
-          'daily_counter': newCounter,
-        },
-      );
+    } catch (e) {
+      return Left(CacheFailure(message: 'Error al actualizar progreso: ${e.toString()}'));
     }
   }
 
@@ -278,31 +292,38 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<void> deleteHabit(String habitId) async {
-    // 1. Eliminar de SQLite primero
-    await _localDataSource.deleteHabit(habitId);
+  Future<Either<Failure, void>> deleteHabit(String habitId) async {
+    try {
+      // 1. Eliminar de SQLite primero
+      await _localDataSource.deleteHabit(habitId);
 
-    // 2. Intentar eliminar en Supabase si hay internet
-    if (await _networkInfo.isConnected) {
-      try {
-        await _remoteDataSource.deleteHabit(habitId);
-      } catch (e) {
-        // Si falla, marcar como pendiente de sincronización
+      // 2. Intentar eliminar en Supabase si hay internet
+      if (await _networkInfo.isConnected) {
+        try {
+          await _remoteDataSource.deleteHabit(habitId);
+          return const Right(null);
+        } catch (e) {
+          // Si falla, marcar como pendiente de sincronización
+          await _syncService.markPendingSync(
+            entityType: 'habit',
+            entityId: habitId,
+            action: 'delete',
+            data: {'id': habitId},
+          );
+          return const Right(null); // Éxito local, sincronización pendiente
+        }
+      } else {
+        // Sin internet, marcar para sincronizar después
         await _syncService.markPendingSync(
           entityType: 'habit',
           entityId: habitId,
           action: 'delete',
           data: {'id': habitId},
         );
+        return const Right(null); // Éxito local, sincronización pendiente
       }
-    } else {
-      // Sin internet, marcar para sincronizar después
-      await _syncService.markPendingSync(
-        entityType: 'habit',
-        entityId: habitId,
-        action: 'delete',
-        data: {'id': habitId},
-      );
+    } catch (e) {
+      return Left(CacheFailure(message: 'Error al eliminar hábito: ${e.toString()}'));
     }
   }
 

@@ -4,6 +4,8 @@ import 'package:find_your_mind/features/habits/presentation/screens/new_habit_sc
 import 'package:find_your_mind/features/habits/presentation/widgets/container_border_habits.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
@@ -62,7 +64,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
       child: Column(
         children: [
-          // TabView
+          // TabView con indicador de sincronización
           Container(
             width: double.infinity,
             height: 30,
@@ -72,17 +74,41 @@ class _HabitsScreenState extends State<HabitsScreen> {
               borderRadius: BorderRadius.all(Radius.circular(5)),
               color: AppColors.darkBackground
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Todos'),
-                Text('Recomendados'),
-                Text('+'),
+                const Text('Todos'),
+                const Text('Recomendados'),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ⭐ Widget de sincronización agregado
+                    const SyncStatusIndicator(),
+                    const SizedBox(width: 8),
+                    const Text('+'),
+                  ],
+                ),
               ],
             ),
           ),
       
           const SizedBox(height: 15),
+
+          // ⭐ Banner de modo offline agregado
+          FutureBuilder<int>(
+            future: habitsProvider.getPendingChangesCount(),
+            builder: (context, snapshot) {
+              final pendingCount = snapshot.data ?? 0;
+              return OfflineModeBanner(
+                pendingChanges: pendingCount,
+                onSyncPressed: () async {
+                  await habitsProvider.syncWithServer();
+                  // Refrescar el estado del banner
+                  setState(() {});
+                },
+              );
+            },
+          ),
       
           // Lista de Habitos
           Expanded(
