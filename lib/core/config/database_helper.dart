@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 import 'package:path/path.dart' show join;
@@ -21,16 +20,16 @@ class DatabaseHelper {
         await _database!.close();
         _database = null;
       }
-      
+
       // Esperar un momento para asegurar que el archivo se libere
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // Inicializar FFI
       initializeFfi();
-      
+
       final path = await _getDatabasePath();
       final file = File(path);
-      
+
       if (await file.exists()) {
         await file.delete();
         print('🗑️ [DB] Base de datos eliminada: $path');
@@ -46,17 +45,17 @@ class DatabaseHelper {
   /// Inicializa sqflite_ffi para plataformas desktop (Windows, Linux, macOS)
   static void initializeFfi() {
     if (_ffiInitialized) return;
-    
+
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       // Inicializar las librerías nativas de sqlite3
       applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
-      
+
       // Inicializar sqflite_ffi para desktop
       sqfliteFfiInit();
-      
+
       // Usar la factory de FFI
       databaseFactory = databaseFactoryFfi;
-      
+
       print('✅ [DB] sqflite_ffi inicializado para ${Platform.operatingSystem}');
       _ffiInitialized = true;
     }
@@ -71,17 +70,17 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    
+
     // Asegurar que FFI esté inicializado antes de abrir la BD
     initializeFfi();
-    
+
     _database = await _initDatabase();
     return _database!;
   }
 
   Future<Database> _initDatabase() async {
     final path = await _getDatabasePath();
-    
+
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       print('📂 [DB] Plataforma: Desktop (${Platform.operatingSystem})');
     } else {
@@ -99,7 +98,7 @@ class DatabaseHelper {
         readOnly: false,
         singleInstance: true,
       );
-      
+
       print('✅ [DB] Base de datos abierta correctamente');
       return db;
     } catch (e) {
@@ -110,21 +109,21 @@ class DatabaseHelper {
 
   Future<void> _onOpen(Database db) async {
     print('🔍 [DB] Verificando integridad de la base de datos...');
-    
+
     try {
       // Verificar si las tablas principales existen
       final result = await db.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('habits', 'habit_progress', 'pending_sync')"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('habits', 'habit_progress', 'pending_sync')",
       );
-      
+
       if (result.length < 3) {
         print('⚠️ [DB] Tablas faltantes detectadas. Recreando...');
-        
+
         // Eliminar tablas existentes si las hay
         await db.execute('DROP TABLE IF EXISTS pending_sync');
         await db.execute('DROP TABLE IF EXISTS habit_progress');
         await db.execute('DROP TABLE IF EXISTS habits');
-        
+
         // Recrear todas las tablas
         await _onCreate(db, 1);
       } else {
@@ -144,7 +143,7 @@ class DatabaseHelper {
 
   Future<void> _onCreate(Database db, int version) async {
     print('🔨 [DB] Creando tablas de la base de datos...');
-    
+
     // Tabla de hábitos
     await db.execute('''
       CREATE TABLE habits (
@@ -200,12 +199,12 @@ class DatabaseHelper {
     await db.execute('''
       CREATE INDEX idx_habit_progress_date ON habit_progress(date)
     ''');
-    
+
     // Índice para búsquedas rápidas en pending_sync
     await db.execute('''
       CREATE INDEX idx_pending_sync_entity ON pending_sync(entity_type, entity_id)
     ''');
-    
+
     print('✅ [DB] Índices creados');
     print('🎉 [DB] Base de datos inicializada correctamente');
   }

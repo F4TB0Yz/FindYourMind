@@ -27,18 +27,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
-          create: (_) => ThemeProvider(),
+          create: (_) =>
+              ScreensProvider(const HabitsScreen(), ScreenType.habits),
         ),
-        ChangeNotifierProvider(
-          create: (_) => ScreensProvider(const HabitsScreen(), ScreenType.habits),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => NewHabitProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => HabitsProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => NewHabitProvider()),
+        ChangeNotifierProvider(create: (_) => HabitsProvider()),
       ],
       child: const MainApp(),
     ),
@@ -67,30 +62,33 @@ class _MainAppState extends State<MainApp> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<HabitsProvider>(context, listen: false).loadHabits();
-    });  
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final habitsProvider = Provider.of<HabitsProvider>(
+        context,
+        listen: false,
+      );
+      await habitsProvider.loadHabits();
+      await habitsProvider.inspectDatabase();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
-    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(context);
+    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(
+      context,
+    );
 
-    return  MaterialApp(
+    return MaterialApp(
       theme: AppTheme.getAppTheme(isDark: false),
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
-      home:  SafeArea(
+      home: SafeArea(
         child: Scaffold(
           appBar: const CustomAppBar(),
           body: Padding(
-            padding: const EdgeInsets.only(
-              top: 15,
-              left: 15,
-              right: 15
-            ),
+            padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
             child: AnimatedScreenTransition(
               child: screensProvider.currentPageWidget,
             ),

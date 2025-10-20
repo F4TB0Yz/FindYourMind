@@ -23,10 +23,10 @@ class HabitRepositoryImpl implements HabitRepository {
     required HabitsLocalDatasource localDataSource,
     required NetworkInfo networkInfo,
     required SyncService syncService,
-  })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource,
-        _networkInfo = networkInfo,
-        _syncService = syncService;
+  }) : _remoteDataSource = remoteDataSource,
+       _localDataSource = localDataSource,
+       _networkInfo = networkInfo,
+       _syncService = syncService;
 
   @override
   Future<List<HabitEntity>> getHabitsByEmail(String email) async {
@@ -61,25 +61,29 @@ class HabitRepositoryImpl implements HabitRepository {
     int limit = 10,
     int offset = 0,
   }) async {
-    print('🔍 [REPO] getHabitsByEmailPaginated - email: $email, offset: $offset, limit: $limit');
-    
+    print(
+      '🔍 [REPO] getHabitsByEmailPaginated - email: $email, offset: $offset, limit: $limit',
+    );
+
     // 1. Cargar desde SQLite primero
     final localHabits = await _localDataSource.getHabitsByUserIdPaginated(
       userId: email,
       limit: limit,
       offset: offset,
     );
-    
+
     print('📦 [REPO] SQLite devolvió ${localHabits.length} hábitos');
 
     // 2. Si es la primera página y SQLite está vacío, cargar desde servidor
     if (offset == 0 && localHabits.isEmpty && await _networkInfo.isConnected) {
-      print('🌐 [REPO] SQLite vacío y hay internet, cargando desde Supabase...');
+      print(
+        '🌐 [REPO] SQLite vacío y hay internet, cargando desde Supabase...',
+      );
       try {
         // Cargar todos los hábitos del servidor
         final remoteHabits = await _remoteDataSource.getHabitsByUserId(email);
         print('✅ [REPO] Supabase devolvió ${remoteHabits.length} hábitos');
-        
+
         if (remoteHabits.isNotEmpty) {
           // Guardar en SQLite
           await _localDataSource.saveHabits(remoteHabits);
@@ -95,7 +99,9 @@ class HabitRepositoryImpl implements HabitRepository {
     }
 
     // 3. Si ya hay datos locales, sincronizar en segundo plano
-    if (offset == 0 && localHabits.isNotEmpty && await _networkInfo.isConnected) {
+    if (offset == 0 &&
+        localHabits.isNotEmpty &&
+        await _networkInfo.isConnected) {
       print('🔄 [REPO] Sincronizando en segundo plano...');
       _syncInBackground(email);
     }
@@ -107,35 +113,38 @@ class HabitRepositoryImpl implements HabitRepository {
   Future<Either<Failure, String>> createHabit(HabitEntity habit) async {
     try {
       // 1. Guardar en SQLite primero (offline-first)
-      await _localDataSource.createHabit(habit);
+      final String habitId = await _localDataSource.createHabit(habit);
+      final HabitEntity habitWithId = habit.copyWith(id: habitId);
 
       // 2. Intentar guardar en Supabase si hay internet
       if (await _networkInfo.isConnected) {
         try {
-          final remoteId = await _remoteDataSource.createHabit(habit);
-          return Right(remoteId ?? habit.id);
+          final remoteId = await _remoteDataSource.createHabit(habitWithId);
+          return Right(remoteId ?? habitId);
         } catch (e) {
           // Si falla, marcar como pendiente de sincronización
           await _syncService.markPendingSync(
             entityType: 'habit',
-            entityId: habit.id,
+            entityId: habitId,
             action: 'create',
-            data: _habitToJson(habit),
+            data: _habitToJson(habitWithId),
           );
-          return Right(habit.id);
+          return Right(habitId);
         }
       } else {
         // Sin internet, marcar para sincronizar después
         await _syncService.markPendingSync(
           entityType: 'habit',
-          entityId: habit.id,
+          entityId: habitId,
           action: 'create',
-          data: _habitToJson(habit),
+          data: _habitToJson(habitWithId),
         );
-        return Right(habit.id);
+        return Right(habitId);
       }
     } catch (e) {
-      return Left(ServerFailure(message: 'Error al crear hábito: ${e.toString()}'));
+      return Left(
+        ServerFailure(message: 'Error al crear hábito: ${e.toString()}'),
+      );
     }
   }
 
@@ -171,7 +180,9 @@ class HabitRepositoryImpl implements HabitRepository {
         return const Right(null); // Éxito local, sincronización pendiente
       }
     } catch (e) {
-      return Left(CacheFailure(message: 'Error al actualizar hábito: ${e.toString()}'));
+      return Left(
+        CacheFailure(message: 'Error al actualizar hábito: ${e.toString()}'),
+      );
     }
   }
 
@@ -227,7 +238,9 @@ class HabitRepositoryImpl implements HabitRepository {
         return const Right(null); // Éxito local, sincronización pendiente
       }
     } catch (e) {
-      return Left(CacheFailure(message: 'Error al actualizar progreso: ${e.toString()}'));
+      return Left(
+        CacheFailure(message: 'Error al actualizar progreso: ${e.toString()}'),
+      );
     }
   }
 
@@ -238,11 +251,8 @@ class HabitRepositoryImpl implements HabitRepository {
     required int dailyCounter,
     required int dailyGoal,
   }) async {
-    // Generar ID local
-    final progressId = DateTime.now().millisecondsSinceEpoch.toString();
-    
     final progress = HabitProgress(
-      id: progressId,
+      id: '', // ID temporal, se genera en SQLite
       habitId: habitId,
       date: date,
       dailyGoal: dailyGoal,
@@ -250,12 +260,18 @@ class HabitRepositoryImpl implements HabitRepository {
     );
 
     // 1. Guardar en SQLite primero
-    await _localDataSource.createHabitProgress(progress);
+    final String progressId = await _localDataSource.createHabitProgress(
+      progress,
+    );
+
+    final HabitProgress progressWithId = progress.copyWith(id: progressId);
 
     // 2. Intentar guardar en Supabase si hay internet
     if (await _networkInfo.isConnected) {
       try {
-        final remoteId = await _remoteDataSource.createHabitProgress(progress);
+        final remoteId = await _remoteDataSource.createHabitProgress(
+          progressWithId,
+        );
         return remoteId;
       } catch (e) {
         // Si falla, marcar como pendiente de sincronización
@@ -323,15 +339,19 @@ class HabitRepositoryImpl implements HabitRepository {
         return const Right(null); // Éxito local, sincronización pendiente
       }
     } catch (e) {
-      return Left(CacheFailure(message: 'Error al eliminar hábito: ${e.toString()}'));
+      return Left(
+        CacheFailure(message: 'Error al eliminar hábito: ${e.toString()}'),
+      );
     }
   }
 
   /// Sincroniza datos en segundo plano sin bloquear la UI
   Future<void> _syncInBackground(String userId) async {
+    if (!await _networkInfo.isConnected) return;
+
     try {
       // Sincronizar cambios pendientes primero
-      await _syncService.syncPendingChanges();
+      await _syncService.syncPendingChanges(_networkInfo);
 
       // Obtener datos actualizados del servidor
       final remoteHabits = await _remoteDataSource.getHabitsByUserId(userId);
@@ -358,24 +378,28 @@ class HabitRepositoryImpl implements HabitRepository {
       'type': habit.type.name,
       'daily_goal': habit.dailyGoal,
       'initial_date': habit.initialDate,
-      'progress': habit.progress.map((p) => {
-        'id': p.id,
-        'habit_id': p.habitId,
-        'date': p.date,
-        'daily_goal': p.dailyGoal,
-        'daily_counter': p.dailyCounter,
-      }).toList(),
+      'progress': habit.progress
+          .map(
+            (p) => {
+              'id': p.id,
+              'habit_id': p.habitId,
+              'date': p.date,
+              'daily_goal': p.dailyGoal,
+              'daily_counter': p.dailyCounter,
+            },
+          )
+          .toList(),
     };
   }
 
   /// Método público para sincronización manual
   Future<SyncResult> syncWithRemote(String userId) async {
-    final result = await _syncService.syncPendingChanges();
-    
+    final result = await _syncService.syncPendingChanges(_networkInfo);
+
     if (await _networkInfo.isConnected) {
       await _syncInBackground(userId);
     }
-    
+
     return result;
   }
 
