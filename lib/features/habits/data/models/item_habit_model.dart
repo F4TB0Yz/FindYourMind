@@ -53,16 +53,21 @@ class ItemHabitModel {
   }
 
   factory ItemHabitModel.fromJson(Map<String, dynamic> json) {
-    final List<Map<String, dynamic>> progressJsonList = json['progress'];
-    final List<HabitProgress> progressEntityList = progressJsonList.map(
-      (item) => HabitProgress(
-        id: item['id'],
-        habitId: item['habit_id'],
-        date: item['date'],
-        dailyGoal: item['daily_goal'],
-        dailyCounter: item['daily_counter']
-      )
-    ).toList();
+// Convertir explícitamente List<dynamic> a List<Map<String, dynamic>>
+    final progressJsonList = (json['progress'] as List<dynamic>?)
+      ?.map((item) => Map<String, dynamic>.from(item as Map))
+      .toList() ?? [];
+
+    final List<HabitProgress> progressEntityList = progressJsonList
+      .map(
+        (item) => HabitProgress(
+          id: item['id'],
+          habitId: item['habit_id'],
+          date: item['date'],
+          dailyGoal: item['daily_goal'],
+          dailyCounter: item['daily_counter']
+        )
+      ).toList();
 
     return ItemHabitModel(
       id: json['id'] as String,

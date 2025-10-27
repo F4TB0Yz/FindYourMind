@@ -107,7 +107,7 @@ class _ItemHabitState extends State<ItemHabit> {
     }
 
     // Buscar el progreso de HOY específicamente
-    final String todayString = custom_date_utils.DateUtils.todayString();
+    final String todayString = custom_date_utils.DateInfoUtils.todayString();
     final int todayIndex = widget.itemHabit.progress.indexWhere(
       (progress) => progress.date == todayString,
     );
@@ -287,7 +287,7 @@ class _ItemHabitState extends State<ItemHabit> {
 
   void onTapCompleteHabit() async {
     // Obtenemos la fecha de hoy en formato "YYYY-MM-DD"
-    final String todayString = custom_date_utils.DateUtils.todayString();
+    final String todayString = custom_date_utils.DateInfoUtils.todayString();
     
     // Buscamos el indice del progreso correspondiente a hoy
     int indexProgress = widget.itemHabit.progress.indexWhere(
@@ -398,7 +398,7 @@ class _ItemHabitState extends State<ItemHabit> {
   }
 
   void onLongPress() async {
-    final String todayString = custom_date_utils.DateUtils.todayString();
+    final String todayString = custom_date_utils.DateInfoUtils.todayString();
     final int indexProgress = widget.itemHabit.progress.indexWhere(
       (HabitProgress progress) => progress.date == todayString,
     );

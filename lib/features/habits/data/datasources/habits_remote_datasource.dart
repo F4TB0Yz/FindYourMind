@@ -57,11 +57,9 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
         .single();
 
         if (response['id'] != null) {
-          return response['id'] as String?;
+          return response['id'] as String;
         }
-
-        return response['id'] as String?;
-      
+        return null;
     } on PostgrestException catch (e){
       throw ServerException('Error de base de datos ${e.message}');
     } on SocketException {
@@ -194,15 +192,15 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
   Future<String?> createHabitProgress(HabitProgress habitProgress) async {
     try {
       final response = await client
-          .from('habit_progress')
-          .insert({
-            'habit_id': habitProgress.habitId,
-            'date': habitProgress.date,
-            'daily_counter': habitProgress.dailyCounter,
-            'daily_goal': habitProgress.dailyGoal,
-          })
-          .select('id')
-          .single();
+        .from('habit_progress')
+        .insert({
+          'habit_id': habitProgress.habitId,
+          'date': habitProgress.date,
+          'daily_counter': habitProgress.dailyCounter,
+          'daily_goal': habitProgress.dailyGoal,
+        })
+        .select('id')
+        .single();
       
       return response['id'] as String?;
       

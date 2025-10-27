@@ -6,6 +6,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/new_habit_
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
+import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
@@ -27,7 +28,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
+        ChangeNotifierProvider( 
           create: (_) => ThemeProvider(),
         ),
         ChangeNotifierProvider(
@@ -38,6 +39,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => HabitsProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SyncProvider(),
         ),
       ],
       child: const MainApp(),
@@ -68,7 +72,16 @@ class _MainAppState extends State<MainApp> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<HabitsProvider>(context, listen: false).loadHabits();
+      final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
+      final syncProvider = Provider.of<SyncProvider>(context, listen: false);
+      
+      // Conectar SyncProvider con HabitsProvider
+      syncProvider.setOnSyncCompleteCallback(() {
+        habitsProvider.refreshHabitsFromLocal();
+      });
+      
+      // Cargar hábitos iniciales
+      habitsProvider.loadHabits();
     });  
   }
 

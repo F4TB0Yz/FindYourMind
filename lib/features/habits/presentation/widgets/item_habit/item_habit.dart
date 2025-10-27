@@ -71,7 +71,7 @@ class _ItemHabitState extends State<ItemHabit> {
     }
 
     // Buscar el progreso de HOY específicamente
-    final String todayString = custom_date_utils.DateUtils.todayString();
+    final String todayString = custom_date_utils.DateInfoUtils.todayString();
     final int todayIndex = widget.itemHabit.progress.indexWhere(
       (progress) => progress.date == todayString,
     );
@@ -106,28 +106,49 @@ class _ItemHabitState extends State<ItemHabit> {
   }
 
   Future<void> _onTapCompleteHabit() async {
-    final success = await _progressManager.incrementProgress();
-    
-    if (!success) return;
-
-    // Mostrar animación de éxito
+    // Mostrar animación de éxito INMEDIATAMENTE
     if (mounted) {
       setState(() => _isFlashingGreen = true);
-      await Future.delayed(AnimationConstants.fastAnimation);
-      if (mounted) setState(() => _isFlashingGreen = false);
+    }
+
+    // Incrementar progreso en segundo plano (la UI ya se actualiza instantáneamente)
+    // NO usamos await para que la animación no se quede esperando
+    _progressManager.incrementProgress().then((
+      success) {
+      // Si falló, podríamos mostrar un feedback adicional aquí
+      if (!success && mounted) {
+        // Opcional: mostrar un snackbar o algún indicador de error
+      }
+    });
+    
+    // Esperar que termine la animación
+    await Future.delayed(AnimationConstants.fastAnimation);
+    
+    if (mounted) {
+      setState(() => _isFlashingGreen = false);
     }
   }
 
   Future<void> _onLongPress() async {
-    final success = await _progressManager.decrementProgress();
-    
-    if (!success) return;
-
-    // Mostrar animación de decremento
+    // Mostrar animación de decremento INMEDIATAMENTE
     if (mounted) {
       setState(() => _isFlashingRed = true);
-      await Future.delayed(AnimationConstants.fastAnimation);
-      if (mounted) setState(() => _isFlashingRed = false);
+    }
+
+    // Decrementar progreso en segundo plano (la UI ya se actualiza instantáneamente)
+    // NO usamos await para que la animación no se quede esperando
+    _progressManager.decrementProgress().then((success) {
+      // Si falló, podríamos mostrar un feedback adicional aquí
+      if (!success && mounted) {
+        // Opcional: mostrar un snackbar o algún indicador de error
+      }
+    });
+    
+    // Esperar que termine la animación
+    await Future.delayed(AnimationConstants.fastAnimation);
+    
+    if (mounted) {
+      setState(() => _isFlashingRed = false);
     }
   }
 }

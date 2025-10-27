@@ -15,7 +15,7 @@ abstract class HabitRepository {
   });
   
   /// Guarda un nuevo hábito
-  Future<Either<Failure, String>> createHabit(HabitEntity habit);
+  Future<Either<Failure, String?>> createHabit(HabitEntity habit);
   
   /// Actualiza un hábito existente
   /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló

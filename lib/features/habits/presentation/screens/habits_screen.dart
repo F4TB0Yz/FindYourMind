@@ -8,6 +8,7 @@ import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode
 import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
+import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
@@ -74,18 +75,18 @@ class _HabitsScreenState extends State<HabitsScreen> {
               borderRadius: BorderRadius.all(Radius.circular(5)),
               color: AppColors.darkBackground
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Todos'),
-                const Text('Recomendados'),
+                Text('Todos'),
+                Text('Recomendados'),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // ⭐ Widget de sincronización agregado
-                    const SyncStatusIndicator(),
-                    const SizedBox(width: 8),
-                    const Text('+'),
+                    SyncStatusIndicator(),
+                    SizedBox(width: 8),
+                    Text('+'),
                   ],
                 ),
               ],
@@ -95,16 +96,12 @@ class _HabitsScreenState extends State<HabitsScreen> {
           const SizedBox(height: 15),
 
           // ⭐ Banner de modo offline agregado
-          FutureBuilder<int>(
-            future: habitsProvider.getPendingChangesCount(),
-            builder: (context, snapshot) {
-              final pendingCount = snapshot.data ?? 0;
+          Consumer<SyncProvider>(
+            builder: (context, syncProvider, _) {
               return OfflineModeBanner(
-                pendingChanges: pendingCount,
+                pendingChanges: syncProvider.pendingChangesCount,
                 onSyncPressed: () async {
-                  await habitsProvider.syncWithServer();
-                  // Refrescar el estado del banner
-                  setState(() {});
+                  await syncProvider.syncWithServer();
                 },
               );
             },
@@ -114,9 +111,9 @@ class _HabitsScreenState extends State<HabitsScreen> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: habitsProvider.habits.length + (habitsProvider.isLoading && habitsProvider.hasMore ? 1 : 0),
+              itemCount: habitsProvider.habits.length + (habitsProvider.isLoading && habitsProvider.hasMore && habitsProvider.habits.isNotEmpty ? 1 : 0),
               itemBuilder: (context, index) {
-                // Mostrar indicador de carga al final si está cargando y hay más items
+                // Mostrar indicador de carga al final solo si hay hábitos ya cargados y está cargando más
                 if (index >= habitsProvider.habits.length) {
                   // Puedes cambiar entre estos estilos:
                   // return const CustomLoadingIndicator(text: 'Cargando más hábitos...'); // Estilo 1: Circular con texto

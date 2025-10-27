@@ -4,6 +4,8 @@ import 'package:find_your_mind/features/habits/data/models/item_habit_model.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
+import 'dart:developer' as developer;
 
 abstract class HabitsLocalDatasource {
   // Users Habits
@@ -25,13 +27,20 @@ abstract class HabitsLocalDatasource {
   // Habit Progress
   Future<String?> createHabitProgress(HabitProgress habitProgress);
 
+  Future<void> deleteHabitProgress(String habitId);
+
   Future<void> incrementHabitProgress({
     required String habitId,
     required String progressId,
     required int newCounter,
   });
   
+  // Obtener datos completos de un progreso
+  Future<HabitProgress?> getHabitProgressById(String progressId);
+  
   // Métodos auxiliares para sincronización
+  Future<void> deleteHabitPendingSync(String habitId);
+
   Future<void> clearAllHabits(String userId);
   
   Future<void> saveHabits(List<HabitEntity> habits);
@@ -162,11 +171,14 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<String?> createHabit(HabitEntity habit) async {
     try {
       final db = await databaseHelper.database;
+
+      const Uuid uuid = Uuid();
+      final String habitId = uuid.v4();
       
       await db.insert(
         'habits',
         {
-          'id': habit.id,
+          'id': habitId,
           'user_id': habit.userId,
           'title': habit.title,
           'description': habit.description,
@@ -181,11 +193,20 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      return habit.id;
-      
+      return habitId;
     } on DatabaseException catch (e) {
+      developer.log(
+        'Error al crear hábito',
+        name: 'HabitsLocalDatasourceImpl.createHabit',
+        error: e,
+      );
       throw CacheException('Error al crear hábito: ${e.toString()}');
     } catch (e) {
+      developer.log(
+        'Error al crear hábito',
+        name: 'HabitsLocalDatasourceImpl.createHabit',
+        error: e,
+      );
       throw CacheException('Error al crear hábito: ${e.toString()}');
     }
   }
@@ -264,6 +285,23 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   }
 
   @override
+  Future<void> deleteHabitProgress(String habitId) async {
+    try {
+      final db = await databaseHelper.database;
+
+      await db.delete(
+        'habit_progress',
+        where: 'habit_id = ?',
+        whereArgs: [habitId],
+      );
+    } on DatabaseException catch (e) {
+      throw CacheException('Error al eliminar progresos del hábito: ${e.toString()}');
+    } catch (e) {
+      throw CacheException('Error al eliminar progresos del hábito: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<void> incrementHabitProgress({
     required String habitId,
     required String progressId,
@@ -286,6 +324,55 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
       throw CacheException('Error al actualizar progreso: ${e.toString()}');
     } catch (e) {
       throw CacheException('Error al actualizar progreso: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<HabitProgress?> getHabitProgressById(String progressId) async {
+    try {
+      final db = await databaseHelper.database;
+      
+      final List<Map<String, dynamic>> progressData = await db.query(
+        'habit_progress',
+        where: 'id = ?',
+        whereArgs: [progressId],
+      );
+      
+      if (progressData.isEmpty) {
+        return null;
+      }
+      
+      final data = progressData.first;
+      return HabitProgress(
+        id: data['id'] as String,
+        habitId: data['habit_id'] as String,
+        date: data['date'] as String,
+        dailyGoal: data['daily_goal'] as int,
+        dailyCounter: data['daily_counter'] as int,
+      );
+      
+    } on DatabaseException catch (e) {
+      throw CacheException('Error al obtener progreso: ${e.toString()}');
+    } catch (e) {
+      throw CacheException('Error al obtener progreso: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> deleteHabitPendingSync(String habitId) async {
+    try {
+      final db = await databaseHelper.database;
+      
+      await db.delete(
+        'pending_sync',
+        where: 'entity_id = ? AND entity_type = ?',
+        whereArgs: [habitId, 'habit'],
+      );
+      
+    } on DatabaseException catch (e) {
+      throw CacheException('Error al eliminar sincronización pendiente: ${e.toString()}');
+    } catch (e) {
+      throw CacheException('Error al eliminar sincronización pendiente: ${e.toString()}');
     }
   }
 
