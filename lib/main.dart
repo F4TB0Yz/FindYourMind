@@ -6,7 +6,6 @@ import 'package:find_your_mind/features/habits/presentation/providers/new_habit_
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
-import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
@@ -29,7 +28,10 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
+          create: (_) =>
+              ScreensProvider(const HabitsScreen(), ScreenType.habits),
           create: (_) =>
               ScreensProvider(const HabitsScreen(), ScreenType.habits),
         ),
@@ -90,16 +92,22 @@ class _MainAppState extends State<MainApp> {
     final ScreensProvider screensProvider = Provider.of<ScreensProvider>(
       context,
     );
+    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(
+      context,
+    );
 
+    return MaterialApp(
     return MaterialApp(
       theme: AppTheme.getAppTheme(isDark: false),
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
       home: SafeArea(
+      home: SafeArea(
         child: Scaffold(
           appBar: const CustomAppBar(),
           body: Padding(
+            padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
             padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
             child: AnimatedScreenTransition(
               child: screensProvider.currentPageWidget,

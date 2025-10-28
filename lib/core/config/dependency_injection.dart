@@ -13,19 +13,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DependencyInjection {
   static DependencyInjection? _instance;
   bool _isInitialized = false;
-  
+
   // Dependencias compartidas
   late final DatabaseHelper _databaseHelper;
   late final NetworkInfo _networkInfo;
   late final SupabaseClient _supabaseClient;
-  
+
   // Datasources
   late final HabitsRemoteDataSource _remoteDataSource;
   late final HabitsLocalDatasource _localDataSource;
-  
+
   // Servicios
   late final SyncService _syncService;
-  
+
   // Repositorio
   late final HabitRepository _habitRepository;
 
@@ -38,15 +38,15 @@ class DependencyInjection {
 
   /// Inicializa todas las dependencias de forma asíncrona
   /// [forceResetDatabase] - Si es true, elimina y recrea la base de datos
-  Future<void> initialize({bool forceResetDatabase = false}) async {
+  Future<void> initialize({bool forceResetDatabase = true}) async {
     if (_isInitialized) return;
 
     // 1. Inicializar dependencias base
     _databaseHelper = DatabaseHelper();
-    
+
     // Inicializar sqflite_ffi primero
     DatabaseHelper.initializeFfi();
-    
+
     // Si se solicita reset, eliminar la base de datos
     if (forceResetDatabase) {
       print('🔄 [DI] Forzando recreación de la base de datos...');
@@ -56,7 +56,7 @@ class DependencyInjection {
         print('⚠️ [DI] Error al eliminar BD (puede no existir): $e');
       }
     }
-    
+
     // Asegurar que la BD esté lista
     try {
       await _databaseHelper.database;
@@ -71,13 +71,15 @@ class DependencyInjection {
         rethrow;
       }
     }
-    
+
     _networkInfo = NetworkInfoImpl(InternetConnectionChecker.instance);
     _supabaseClient = Supabase.instance.client;
 
     // 2. Inicializar datasources
     _remoteDataSource = HabitsRemoteDataSourceImpl(client: _supabaseClient);
-    _localDataSource = HabitsLocalDatasourceImpl(databaseHelper: _databaseHelper);
+    _localDataSource = HabitsLocalDatasourceImpl(
+      databaseHelper: _databaseHelper,
+    );
 
     // 3. Inicializar servicio de sincronización
     _syncService = SyncService(
