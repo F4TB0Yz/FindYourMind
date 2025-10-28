@@ -3,6 +3,7 @@ import 'package:find_your_mind/core/error/exceptions.dart';
 import 'package:find_your_mind/features/habits/data/models/item_habit_model.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:developer' as developer;
@@ -34,15 +35,15 @@ abstract class HabitsLocalDatasource {
     required String progressId,
     required int newCounter,
   });
-  
+
   // Obtener datos completos de un progreso
   Future<HabitProgress?> getHabitProgressById(String progressId);
-  
+
   // Métodos auxiliares para sincronización
   Future<void> deleteHabitPendingSync(String habitId);
 
   Future<void> clearAllHabits(String userId);
-  
+
   Future<void> saveHabits(List<HabitEntity> habits);
 }
 
@@ -56,31 +57,35 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       print('🔍 [LOCAL_DS] getHabitsByUserId - Obteniendo base de datos...');
       final db = await databaseHelper.database;
-      
-      print('🔍 [LOCAL_DS] getHabitsByUserId - Ejecutando query para userId: $userId');
+
+      print(
+        '🔍 [LOCAL_DS] getHabitsByUserId - Ejecutando query para userId: $userId',
+      );
       final List<Map<String, dynamic>> habitMaps = await db.query(
         'habits',
         where: 'user_id = ?',
         whereArgs: [userId],
         orderBy: 'initial_date DESC',
       );
-      
-      print('✅ [LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos');
+
+      print(
+        '✅ [LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos',
+      );
 
       List<Map<String, dynamic>> habitsWithProgress = [];
-      
+
       for (var habitMap in habitMaps) {
         // Crear una copia mutable del map
         final mutableHabitMap = Map<String, dynamic>.from(habitMap);
         final habitId = mutableHabitMap['id'] as String;
-        
+
         final progressResponse = await db.query(
           'habit_progress',
           where: 'habit_id = ?',
           whereArgs: [habitId],
           orderBy: 'date DESC',
         );
-        
+
         mutableHabitMap['progress'] = progressResponse;
         habitsWithProgress.add(mutableHabitMap);
       }
@@ -88,9 +93,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
       return habitsWithProgress.map((habitJson) {
         return ItemHabitModel.fromJson(habitJson).toEntity();
       }).toList();
-      
     } on DatabaseException catch (e) {
-      print('❌ [LOCAL_DS] getHabitsByUserId - DatabaseException: ${e.toString()}');
+      print(
+        '❌ [LOCAL_DS] getHabitsByUserId - DatabaseException: ${e.toString()}',
+      );
       throw CacheException('Error al obtener hábitos: ${e.toString()}');
     } catch (e) {
       print('❌ [LOCAL_DS] getHabitsByUserId - Error: ${e.toString()}');
@@ -108,8 +114,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       print('🔍 [LOCAL_DS] Obteniendo base de datos...');
       final db = await databaseHelper.database;
-      
-      print('🔍 [LOCAL_DS] Ejecutando query - userId: $userId, limit: $limit, offset: $offset');
+
+      print(
+        '🔍 [LOCAL_DS] Ejecutando query - userId: $userId, limit: $limit, offset: $offset',
+      );
       final List<Map<String, dynamic>> habitMaps = await db.query(
         'habits',
         where: 'user_id = ?',
@@ -118,18 +126,22 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         limit: limit,
         offset: offset,
       );
-      
-      print('✅ [LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados');
+
+      print(
+        '✅ [LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados',
+      );
 
       List<Map<String, dynamic>> habitsWithProgress = [];
-      
-      print('🔄 [LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...');
+
+      print(
+        '🔄 [LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...',
+      );
       for (var habitMap in habitMaps) {
         // Crear una copia mutable del map
         final mutableHabitMap = Map<String, dynamic>.from(habitMap);
         final habitId = mutableHabitMap['id'] as String;
         print('🔍 [LOCAL_DS] Obteniendo progreso para hábito: $habitId');
-        
+
         try {
           // Obtener solo los últimos 30 días de progreso para optimizar
           final progressResponse = await db.query(
@@ -139,8 +151,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             orderBy: 'date DESC',
             limit: 30,
           );
-          
-          print('✅ [LOCAL_DS] Progreso obtenido: ${progressResponse.length} registros');
+
+          print(
+            '✅ [LOCAL_DS] Progreso obtenido: ${progressResponse.length} registros',
+          );
           mutableHabitMap['progress'] = progressResponse;
           habitsWithProgress.add(mutableHabitMap);
         } catch (e) {
@@ -150,13 +164,14 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
           habitsWithProgress.add(mutableHabitMap);
         }
       }
-      
-      print('✅ [LOCAL_DS] Procesados ${habitsWithProgress.length} hábitos con progreso');
+
+      print(
+        '✅ [LOCAL_DS] Procesados ${habitsWithProgress.length} hábitos con progreso',
+      );
 
       return habitsWithProgress.map((habitJson) {
         return ItemHabitModel.fromJson(habitJson).toEntity();
       }).toList();
-      
     } on DatabaseException catch (e) {
       print('❌ [LOCAL_DS] DatabaseException: ${e.toString()}');
       throw CacheException('Error al obtener hábitos: ${e.toString()}');
@@ -172,26 +187,23 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       final db = await databaseHelper.database;
 
-      const Uuid uuid = Uuid();
-      final String habitId = uuid.v4();
-      
-      await db.insert(
-        'habits',
-        {
-          'id': habitId,
-          'user_id': habit.userId,
-          'title': habit.title,
-          'description': habit.description,
-          'icon': habit.icon,
-          'type': habit.type.name,
-          'daily_goal': habit.dailyGoal,
-          'initial_date': habit.initialDate,
-          'created_at': DateTime.now().toIso8601String(),
-          'synced': 0, // Marcar como no sincronizado
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      // Usar el ID que viene en el hábito (generado previamente)
+      // Si no tiene ID, generar uno nuevo
+      final String habitId = habit.id.isNotEmpty ? habit.id : const Uuid().v4();
+
+      await db.insert('habits', {
+        'id': habitId,
+        'user_id': habit.userId,
+        'title': habit.title,
+        'description': habit.description,
+        'icon': habit.icon,
+        'type': habit.type.name,
+        'daily_goal': habit.dailyGoal,
+        'initial_date': habit.initialDate,
+        'created_at': DateTime.now().toIso8601String(),
+        'synced': 0, // Marcar como no sincronizado
+        'updated_at': DateTime.now().toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       return habitId;
     } on DatabaseException catch (e) {
@@ -215,22 +227,45 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<void> updateHabit(HabitEntity habit) async {
     try {
       final db = await databaseHelper.database;
-      
-      await db.update(
-        'habits',
-        {
-          'title': habit.title,
-          'description': habit.description,
-          'icon': habit.icon,
-          'type': habit.type.name,
-          'daily_goal': habit.dailyGoal,
-          'synced': 0, // Marcar como no sincronizado
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        where: 'id = ?',
-        whereArgs: [habit.id],
-      );
-      
+
+      // Obtener la fecha actual en formato YYYY-MM-DD
+      final today = DateTime.now();
+      final todayString = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+      // Usar transacción para asegurar consistencia
+      await db.transaction((txn) async {
+        // 1. Actualizar el hábito
+        await txn.update(
+          'habits',
+          {
+            'title': habit.title,
+            'description': habit.description,
+            'icon': habit.icon,
+            'type': habit.type.name,
+            'daily_goal': habit.dailyGoal,
+            'synced': 0, // Marcar como no sincronizado
+            'updated_at': DateTime.now().toIso8601String(),
+          },
+          where: 'id = ?',
+          whereArgs: [habit.id],
+        );
+
+        // 2. Actualizar el daily_goal SOLO en los registros de progreso desde HOY en adelante
+        final updatedProgressCount = await txn.update(
+          'habit_progress',
+          {
+            'daily_goal': habit.dailyGoal,
+            'synced': 0, // Marcar como no sincronizado
+          },
+          where: 'habit_id = ? AND date >= ?',
+          whereArgs: [habit.id, todayString],
+        );
+
+        if (kDebugMode) {
+          print('✅ Hábito actualizado: ${habit.id}');
+          print('✅ daily_goal sincronizado en $updatedProgressCount registros de progreso desde $todayString');
+        }
+      });
     } on DatabaseException catch (e) {
       throw CacheException('Error al actualizar hábito: ${e.toString()}');
     } catch (e) {
@@ -242,14 +277,9 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<void> deleteHabit(String habitId) async {
     try {
       final db = await databaseHelper.database;
-      
+
       // SQLite eliminará automáticamente el progreso por la foreign key en cascada
-      await db.delete(
-        'habits',
-        where: 'id = ?',
-        whereArgs: [habitId],
-      );
-      
+      await db.delete('habits', where: 'id = ?', whereArgs: [habitId]);
     } on DatabaseException catch (e) {
       throw CacheException('Error al eliminar hábito: ${e.toString()}');
     } catch (e) {
@@ -261,22 +291,45 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<String?> createHabitProgress(HabitProgress habitProgress) async {
     try {
       final db = await databaseHelper.database;
-      
-      await db.insert(
+
+      // 🔍 VERIFICAR SI YA EXISTE UN PROGRESO PARA ESTE HÁBITO EN ESTA FECHA
+      final existing = await db.query(
         'habit_progress',
-        {
-          'id': habitProgress.id,
-          'habit_id': habitProgress.habitId,
-          'date': habitProgress.date,
-          'daily_counter': habitProgress.dailyCounter,
-          'daily_goal': habitProgress.dailyGoal,
-          'synced': 0, // Marcar como no sincronizado
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        where: 'habit_id = ? AND date = ?',
+        whereArgs: [habitProgress.habitId, habitProgress.date],
+        limit: 1,
       );
-      
-      return habitProgress.id;
-      
+
+      if (existing.isNotEmpty) {
+        // ⚠️ Ya existe un progreso para este día - retornar el ID existente
+        final existingId = existing.first['id'] as String;
+        if (kDebugMode) {
+          print('⚠️ Ya existe un progreso para ${habitProgress.habitId} en ${habitProgress.date}');
+          print('   Retornando ID existente: $existingId');
+        }
+        return existingId;
+      }
+
+      // Usar el ID que viene en el progreso (generado previamente)
+      // Si no tiene ID, generar uno nuevo
+      final String progressId = habitProgress.id.isNotEmpty 
+          ? habitProgress.id 
+          : const Uuid().v4();
+
+      await db.insert('habit_progress', {
+        'id': progressId,
+        'habit_id': habitProgress.habitId,
+        'date': habitProgress.date,
+        'daily_counter': habitProgress.dailyCounter,
+        'daily_goal': habitProgress.dailyGoal,
+        'synced': 0, // Marcar como no sincronizado
+      });
+
+      if (kDebugMode) {
+        print('✅ Nuevo progreso creado: $progressId para ${habitProgress.date}');
+      }
+
+      return progressId;
     } on DatabaseException catch (e) {
       throw CacheException('Error al crear progreso: ${e.toString()}');
     } catch (e) {
@@ -295,9 +348,13 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         whereArgs: [habitId],
       );
     } on DatabaseException catch (e) {
-      throw CacheException('Error al eliminar progresos del hábito: ${e.toString()}');
+      throw CacheException(
+        'Error al eliminar progresos del hábito: ${e.toString()}',
+      );
     } catch (e) {
-      throw CacheException('Error al eliminar progresos del hábito: ${e.toString()}');
+      throw CacheException(
+        'Error al eliminar progresos del hábito: ${e.toString()}',
+      );
     }
   }
 
@@ -309,7 +366,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   }) async {
     try {
       final db = await databaseHelper.database;
-      
+
       await db.update(
         'habit_progress',
         {
@@ -319,7 +376,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         where: 'habit_id = ? AND id = ?',
         whereArgs: [habitId, progressId],
       );
-      
     } on DatabaseException catch (e) {
       throw CacheException('Error al actualizar progreso: ${e.toString()}');
     } catch (e) {
@@ -331,17 +387,17 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<HabitProgress?> getHabitProgressById(String progressId) async {
     try {
       final db = await databaseHelper.database;
-      
+
       final List<Map<String, dynamic>> progressData = await db.query(
         'habit_progress',
         where: 'id = ?',
         whereArgs: [progressId],
       );
-      
+
       if (progressData.isEmpty) {
         return null;
       }
-      
+
       final data = progressData.first;
       return HabitProgress(
         id: data['id'] as String,
@@ -350,7 +406,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         dailyGoal: data['daily_goal'] as int,
         dailyCounter: data['daily_counter'] as int,
       );
-      
     } on DatabaseException catch (e) {
       throw CacheException('Error al obtener progreso: ${e.toString()}');
     } catch (e) {
@@ -362,17 +417,20 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<void> deleteHabitPendingSync(String habitId) async {
     try {
       final db = await databaseHelper.database;
-      
+
       await db.delete(
         'pending_sync',
         where: 'entity_id = ? AND entity_type = ?',
         whereArgs: [habitId, 'habit'],
       );
-      
     } on DatabaseException catch (e) {
-      throw CacheException('Error al eliminar sincronización pendiente: ${e.toString()}');
+      throw CacheException(
+        'Error al eliminar sincronización pendiente: ${e.toString()}',
+      );
     } catch (e) {
-      throw CacheException('Error al eliminar sincronización pendiente: ${e.toString()}');
+      throw CacheException(
+        'Error al eliminar sincronización pendiente: ${e.toString()}',
+      );
     }
   }
 
@@ -380,14 +438,9 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<void> clearAllHabits(String userId) async {
     try {
       final db = await databaseHelper.database;
-      
+
       // SQLite eliminará automáticamente el progreso por la foreign key en cascada
-      await db.delete(
-        'habits',
-        where: 'user_id = ?',
-        whereArgs: [userId],
-      );
-      
+      await db.delete('habits', where: 'user_id = ?', whereArgs: [userId]);
     } on DatabaseException catch (e) {
       throw CacheException('Error al limpiar hábitos: ${e.toString()}');
     } catch (e) {
@@ -399,45 +452,36 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   Future<void> saveHabits(List<HabitEntity> habits) async {
     try {
       final db = await databaseHelper.database;
-      
+
       await db.transaction((txn) async {
         for (var habit in habits) {
-          await txn.insert(
-            'habits',
-            {
-              'id': habit.id,
-              'user_id': habit.userId,
-              'title': habit.title,
-              'description': habit.description,
-              'icon': habit.icon,
-              'type': habit.type.name,
-              'daily_goal': habit.dailyGoal,
-              'initial_date': habit.initialDate,
-              'created_at': DateTime.now().toIso8601String(),
-              'synced': 1, // Marcar como sincronizado (viene del servidor)
-              'updated_at': DateTime.now().toIso8601String(),
-            },
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
+          await txn.insert('habits', {
+            'id': habit.id,
+            'user_id': habit.userId,
+            'title': habit.title,
+            'description': habit.description,
+            'icon': habit.icon,
+            'type': habit.type.name,
+            'daily_goal': habit.dailyGoal,
+            'initial_date': habit.initialDate,
+            'created_at': DateTime.now().toIso8601String(),
+            'synced': 1, // Marcar como sincronizado (viene del servidor)
+            'updated_at': DateTime.now().toIso8601String(),
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
 
           // Guardar el progreso asociado
           for (var progress in habit.progress) {
-            await txn.insert(
-              'habit_progress',
-              {
-                'id': progress.id,
-                'habit_id': progress.habitId,
-                'date': progress.date,
-                'daily_goal': progress.dailyGoal,
-                'daily_counter': progress.dailyCounter,
-                'synced': 1, // Marcar como sincronizado (viene del servidor)
-              },
-              conflictAlgorithm: ConflictAlgorithm.replace,
-            );
+            await txn.insert('habit_progress', {
+              'id': progress.id,
+              'habit_id': progress.habitId,
+              'date': progress.date,
+              'daily_goal': progress.dailyGoal,
+              'daily_counter': progress.dailyCounter,
+              'synced': 1, // Marcar como sincronizado (viene del servidor)
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
       });
-      
     } on DatabaseException catch (e) {
       throw CacheException('Error al guardar hábitos: ${e.toString()}');
     } catch (e) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
+import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class SyncProvider extends ChangeNotifier {
   String? _lastSyncError;
 
   // Constantes
-  static const Duration _autoSyncInterval = Duration(minutes: 5);
+  static const Duration _autoSyncInterval = Duration(minutes: 100);
   static const Duration _syncDelay = Duration(milliseconds: 800);
   static const Duration _refreshDelay = Duration(milliseconds: 500);
 
@@ -30,7 +31,7 @@ class SyncProvider extends ChangeNotifier {
   Timer? _syncTimer;
 
   // UUID del usuario de Supabase
-  final String _userId = 'c2fa89e9-ab8e-4592-b14e-223d7d7aa55d';
+  final String _userId = AppConstants.currentUserId;
 
   // Callback para recargar datos después de la sincronización
   VoidCallback? _onSyncComplete;

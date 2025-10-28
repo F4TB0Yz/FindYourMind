@@ -28,8 +28,13 @@ class _HabitsScreenState extends State<HabitsScreen> {
   void initState() {
     super.initState();
 
-    final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
-    if (mounted) habitsProvider.resetTitle();
+    // Diferir resetTitle hasta después del primer frame para evitar llamar setState durante build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
+        habitsProvider.resetTitle();
+      }
+    });
 
     // Configurar listener para scroll infinito
     _scrollController.addListener(_onScroll);

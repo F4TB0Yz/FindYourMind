@@ -28,21 +28,14 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider( 
-          create: (_) => ThemeProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
-          create: (_) => ScreensProvider(const HabitsScreen(), ScreenType.habits),
+          create: (_) =>
+              ScreensProvider(const HabitsScreen(), ScreenType.habits),
         ),
-        ChangeNotifierProvider(
-          create: (_) => NewHabitProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => HabitsProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => SyncProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => NewHabitProvider()),
+        ChangeNotifierProvider(create: (_) => HabitsProvider()),
+        ChangeNotifierProvider(create: (_) => SyncProvider()),
       ],
       child: const MainApp(),
     ),
@@ -72,38 +65,42 @@ class _MainAppState extends State<MainApp> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
+      final habitsProvider = Provider.of<HabitsProvider>(
+        context,
+        listen: false,
+      );
       final syncProvider = Provider.of<SyncProvider>(context, listen: false);
-      
-      // Conectar SyncProvider con HabitsProvider
+
+      // Conectar SyncProvider con HabitsProvider (bidireccional)
       syncProvider.setOnSyncCompleteCallback(() {
         habitsProvider.refreshHabitsFromLocal();
       });
       
+      // Conectar HabitsProvider con SyncProvider para notificar cambios
+      habitsProvider.setSyncProvider(syncProvider);
+
       // Cargar hábitos iniciales
       habitsProvider.loadHabits();
-    });  
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
-    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(context);
+    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(
+      context,
+    );
 
-    return  MaterialApp(
+    return MaterialApp(
       theme: AppTheme.getAppTheme(isDark: false),
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
-      home:  SafeArea(
+      home: SafeArea(
         child: Scaffold(
           appBar: const CustomAppBar(),
           body: Padding(
-            padding: const EdgeInsets.only(
-              top: 15,
-              left: 15,
-              right: 15
-            ),
+            padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
             child: AnimatedScreenTransition(
               child: screensProvider.currentPageWidget,
             ),

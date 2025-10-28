@@ -171,10 +171,11 @@ class DatabaseHelper {
         daily_goal INTEGER NOT NULL,
         daily_counter INTEGER NOT NULL,
         synced INTEGER DEFAULT 0,
-        FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE
+        FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE,
+        UNIQUE(habit_id, date)
       )
     ''');
-    print('✅ [DB] Tabla habit_progress creada');
+    print('✅ [DB] Tabla habit_progress creada con restricción UNIQUE(habit_id, date)');
 
     // Tabla de sincronización pendiente
     await db.execute('''

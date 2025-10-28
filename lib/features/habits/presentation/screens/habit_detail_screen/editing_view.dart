@@ -221,8 +221,11 @@ class _EditingViewState extends State<EditingView> {
         dailyGoal: _dailyGoal,
       );
 
-      // Esto actualiza tanto en la base de datos como en el estado local
-      await habitsProvider.updateHabit(updatedHabit);
+      // 🚀 Actualización optimista: no esperar, la UI se actualiza inmediatamente
+      habitsProvider.updateHabit(updatedHabit);
+
+      // Salir del modo edición inmediatamente
+      habitsProvider.changeIsEditing(false);
 
       if (!mounted) return;
 
@@ -231,9 +234,8 @@ class _EditingViewState extends State<EditingView> {
         message: 'Hábito actualizado exitosamente',
       );
 
-      setState(() {
-        screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
-      });
+      // Navegar de vuelta inmediatamente
+      screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
 
     } catch (e) {
       if (!mounted) return;

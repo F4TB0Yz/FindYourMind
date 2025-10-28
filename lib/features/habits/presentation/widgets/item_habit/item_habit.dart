@@ -4,7 +4,6 @@ import 'package:find_your_mind/core/utils/date_utils.dart' as custom_date_utils;
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/slidable_item.dart';
-import 'package:find_your_mind/features/habits/utils/habit_progress_manager.dart';
 import 'package:find_your_mind/features/habits/utils/timer.dart';
 import 'package:flutter/material.dart';
 
@@ -13,9 +12,9 @@ class ItemHabit extends StatefulWidget {
   final HabitsProvider habitsProvider;
 
   const ItemHabit({
-    super.key, 
+    super.key,
     required this.itemHabit,
-    required this.habitsProvider
+    required this.habitsProvider,
   });
 
   @override
@@ -24,14 +23,13 @@ class ItemHabit extends StatefulWidget {
 
 class _ItemHabitState extends State<ItemHabit> {
   HabitTimerManager? _timerManager;
-  late HabitProgressManager _progressManager;
   late String _timeSinceStart;
   bool _isFlashingRed = false;
   bool _isFlashingGreen = false;
 
   void _updateTimeSinceStart() {
     if (!mounted) return;
-    
+
     setState(() {
       _timeSinceStart = widget.itemHabit.timeSinceStart;
     });
@@ -41,12 +39,6 @@ class _ItemHabitState extends State<ItemHabit> {
   void initState() {
     super.initState();
     _timeSinceStart = widget.itemHabit.timeSinceStart;
-
-    // Inicializar el progress manager
-    _progressManager = HabitProgressManager(
-      habit: widget.itemHabit,
-      provider: widget.habitsProvider,
-    );
 
     // Inicializar y arrancar el timer manager
     final startDate = DateTime.parse(widget.itemHabit.initialDate);
@@ -62,7 +54,7 @@ class _ItemHabitState extends State<ItemHabit> {
     _timerManager?.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final currentTime = widget.itemHabit.timeSinceStart;
@@ -77,18 +69,16 @@ class _ItemHabitState extends State<ItemHabit> {
     );
 
     // Contador de progreso de hoy (si existe), sino 0
-    final int counterToday = todayIndex != -1 
-        ? widget.itemHabit.progress[todayIndex].dailyCounter 
+    final int counterToday = todayIndex != -1
+        ? widget.itemHabit.progress[todayIndex].dailyCounter
         : 0;
-    
+
     final int dailyGoal = widget.itemHabit.dailyGoal;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.antiAlias,
         child: SlidableItem(
           habit: widget.itemHabit,
@@ -106,49 +96,46 @@ class _ItemHabitState extends State<ItemHabit> {
   }
 
   Future<void> _onTapCompleteHabit() async {
-    // Mostrar animación de éxito INMEDIATAMENTE
-    if (mounted) {
-      setState(() => _isFlashingGreen = true);
+    // ✅ Validar ANTES de incrementar usando el provider
+    if (!widget.habitsProvider.canIncrement(widget.itemHabit.id)) {
+      // Ya alcanzó la meta diaria, no hacer nada
+      return;
     }
 
-    // Incrementar progreso en segundo plano (la UI ya se actualiza instantáneamente)
-    // NO usamos await para que la animación no se quede esperando
-    _progressManager.incrementProgress().then((
-      success) {
-      // Si falló, podríamos mostrar un feedback adicional aquí
-      if (!success && mounted) {
-        // Opcional: mostrar un snackbar o algún indicador de error
+    // 🚀 Incrementar y obtener resultado
+    final bool success = await widget.habitsProvider.incrementHabitProgress(widget.itemHabit.id);
+
+    // Mostrar animación SOLO si fue exitoso
+    if (success && mounted) {
+      setState(() => _isFlashingGreen = true);
+
+      await Future.delayed(AnimationConstants.fastAnimation);
+
+      if (mounted) {
+        setState(() => _isFlashingGreen = false);
       }
-    });
-    
-    // Esperar que termine la animación
-    await Future.delayed(AnimationConstants.fastAnimation);
-    
-    if (mounted) {
-      setState(() => _isFlashingGreen = false);
     }
   }
 
   Future<void> _onLongPress() async {
-    // Mostrar animación de decremento INMEDIATAMENTE
-    if (mounted) {
-      setState(() => _isFlashingRed = true);
+    // ✅ Validar ANTES de decrementar usando el provider
+    if (!widget.habitsProvider.canDecrement(widget.itemHabit.id)) {
+      // Ya está en 0, no hacer nada
+      return;
     }
 
-    // Decrementar progreso en segundo plano (la UI ya se actualiza instantáneamente)
-    // NO usamos await para que la animación no se quede esperando
-    _progressManager.decrementProgress().then((success) {
-      // Si falló, podríamos mostrar un feedback adicional aquí
-      if (!success && mounted) {
-        // Opcional: mostrar un snackbar o algún indicador de error
+    // 🚀 Decrementar y obtener resultado
+    final bool success = await widget.habitsProvider.decrementHabitProgress(widget.itemHabit.id);
+
+    // Mostrar animación SOLO si fue exitoso
+    if (success && mounted) {
+      setState(() => _isFlashingRed = true);
+
+      await Future.delayed(AnimationConstants.fastAnimation);
+
+      if (mounted) {
+        setState(() => _isFlashingRed = false);
       }
-    });
-    
-    // Esperar que termine la animación
-    await Future.delayed(AnimationConstants.fastAnimation);
-    
-    if (mounted) {
-      setState(() => _isFlashingRed = false);
     }
   }
 }
