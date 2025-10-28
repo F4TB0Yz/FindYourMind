@@ -5,8 +5,6 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:uuid/uuid.dart';
-import 'dart:developer' as developer;
 
 abstract class HabitsLocalDatasource {
   // Users Habits
@@ -19,7 +17,7 @@ abstract class HabitsLocalDatasource {
   });
 
   // Habits
-  Future<String?> createHabit(HabitEntity habit);
+  Future<String> createHabit(HabitEntity habit);
 
   Future<void> updateHabit(HabitEntity habit);
 
@@ -27,8 +25,6 @@ abstract class HabitsLocalDatasource {
 
   // Habit Progress
   Future<String?> createHabitProgress(HabitProgress habitProgress);
-
-  Future<void> deleteHabitProgress(String habitId);
 
   Future<void> incrementHabitProgress({
     required String habitId,
@@ -44,11 +40,13 @@ abstract class HabitsLocalDatasource {
 
   Future<void> clearAllHabits(String userId);
 
+
   Future<void> saveHabits(List<HabitEntity> habits);
 }
 
 class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   final DatabaseHelper databaseHelper;
+  final Uuid _uuid = const Uuid();
 
   HabitsLocalDatasourceImpl({required this.databaseHelper});
 
@@ -57,6 +55,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       print('🔍 [LOCAL_DS] getHabitsByUserId - Obteniendo base de datos...');
       final db = await databaseHelper.database;
+
+      print(
+        '🔍 [LOCAL_DS] getHabitsByUserId - Ejecutando query para userId: $userId',
+      );
 
       print(
         '🔍 [LOCAL_DS] getHabitsByUserId - Ejecutando query para userId: $userId',
@@ -72,12 +74,18 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         '✅ [LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos',
       );
 
+      print(
+        '✅ [LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos',
+      );
+
       List<Map<String, dynamic>> habitsWithProgress = [];
+
 
       for (var habitMap in habitMaps) {
         // Crear una copia mutable del map
         final mutableHabitMap = Map<String, dynamic>.from(habitMap);
         final habitId = mutableHabitMap['id'] as String;
+
 
         final progressResponse = await db.query(
           'habit_progress',
@@ -85,6 +93,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
           whereArgs: [habitId],
           orderBy: 'date DESC',
         );
+
 
         mutableHabitMap['progress'] = progressResponse;
         habitsWithProgress.add(mutableHabitMap);
@@ -94,6 +103,9 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         return ItemHabitModel.fromJson(habitJson).toEntity();
       }).toList();
     } on DatabaseException catch (e) {
+      print(
+        '❌ [LOCAL_DS] getHabitsByUserId - DatabaseException: ${e.toString()}',
+      );
       print(
         '❌ [LOCAL_DS] getHabitsByUserId - DatabaseException: ${e.toString()}',
       );
@@ -118,6 +130,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
       print(
         '🔍 [LOCAL_DS] Ejecutando query - userId: $userId, limit: $limit, offset: $offset',
       );
+
+      print(
+        '🔍 [LOCAL_DS] Ejecutando query - userId: $userId, limit: $limit, offset: $offset',
+      );
       final List<Map<String, dynamic>> habitMaps = await db.query(
         'habits',
         where: 'user_id = ?',
@@ -131,7 +147,15 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         '✅ [LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados',
       );
 
+      print(
+        '✅ [LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados',
+      );
+
       List<Map<String, dynamic>> habitsWithProgress = [];
+
+      print(
+        '🔄 [LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...',
+      );
 
       print(
         '🔄 [LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...',
@@ -142,6 +166,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         final habitId = mutableHabitMap['id'] as String;
         print('🔍 [LOCAL_DS] Obteniendo progreso para hábito: $habitId');
 
+
         try {
           // Obtener solo los últimos 30 días de progreso para optimizar
           final progressResponse = await db.query(
@@ -150,6 +175,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             whereArgs: [habitId],
             orderBy: 'date DESC',
             limit: 30,
+          );
+
+          print(
+            '✅ [LOCAL_DS] Progreso obtenido: ${progressResponse.length} registros',
           );
 
           print(
@@ -169,6 +198,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         '✅ [LOCAL_DS] Procesados ${habitsWithProgress.length} hábitos con progreso',
       );
 
+      print(
+        '✅ [LOCAL_DS] Procesados ${habitsWithProgress.length} hábitos con progreso',
+      );
+
       return habitsWithProgress.map((habitJson) {
         return ItemHabitModel.fromJson(habitJson).toEntity();
       }).toList();
@@ -183,7 +216,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   }
 
   @override
-  Future<String?> createHabit(HabitEntity habit) async {
+  Future<String> createHabit(HabitEntity habit) async {
     try {
       final db = await databaseHelper.database;
 
@@ -205,7 +238,8 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         'updated_at': DateTime.now().toIso8601String(),
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      return habitId;
+      return habit.id;
+      
     } on DatabaseException catch (e) {
       developer.log(
         'Error al crear hábito',
@@ -278,7 +312,9 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       final db = await databaseHelper.database;
 
+
       // SQLite eliminará automáticamente el progreso por la foreign key en cascada
+      await db.delete('habits', where: 'id = ?', whereArgs: [habitId]);
       await db.delete('habits', where: 'id = ?', whereArgs: [habitId]);
     } on DatabaseException catch (e) {
       throw CacheException('Error al eliminar hábito: ${e.toString()}');
@@ -288,7 +324,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   }
 
   @override
-  Future<String?> createHabitProgress(HabitProgress habitProgress) async {
+  Future<String> createHabitProgress(HabitProgress habitProgress) async {
     try {
       final db = await databaseHelper.database;
 
@@ -367,6 +403,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       final db = await databaseHelper.database;
 
+
       await db.update(
         'habit_progress',
         {
@@ -439,7 +476,9 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       final db = await databaseHelper.database;
 
+
       // SQLite eliminará automáticamente el progreso por la foreign key en cascada
+      await db.delete('habits', where: 'user_id = ?', whereArgs: [userId]);
       await db.delete('habits', where: 'user_id = ?', whereArgs: [userId]);
     } on DatabaseException catch (e) {
       throw CacheException('Error al limpiar hábitos: ${e.toString()}');
@@ -453,8 +492,22 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       final db = await databaseHelper.database;
 
+
       await db.transaction((txn) async {
         for (var habit in habits) {
+          await txn.insert('habits', {
+            'id': habit.id,
+            'user_id': habit.userId,
+            'title': habit.title,
+            'description': habit.description,
+            'icon': habit.icon,
+            'type': habit.type.name,
+            'daily_goal': habit.dailyGoal,
+            'initial_date': habit.initialDate,
+            'created_at': DateTime.now().toIso8601String(),
+            'synced': 1, // Marcar como sincronizado (viene del servidor)
+            'updated_at': DateTime.now().toIso8601String(),
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
           await txn.insert('habits', {
             'id': habit.id,
             'user_id': habit.userId,
@@ -479,6 +532,14 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
               'daily_counter': progress.dailyCounter,
               'synced': 1, // Marcar como sincronizado (viene del servidor)
             }, conflictAlgorithm: ConflictAlgorithm.replace);
+            await txn.insert('habit_progress', {
+              'id': progress.id,
+              'habit_id': progress.habitId,
+              'date': progress.date,
+              'daily_goal': progress.dailyGoal,
+              'daily_counter': progress.dailyCounter,
+              'synced': 1, // Marcar como sincronizado (viene del servidor)
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
       });
@@ -489,3 +550,4 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     }
   }
 }
+
