@@ -30,6 +30,10 @@ class HabitRepositoryImpl implements HabitRepository {
        _localDataSource = localDataSource,
        _networkInfo = networkInfo,
        _syncService = syncService;
+  }) : _remoteDataSource = remoteDataSource,
+       _localDataSource = localDataSource,
+       _networkInfo = networkInfo,
+       _syncService = syncService;
 
   @override
   Future<List<HabitEntity>> getHabitsByEmail(String email) async {
@@ -87,6 +91,7 @@ class HabitRepositoryImpl implements HabitRepository {
       offset: offset,
     );
 
+
     print('📦 [REPO] SQLite devolvió ${localHabits.length} hábitos');
 
     // 2. Si hay datos locales, retornarlos inmediatamente y sincronizar en segundo plano
@@ -116,6 +121,7 @@ class HabitRepositoryImpl implements HabitRepository {
         // Cargar todos los hábitos del servidor
         final remoteHabits = await _remoteDataSource.getHabitsByUserId(email);
         print('✅ [REPO] Supabase devolvió ${remoteHabits.length} hábitos');
+
 
         if (remoteHabits.isNotEmpty) {
           // Guardar en SQLite
@@ -179,6 +185,9 @@ class HabitRepositoryImpl implements HabitRepository {
       return Left(
         ServerFailure(message: 'Error al crear hábito: ${e.toString()}'),
       );
+      return Left(
+        ServerFailure(message: 'Error al crear hábito: ${e.toString()}'),
+      );
     }
   }
 
@@ -214,6 +223,9 @@ class HabitRepositoryImpl implements HabitRepository {
         return const Right(null); // Éxito local, sincronización pendiente
       }
     } catch (e) {
+      return Left(
+        CacheFailure(message: 'Error al actualizar hábito: ${e.toString()}'),
+      );
       return Left(
         CacheFailure(message: 'Error al actualizar hábito: ${e.toString()}'),
       );
@@ -292,6 +304,9 @@ class HabitRepositoryImpl implements HabitRepository {
       // 4. Retornar éxito INMEDIATAMENTE (sin esperar a Supabase)
       return const Right(null);
     } catch (e) {
+      return Left(
+        CacheFailure(message: 'Error al actualizar progreso: ${e.toString()}'),
+      );
       return Left(
         CacheFailure(message: 'Error al actualizar progreso: ${e.toString()}'),
       );
@@ -403,6 +418,9 @@ class HabitRepositoryImpl implements HabitRepository {
       return Left(
         CacheFailure(message: 'Error al eliminar hábito: ${e.toString()}'),
       );
+      return Left(
+        CacheFailure(message: 'Error al eliminar hábito: ${e.toString()}'),
+      );
     }
   }
 
@@ -444,6 +462,17 @@ class HabitRepositoryImpl implements HabitRepository {
       'type': habit.type.name,
       'daily_goal': habit.dailyGoal,
       'initial_date': habit.initialDate,
+      'progress': habit.progress
+          .map(
+            (p) => {
+              'id': p.id,
+              'habit_id': p.habitId,
+              'date': p.date,
+              'daily_goal': p.dailyGoal,
+              'daily_counter': p.dailyCounter,
+            },
+          )
+          .toList(),
       'progress': habit.progress
           .map(
             (p) => {

@@ -1,5 +1,6 @@
 import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
@@ -25,9 +26,16 @@ class NewHabitScreen extends StatefulWidget {
 class _NewHabitScreenState extends State<NewHabitScreen> {
   String selectedIcon = 'assets/icons/mind.svg';
 
+
   @override
   Widget build(BuildContext context) {
     final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
+    final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(
+      context,
+    );
+    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(
+      context,
+    );
     final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(
       context,
     );
@@ -122,7 +130,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
   void _onTapSaveHabit(
     BuildContext context,
     NewHabitProvider newHabitProvider,
+    NewHabitProvider newHabitProvider,
     HabitsProvider habitsProvider,
+    ScreensProvider screensProvider,
     ScreensProvider screensProvider,
   ) async {
     final habit = HabitEntity(
@@ -135,15 +145,36 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       dailyGoal: newHabitProvider.dailyGoal,
       initialDate: DateTime.now().toIso8601String(),
       progress: [],
+      progress: [],
     );
 
     if (!_verifyFields(habit)) return;
 
-    // 🚀 ACTUALIZACIÓN OPTIMISTA: Mostrar feedback inmediato al usuario
+    final repository = DependencyInjection().habitRepository;
+    final result = await repository.createHabit(habit);
+
+    final String? habitId = result.fold((failure) {
+      if (context.mounted) {
+        // Como Failure es abstracto, mostramos un mensaje genérico
+        CustomToast.showToast(
+          context: context,
+          message: 'Error al guardar el hábito',
+        );
+      }
+      return null;
+    }, (id) => id);
+
+    if (habitId == null) return;
+
+    habitsProvider.addHabit(habit.copyWith(id: habitId));
+
     if (!context.mounted) return;
 
     // Cambiar a pantalla de hábitos y mostrar toast inmediatamente
     screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+
+    CustomToast.showToast(context: context, message: 'Habito Guardado');
+
 
     CustomToast.showToast(context: context, message: 'Habito Guardado');
 
@@ -171,11 +202,23 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     );
 
     if (progressId == null) return;
+
+    final HabitProgress todayProgress = HabitProgress(
+      id: progressId,
+      habitId: habitId,
+      date: todayString,
+      dailyGoal: habit.dailyGoal,
+      dailyCounter: 0,
+    );
+
+    habitsProvider.updateHabitProgress(todayProgress);
   }
 
   bool _verifyFields(HabitEntity habit) {
     if (habit.title.isEmpty) {
       CustomToast.showToast(
+        context: context,
+        message: 'El titulo no puede estar vacio',
         context: context,
         message: 'El titulo no puede estar vacio',
       );
@@ -186,16 +229,22 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       CustomToast.showToast(
         context: context,
         message: 'Selecciona un tipo de habito',
+        context: context,
+        message: 'Selecciona un tipo de habito',
       );
       return false;
     }
+
 
     return true;
   }
 
   Widget _buildTextField({
     required TextEditingController textController,
+    required TextEditingController textController,
     String? title,
+    double fontSize = 12,
+    bool isSubtitle = false,
     double fontSize = 12,
     bool isSubtitle = false,
   }) {
@@ -207,6 +256,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
         hintStyle: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
+          color: Colors.white60,
           color: Colors.white60,
         ),
         border: InputBorder.none,
@@ -222,3 +272,4 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     );
   }
 }
+

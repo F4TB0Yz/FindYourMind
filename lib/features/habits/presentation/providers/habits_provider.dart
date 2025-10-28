@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/core/utils/date_utils.dart';
@@ -6,13 +7,10 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
+import 'package:sqflite/sqflite.dart';
 
 class HabitsProvider extends ChangeNotifier {
-  // Propiedades privadas
   String _titleScreen = AppStrings.habitsTitle;
-  String? _lastError;
-  DateTime? _lastErrorTime;
   bool _isEditing = false;
   bool _isLoading = false;
   bool _hasMore = true;
@@ -27,19 +25,20 @@ class HabitsProvider extends ChangeNotifier {
   
   // Constantes
   static const int _pageSize = 10;
-  
+
   // Repositorio con lógica offline-first
-  final HabitRepositoryImpl _repository = DependencyInjection().habitRepository as HabitRepositoryImpl;
-  
+  final HabitRepository _repository = DependencyInjection().habitRepository;
+
+  // Timer para sincronización automática
+  Timer? _syncTimer;
+
   // UUID del usuario de Supabase
   final String _userId = AppConstants.currentUserId;
 
   // Getters
   String get titleScreen => _titleScreen;
-  String? get lastError => _lastError;
-  DateTime? get lastErrorTime => _lastErrorTime;
   bool get isEditing => _isEditing;
-  List<HabitEntity> get habits => List.unmodifiable(_habits); // Inmutable para evitar modificaciones externas
+  List<HabitEntity> get habits => _habits;
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
   bool get hasError => _lastError != null;
@@ -99,19 +98,32 @@ class HabitsProvider extends ChangeNotifier {
     }
   }
 
-  /// Recarga hábitos desde SQLite sin mostrar loading (llamado por SyncProvider)
-  Future<void> refreshHabitsFromLocal() async {
+  /// Recarga hábitos desde SQLite sin mostrar loading
+  Future<void> _refreshHabitsFromLocal() async {
     try {
       print('🔄 [PROVIDER] Refrescando desde SQLite...');
       final updatedHabits = await _repository.getHabitsByEmail(_userId);
       _habits.clear();
       _habits.addAll(updatedHabits);
       notifyListeners();
-      print('✅ [PROVIDER] Refrescado exitoso - ${updatedHabits.length} hábitos');
+      print(
+        '✅ [PROVIDER] Refrescado exitoso - ${updatedHabits.length} hábitos',
+      );
     } catch (e) {
       // Error no crítico - los datos ya están cargados en memoria
-      if (kDebugMode) print('⚠️ Error al refrescar desde SQLite (datos ya en memoria): $e');
+      if (kDebugMode)
+        print('⚠️ Error al refrescar desde SQLite (datos ya en memoria): $e');
     }
+  }
+
+  /// Establece la referencia al SyncProvider para notificar cambios
+  void setSyncProvider(SyncProvider syncProvider) {
+    _syncProvider = syncProvider;
+  }
+
+  /// Notifica al SyncProvider que hay cambios pendientes
+  void _notifyPendingChanges() {
+    _syncProvider?.markPendingChanges();
   }
 
   /// Establece la referencia al SyncProvider para notificar cambios
@@ -133,46 +145,52 @@ class HabitsProvider extends ChangeNotifier {
   void resetTitle() {
     if (_titleScreen != AppStrings.habitsTitle) {
       _titleScreen = AppStrings.habitsTitle;
-      notifyListeners();
     }
   }
 
   void changeIsEditing(bool editing) {
-    if (_isEditing == editing) return;
-    _isEditing = editing;
+    if (_isEditing != editing) _isEditing = editing;
+    notifyListeners();
+  }
+
+  void addHabit(HabitEntity habit) {
+    _habits.add(habit);
     notifyListeners();
   }
 
   /// Carga hábitos desde SQLite (instantáneo) y sincroniza en segundo plano
   Future<void> loadHabits() async {
-    if (kDebugMode) print('🚀 [PROVIDER] Iniciando loadHabits()...');
+    if (_isLoading) return;
+
+    print('🚀 [PROVIDER] Iniciando loadHabits()...');
+    _isLoading = true;
     _currentPage = 0;
     _habits.clear();
-    clearError(); // Limpiar errores previos
     notifyListeners();
 
     try {
-      if (kDebugMode) print('📞 [PROVIDER] Llamando a repository.getHabitsByEmailPaginated...');
-      // Cargar desde SQLite (offline-first, instantáneo) - NO mostramos loading
-      final List<HabitEntity> habits = await _repository.getHabitsByEmailPaginated(
-        email: _userId,
-        limit: _pageSize,
-        offset: 0,
-      );
-      
-      if (kDebugMode) print('✅ [PROVIDER] Recibidos ${habits.length} hábitos del repository');
+      print('📞 [PROVIDER] Llamando a repository.getHabitsByEmailPaginated...');
+      // Cargar desde SQLite (offline-first, instantáneo)
+      final List<HabitEntity> habits = await _repository
+          .getHabitsByEmailPaginated(
+            email: _userId,
+            limit: _pageSize,
+            offset: 0,
+          );
+
+      print('✅ [PROVIDER] Recibidos ${habits.length} hábitos del repository');
       _habits.addAll(habits);
       _hasMore = habits.length == _pageSize;
       _currentPage = 1;
+      _isLoading = false;
       notifyListeners();
-      
+
+      // Sincronización en segundo plano (no bloquea la UI)
+      await _syncInBackground();
     } catch (e) {
-      if (kDebugMode) print('❌ [PROVIDER] Error loadHabits: $e');
-      _setError('Error al cargar los hábitos: ${e.toString()}');
-      notifyListeners();
+      print('❌ [PROVIDER] Error loadHabits: $e');
+      if (kDebugMode) print('❌ Error loadHabits: $e');
     }
-    
-    if (kDebugMode) print('🏁 [PROVIDER] loadHabits() finalizado - ${_habits.length} hábitos en memoria');
   }
 
   /// Carga más hábitos con paginación
@@ -183,18 +201,18 @@ class HabitsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final List<HabitEntity> newHabits = await _repository.getHabitsByEmailPaginated(
-        email: _userId,
-        limit: _pageSize,
-        offset: _currentPage * _pageSize,
-      );
-      
+      final List<HabitEntity> newHabits = await _repository
+          .getHabitsByEmailPaginated(
+            email: _userId,
+            limit: _pageSize,
+            offset: _currentPage * _pageSize,
+          );
+
       _habits.addAll(newHabits);
       _hasMore = newHabits.length == _pageSize;
       _currentPage++;
     } catch (e) {
       if (kDebugMode) print('❌ Error loadMoreHabits: $e');
-      _setError('Error al cargar más hábitos: ${e.toString()}');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -482,7 +500,6 @@ class HabitsProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       if (kDebugMode) print('❌ Error updateHabit: $e');
-      _setError('Error inesperado al actualizar hábito: ${e.toString()}');
       return false;
     }
   }
@@ -621,11 +638,11 @@ class HabitsProvider extends ChangeNotifier {
 
       // Eliminar del repositorio (SQLite + sync automático)
       final result = await _repository.deleteHabit(habitId);
-      
+
       return result.fold(
         (failure) {
-          if (kDebugMode) print('❌ Error al eliminar hábito: ${failure.message}');
-          _setError('Error al eliminar hábito: ${failure.message}');
+          if (kDebugMode)
+            print('❌ Error al eliminar hábito: ${failure.message}');
           return false;
         },
         (_) {
@@ -636,8 +653,74 @@ class HabitsProvider extends ChangeNotifier {
       );
     } catch (e) {
       if (kDebugMode) print('❌ Error deleteHabit: $e');
-      _setError('Error inesperado al eliminar hábito: ${e.toString()}');
       return false;
     }
+  }
+
+  /// Sincronización manual (para botón de refresh)
+  Future<bool> syncWithServer() async {
+    try {
+      if (_repository is! HabitRepositoryImpl) return false;
+
+      final result = await (_repository as dynamic).syncWithRemote(_userId);
+
+      if (result.isFullSuccess || result.success > 0) {
+        // Recargar datos actualizados
+        await loadHabits();
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) print('❌ Error syncWithServer: $e');
+      return false;
+    }
+  }
+
+  /// Obtiene el número de cambios pendientes de sincronización
+  Future<int> getPendingChangesCount() async {
+    try {
+      if (_repository is! HabitRepositoryImpl) return 0;
+      return await (_repository as dynamic).getPendingSyncCount();
+    } catch (e) {
+      if (kDebugMode) print('❌ Error getPendingChangesCount: $e');
+      return 0;
+    }
+  }
+
+  Future<void> inspectDatabase() async {
+    final db = await DependencyInjection().databaseHelper.database;
+
+    print('\n═══════════════════════════════════════');
+    print('🔍 INSPECCIÓN DE BASE DE DATOS');
+    print('═══════════════════════════════════════');
+
+    // Tablas existentes
+    final tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    );
+    print('📁 Tablas: ${tables.map((t) => t['name']).join(', ')}');
+
+    // Conteo de registros
+    final habitsCount = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM habits'),
+    );
+    final progressCount = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM habit_progress'),
+    );
+    final pendingCount = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM pending_sync'),
+    );
+
+    print('📊 Hábitos: $habitsCount');
+    print('📊 Progresos: $progressCount');
+    print('📊 Pendientes de sync: $pendingCount');
+
+    // Muestra de datos
+    final sampleHabits = await db.query('habits', limit: 3);
+    print('📄 Muestra de hábitos:');
+    sampleHabits.forEach((h) => print('  - ${h['id']}: ${h['title']}'));
+
+    print('═══════════════════════════════════════\n');
   }
 }
