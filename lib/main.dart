@@ -8,7 +8,7 @@ import 'package:find_your_mind/features/habits/presentation/screens/habits_scree
 import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
-import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
+import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_app_bar.dart';

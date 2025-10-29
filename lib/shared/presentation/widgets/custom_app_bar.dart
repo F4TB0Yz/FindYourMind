@@ -1,5 +1,5 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
-import 'package:find_your_mind/features/notes/presentation/providers/theme_provider.dart';
+import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
