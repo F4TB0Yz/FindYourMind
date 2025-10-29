@@ -26,7 +26,7 @@ void main() async {
   // Inicializar todas las dependencias (incluye DatabaseHelper/SQLite)
   await DependencyInjection().initialize();
 
-  final di = DependencyInjection();
+  final DependencyInjection dependencies = DependencyInjection();
 
   runApp(
     MultiProvider(
@@ -39,12 +39,12 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NewHabitProvider()),
         ChangeNotifierProvider(
           create: (_) => HabitsProvider(
-            createHabitUseCase: di.createHabitUseCase,
-            updateHabitUseCase: di.updateHabitUseCase,
-            deleteHabitUseCase: di.deleteHabitUseCase,
-            incrementHabitProgressUseCase: di.incrementHabitProgressUseCase,
-            decrementHabitProgressUseCase: di.decrementHabitProgressUseCase,
-            repository: di.habitRepository as HabitRepositoryImpl,
+            createHabitUseCase: dependencies.createHabitUseCase,
+            updateHabitUseCase: dependencies.updateHabitUseCase,
+            deleteHabitUseCase: dependencies.deleteHabitUseCase,
+            incrementHabitProgressUseCase: dependencies.incrementHabitProgressUseCase,
+            decrementHabitProgressUseCase: dependencies.decrementHabitProgressUseCase,
+            repository: dependencies.habitRepository as HabitRepositoryImpl,
           ),
         ),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
