@@ -5,6 +5,11 @@ import 'package:find_your_mind/features/habits/data/datasources/habits_local_dat
 import 'package:find_your_mind/features/habits/data/datasources/habits_remote_datasource.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -28,6 +33,13 @@ class DependencyInjection {
   
   // Repositorio
   late final HabitRepository _habitRepository;
+  
+  // Casos de uso
+  late final CreateHabitUseCase _createHabitUseCase;
+  late final UpdateHabitUseCase _updateHabitUseCase;
+  late final DeleteHabitUseCase _deleteHabitUseCase;
+  late final IncrementHabitProgressUseCase _incrementHabitProgressUseCase;
+  late final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
 
   DependencyInjection._internal();
 
@@ -93,6 +105,13 @@ class DependencyInjection {
       syncService: _syncService,
     );
 
+    // 5. Inicializar casos de uso
+    _createHabitUseCase = CreateHabitUseCase(_habitRepository);
+    _updateHabitUseCase = UpdateHabitUseCase(_habitRepository);
+    _deleteHabitUseCase = DeleteHabitUseCase(_habitRepository);
+    _incrementHabitProgressUseCase = IncrementHabitProgressUseCase(_habitRepository);
+    _decrementHabitProgressUseCase = DecrementHabitProgressUseCase(_habitRepository);
+
     _isInitialized = true;
   }
 
@@ -101,4 +120,11 @@ class DependencyInjection {
   DatabaseHelper get databaseHelper => _databaseHelper;
   NetworkInfo get networkInfo => _networkInfo;
   SyncService get syncService => _syncService;
+  
+  // Getters para los casos de uso
+  CreateHabitUseCase get createHabitUseCase => _createHabitUseCase;
+  UpdateHabitUseCase get updateHabitUseCase => _updateHabitUseCase;
+  DeleteHabitUseCase get deleteHabitUseCase => _deleteHabitUseCase;
+  IncrementHabitProgressUseCase get incrementHabitProgressUseCase => _incrementHabitProgressUseCase;
+  DecrementHabitProgressUseCase get decrementHabitProgressUseCase => _decrementHabitProgressUseCase;
 }

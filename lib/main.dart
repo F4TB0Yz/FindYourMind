@@ -1,6 +1,7 @@
 import 'package:find_your_mind/config/theme/app_theme.dart';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/config/supabase_config.dart';
+import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
@@ -25,6 +26,8 @@ void main() async {
   // Inicializar todas las dependencias (incluye DatabaseHelper/SQLite)
   await DependencyInjection().initialize();
 
+  final di = DependencyInjection();
+
   runApp(
     MultiProvider(
       providers: [
@@ -34,7 +37,16 @@ void main() async {
               ScreensProvider(const HabitsScreen(), ScreenType.habits),
         ),
         ChangeNotifierProvider(create: (_) => NewHabitProvider()),
-        ChangeNotifierProvider(create: (_) => HabitsProvider()),
+        ChangeNotifierProvider(
+          create: (_) => HabitsProvider(
+            createHabitUseCase: di.createHabitUseCase,
+            updateHabitUseCase: di.updateHabitUseCase,
+            deleteHabitUseCase: di.deleteHabitUseCase,
+            incrementHabitProgressUseCase: di.incrementHabitProgressUseCase,
+            decrementHabitProgressUseCase: di.decrementHabitProgressUseCase,
+            repository: di.habitRepository as HabitRepositoryImpl,
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
       ],
       child: const MainApp(),

@@ -10,6 +10,7 @@ abstract class Failure extends Equatable {
 
 /// Falla del servidor
 class ServerFailure extends Failure {
+  @override
   final String message;
 
   ServerFailure({required this.message});
@@ -20,6 +21,7 @@ class ServerFailure extends Failure {
 
 /// Falla de red (sin conexión)
 class NetworkFailure extends Failure {
+  @override
   final String message;
 
   NetworkFailure({this.message = 'Sin conexión a internet'});
@@ -30,9 +32,21 @@ class NetworkFailure extends Failure {
 
 /// Falla de caché
 class CacheFailure extends Failure {
+  @override
   final String message;
 
   CacheFailure({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+/// Falla de validación (datos inválidos)
+class ValidationFailure extends Failure {
+  @override
+  final String message;
+
+  ValidationFailure(this.message);
 
   @override
   List<Object?> get props => [message];

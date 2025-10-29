@@ -1,23 +1,39 @@
+import 'package:dartz/dartz.dart';
+import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 
 /// Caso de uso para eliminar un hábito
-/// Valida y ejecuta la lógica de negocio para eliminar un hábito
+/// 
+/// Encapsula la lógica de negocio para:
+/// - Validar que el ID del hábito es válido
+/// - Ejecutar la eliminación en el repositorio
 class DeleteHabitUseCase {
-  final HabitRepository repository;
+  final HabitRepository _repository;
 
-  DeleteHabitUseCase(this.repository);
+  DeleteHabitUseCase(this._repository);
 
   /// Ejecuta la eliminación del hábito
   /// 
-  /// [habitId] ID del hábito a eliminar
+  /// Parámetros:
+  /// - [habitId]: ID del hábito a eliminar
   /// 
-  /// Lanza [ArgumentError] si el habitId está vacío
-  Future<void> execute(String habitId) async {
-    if (habitId.isEmpty) {
-      throw ArgumentError('El ID del hábito no puede estar vacío');
+  /// Retorna:
+  /// - [Right(void)]: Si la eliminación fue exitosa
+  /// - [Left(Failure)]: Si ocurre un error
+  /// 
+  /// Lanza validaciones si:
+  /// - El habitId está vacío
+  Future<Either<Failure, void>> execute({
+    required String habitId,
+  }) async {
+    // Validación: ID no vacío
+    if (habitId.trim().isEmpty) {
+      return Left(
+        ValidationFailure('El ID del hábito no puede estar vacío'),
+      );
     }
     
     // Ejecutar eliminación
-    await repository.deleteHabit(habitId);
+    return await _repository.deleteHabit(habitId);
   }
 }
