@@ -1,6 +1,7 @@
 import 'package:find_your_mind/config/theme/app_theme.dart';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/config/supabase_config.dart';
+import 'package:find_your_mind/features/auth/presentation/screens/auth_screen.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
@@ -9,9 +10,6 @@ import 'package:find_your_mind/shared/domain/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
-import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
-import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
-import 'package:find_your_mind/shared/presentation/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -28,13 +26,17 @@ void main() async {
 
   final DependencyInjection dependencies = DependencyInjection();
 
+  dependencies.authService.signOut();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
-          create: (_) =>
-              ScreensProvider(const HabitsScreen(), ScreenType.habits),
+          create: (_) => ScreensProvider(
+            const HabitsScreen(),
+            ScreenType.habits,
+          ),
         ),
         ChangeNotifierProvider(create: (_) => NewHabitProvider()),
         ChangeNotifierProvider(
@@ -42,8 +44,10 @@ void main() async {
             createHabitUseCase: dependencies.createHabitUseCase,
             updateHabitUseCase: dependencies.updateHabitUseCase,
             deleteHabitUseCase: dependencies.deleteHabitUseCase,
-            incrementHabitProgressUseCase: dependencies.incrementHabitProgressUseCase,
-            decrementHabitProgressUseCase: dependencies.decrementHabitProgressUseCase,
+            incrementHabitProgressUseCase:
+                dependencies.incrementHabitProgressUseCase,
+            decrementHabitProgressUseCase:
+                dependencies.decrementHabitProgressUseCase,
             repository: dependencies.habitRepository as HabitRepositoryImpl,
           ),
         ),
@@ -87,7 +91,7 @@ class _MainAppState extends State<MainApp> {
       syncProvider.setOnSyncCompleteCallback(() {
         habitsProvider.refreshHabitsFromLocal();
       });
-      
+
       // Conectar HabitsProvider con SyncProvider para notificar cambios
       habitsProvider.setSyncProvider(syncProvider);
 
@@ -98,10 +102,8 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
+    final DependencyInjection dependencies = DependencyInjection();
     final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
-    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(
-      context,
-    );
 
     return MaterialApp(
       theme: AppTheme.getAppTheme(isDark: false),
@@ -109,16 +111,7 @@ class _MainAppState extends State<MainApp> {
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
       home: SafeArea(
-        child: Scaffold(
-          appBar: const CustomAppBar(),
-          body: Padding(
-            padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
-            child: AnimatedScreenTransition(
-              child: screensProvider.currentPageWidget,
-            ),
-          ),
-          bottomNavigationBar: const CustomBottomBar(),
-        ),
+        child: AuthScreen(authService: dependencies.authService),
       ),
     );
   }

@@ -12,28 +12,31 @@ import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_p
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:find_your_mind/core/services/auth_service.dart';
+import 'package:find_your_mind/core/services/supabase_auth_service.dart';
 
 /// Configuración de inyección de dependencias para la funcionalidad de hábitos
 /// Implementa el patrón Singleton para garantizar una única instancia de los servicios
 class DependencyInjection {
   static DependencyInjection? _instance;
   bool _isInitialized = false;
-  
+
   // Dependencias compartidas
   late final DatabaseHelper _databaseHelper;
   late final NetworkInfo _networkInfo;
   late final SupabaseClient _supabaseClient;
-  
+
   // Datasources
   late final HabitsRemoteDataSource _remoteDataSource;
   late final HabitsLocalDatasource _localDataSource;
-  
+
   // Servicios
   late final SyncService _syncService;
-  
+  late final AuthService _authService;
+
   // Repositorio
   late final HabitRepository _habitRepository;
-  
+
   // Casos de uso
   late final CreateHabitUseCase _createHabitUseCase;
   late final UpdateHabitUseCase _updateHabitUseCase;
@@ -55,10 +58,10 @@ class DependencyInjection {
 
     // 1. Inicializar dependencias base
     _databaseHelper = DatabaseHelper();
-    
+
     // Inicializar sqflite_ffi primero
     DatabaseHelper.initializeFfi();
-    
+
     // Si se solicita reset, eliminar la base de datos
     if (forceResetDatabase) {
       print('🔄 [DI] Forzando recreación de la base de datos...');
@@ -68,7 +71,7 @@ class DependencyInjection {
         print('⚠️ [DI] Error al eliminar BD (puede no existir): $e');
       }
     }
-    
+
     // Asegurar que la BD esté lista
     try {
       await _databaseHelper.database;
@@ -83,13 +86,18 @@ class DependencyInjection {
         rethrow;
       }
     }
-    
+
     _networkInfo = NetworkInfoImpl(InternetConnectionChecker.instance);
     _supabaseClient = Supabase.instance.client;
 
+  // Inicializar servicio de autenticación
+  _authService = SupabaseAuthService(_supabaseClient);
+
     // 2. Inicializar datasources
     _remoteDataSource = HabitsRemoteDataSourceImpl(client: _supabaseClient);
-    _localDataSource = HabitsLocalDatasourceImpl(databaseHelper: _databaseHelper);
+    _localDataSource = HabitsLocalDatasourceImpl(
+      databaseHelper: _databaseHelper,
+    );
 
     // 3. Inicializar servicio de sincronización
     _syncService = SyncService(
@@ -109,8 +117,12 @@ class DependencyInjection {
     _createHabitUseCase = CreateHabitUseCase(_habitRepository);
     _updateHabitUseCase = UpdateHabitUseCase(_habitRepository);
     _deleteHabitUseCase = DeleteHabitUseCase(_habitRepository);
-    _incrementHabitProgressUseCase = IncrementHabitProgressUseCase(_habitRepository);
-    _decrementHabitProgressUseCase = DecrementHabitProgressUseCase(_habitRepository);
+    _incrementHabitProgressUseCase = IncrementHabitProgressUseCase(
+      _habitRepository,
+    );
+    _decrementHabitProgressUseCase = DecrementHabitProgressUseCase(
+      _habitRepository,
+    );
 
     _isInitialized = true;
   }
@@ -120,11 +132,14 @@ class DependencyInjection {
   DatabaseHelper get databaseHelper => _databaseHelper;
   NetworkInfo get networkInfo => _networkInfo;
   SyncService get syncService => _syncService;
-  
+  AuthService get authService => _authService;
+
   // Getters para los casos de uso
   CreateHabitUseCase get createHabitUseCase => _createHabitUseCase;
   UpdateHabitUseCase get updateHabitUseCase => _updateHabitUseCase;
   DeleteHabitUseCase get deleteHabitUseCase => _deleteHabitUseCase;
-  IncrementHabitProgressUseCase get incrementHabitProgressUseCase => _incrementHabitProgressUseCase;
-  DecrementHabitProgressUseCase get decrementHabitProgressUseCase => _decrementHabitProgressUseCase;
+  IncrementHabitProgressUseCase get incrementHabitProgressUseCase =>
+      _incrementHabitProgressUseCase;
+  DecrementHabitProgressUseCase get decrementHabitProgressUseCase =>
+      _decrementHabitProgressUseCase;
 }

@@ -1,5 +1,6 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
+import 'package:find_your_mind/shared/presentation/widgets/app_bar/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -81,37 +82,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           const SizedBox(width: 8),
 
           // Profile
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isDarkTheme
-                ? AppColors.darkBackground
-                : const Color(0xFFFFFFFF),
-            ),
-            padding: const EdgeInsets.all(5),
-            child: const Row(
-              children: [
-                CircleAvatar(
-                  radius: 12,
-                  backgroundColor: Colors.blue,
-                  child: Text(
-                    'JF',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 4),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: Colors.white54,
-                  size: 18,
-                )
-              ],
-            ),
-          )
+          Profile(isDarkTheme: isDarkTheme)
         ],
       ),
     );
