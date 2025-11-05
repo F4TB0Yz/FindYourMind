@@ -24,9 +24,7 @@ class BlurShowDialogs extends StatelessWidget {
         Positioned.fill(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 3),
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.1),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: 0.1)),
           ),
         ),
 
@@ -35,20 +33,18 @@ class BlurShowDialogs extends StatelessWidget {
           child: GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             behavior: HitTestBehavior.translucent,
-            child: Container(
-              color: Colors.transparent,
-            ),
+            child: Container(color: Colors.transparent),
           ),
         ),
 
         // Dialog Content
         center
-          ? Center(child: child)
-          : Positioned(
-              left: position.dx,
-              top: position.dy + size.height + 5,
-              child: child,
-            ),
+            ? Center(child: child)
+            : Positioned(
+                left: position.dx,
+                top: position.dy + size.height + 5,
+                child: child,
+              ),
       ],
     );
   }
