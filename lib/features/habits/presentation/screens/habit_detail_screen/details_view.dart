@@ -3,7 +3,7 @@ import 'package:find_your_mind/features/habits/presentation/screens/habits_scree
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/statistics_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/weekly_progress/weekly_progress.dart';
-import 'package:find_your_mind/shared/domain/screen_type.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';

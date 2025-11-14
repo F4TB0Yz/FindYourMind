@@ -6,7 +6,7 @@ import 'package:find_your_mind/features/habits/data/repositories/habit_repositor
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
-import 'package:find_your_mind/shared/domain/screen_type.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
@@ -26,7 +26,7 @@ void main() async {
 
   final DependencyInjection dependencies = DependencyInjection();
 
-  dependencies.authService.signOut();
+  //dependencies.authService.signOut();
 
   runApp(
     MultiProvider(

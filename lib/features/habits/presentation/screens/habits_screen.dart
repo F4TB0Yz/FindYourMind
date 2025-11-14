@@ -1,12 +1,12 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/container_border_habits.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
-import 'package:find_your_mind/shared/domain/screen_type.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
@@ -66,7 +66,8 @@ class _HabitsScreenState extends State<HabitsScreen> {
   }
 
   Widget _buildHabitsView(ScreensProvider screensProvider, HabitsProvider habitsProvider) { 
-    return ContainerBorderHabits(
+    return ContainerBorderScreens(
+      screenType: ScreenType.habits,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
       child: Column(
         children: [

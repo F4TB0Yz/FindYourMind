@@ -1,11 +1,10 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
-import 'package:find_your_mind/core/constants/string_constants.dart';
-import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-class ContainerBorderHabits extends StatelessWidget {
+class ContainerBorderScreens extends StatelessWidget {
+  final ScreenType screenType;
   final Widget child;
   final Widget? endWidget;
   final double rightSpacing = 10;
@@ -13,8 +12,9 @@ class ContainerBorderHabits extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final EdgeInsetsGeometry? padding;
 
-  const ContainerBorderHabits({
-    super.key, 
+  const ContainerBorderScreens({
+    super.key,
+    required this.screenType,
     required this.child,
     this.endWidget,
     this.crossAxisAlignment = CrossAxisAlignment.center,
@@ -24,8 +24,6 @@ class ContainerBorderHabits extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
-
     return CustomBorderContainer(
       margin: margin,
       child: Column(
@@ -47,11 +45,11 @@ class ContainerBorderHabits extends StatelessWidget {
                 // Texto centrado
                 Center(
                   child: Text(
-                    habitsProvider.titleScreen,
-                    style: TextStyle(
+                    screenType.name,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
-                      letterSpacing: habitsProvider.titleScreen == AppStrings.habitsTitle ? 2 : 0,
+                      letterSpacing: 2,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

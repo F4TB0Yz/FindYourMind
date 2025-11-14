@@ -5,11 +5,11 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/container_border_habits.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/type_habit_selector.dart';
-import 'package:find_your_mind/shared/domain/screen_type.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,8 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       context,
     );
 
-    return ContainerBorderHabits(
+    return ContainerBorderScreens(
+      screenType: ScreenType.newHabit,
       crossAxisAlignment: CrossAxisAlignment.start,
       child: SingleChildScrollView(
         child: Padding(

@@ -1,4 +1,4 @@
-import 'package:find_your_mind/shared/domain/screen_type.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:flutter/widgets.dart';
 
 class ScreensProvider extends ChangeNotifier {

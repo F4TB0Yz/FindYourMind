@@ -47,7 +47,7 @@ flutter:
   fonts:
         - family: Nunito
           fonts:
-            - asset: assets\fonts\nunito\Nunito-ExtraLight.ttf
+            - asset: assets/fonts/nunito/Nunito-ExtraLight.ttf
               weight: 200
             - asset: assets/fonts/nunito/Nunito-Light.ttf
               weight: 300

@@ -1,4 +1,4 @@
-import 'package:find_your_mind/shared/domain/screen_type.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,13 +52,17 @@ class _CustomItemBarState extends State<CustomItemBar> {
         ? const Color.fromARGB(255, 20, 20, 20) // Icono más oscuro cuando está seleccionado
         : const Color.fromARGB(255, 39, 37, 37); // Color normal del icono
     
+    final Color outerColor = isSelected
+        ? const Color(0xFFf67d00).withValues(alpha: 0.55) // Color más brillante cuando está seleccionado
+        : const Color(0xFFf67d00).withValues(alpha: 0.2); // Color normal del contorno
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 5),
       width: size.width * 0.18,
       height: size.height * 0.1,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFF717171).withValues(alpha: 0.73),
+        color: outerColor,
       ),
       child: Center(
         child: Container(

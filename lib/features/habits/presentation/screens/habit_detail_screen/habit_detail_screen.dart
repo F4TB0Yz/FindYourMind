@@ -3,7 +3,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/details_view.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/editing_view.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/container_border_habits.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +38,8 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       orElse: () => widget.habit,
     );
 
-    return ContainerBorderHabits(
+    return ContainerBorderScreens(
+      screenType: ScreenType.detailHabit,
       crossAxisAlignment: CrossAxisAlignment.start,
       endWidget: _buildToggleEditButton(),
       child: Column(

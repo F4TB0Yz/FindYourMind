@@ -103,9 +103,10 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
           clipBehavior: Clip.none,
           children: [
             // Botón de sincronización
-            IconButton(
-              icon: isSyncing
-                  ? SizedBox(
+            GestureDetector(
+              onTap: isSyncing ? null : () => _handleSync(context),
+              child: isSyncing
+                    ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
@@ -121,10 +122,6 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
                         ? Colors.orange 
                         : Theme.of(context).iconTheme.color,
                     ),
-              tooltip: pendingCount > 0
-                  ? 'Sincronizar $pendingCount cambio${pendingCount > 1 ? 's' : ''}'
-                  : 'Sincronizar con el servidor',
-              onPressed: isSyncing ? null : () => _handleSync(context),
             ),
             
             // Badge con número de cambios pendientes

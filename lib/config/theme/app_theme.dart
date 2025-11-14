@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
-  fontFamily: 'JosefinSans',
+  fontFamily: 'Nunito',
   brightness: Brightness.light,
   colorScheme: ColorScheme.fromSeed(
     seedColor: Colors.yellow,
@@ -12,7 +12,7 @@ final ThemeData lightTheme = ThemeData(
 
 final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
-  fontFamily: 'JosefinSans',
+  fontFamily: 'Nunito',
   brightness: Brightness.dark,
   colorScheme: ColorScheme.fromSeed(
     seedColor: Colors.blue,
