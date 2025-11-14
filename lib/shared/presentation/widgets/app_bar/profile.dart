@@ -3,10 +3,7 @@ import 'package:find_your_mind/shared/presentation/widgets/blur_show_dialogs.dar
 import 'package:flutter/material.dart';
 
 class Profile extends StatefulWidget {
-  const Profile({
-    super.key,
-    required this.isDarkTheme,
-  });
+  const Profile({super.key, required this.isDarkTheme});
 
   final bool isDarkTheme;
 
@@ -18,7 +15,7 @@ class _ProfileWidgetState extends State<Profile> {
   final GlobalKey _widgetKey = GlobalKey();
 
   @override
-  Widget build(BuildContext context) {  
+  Widget build(BuildContext context) {
     return GestureDetector(
       key: _widgetKey,
       onTap: () => _showDropdownMenu(context),
@@ -26,8 +23,8 @@ class _ProfileWidgetState extends State<Profile> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: widget.isDarkTheme
-            ? AppColors.darkBackground
-            : const Color(0xFFFFFFFF),
+              ? AppColors.darkBackground
+              : const Color(0xFFFFFFFF),
         ),
         padding: const EdgeInsets.all(5),
         child: const Row(
@@ -58,33 +55,38 @@ class _ProfileWidgetState extends State<Profile> {
 
   void _showDropdownMenu(BuildContext context) {
     // Obtener Posicion del Widget
-    final RenderBox? renderBox = _widgetKey.currentContext?.findRenderObject() as RenderBox?;
+    final RenderBox? renderBox =
+        _widgetKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final Offset position = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
 
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
-    final double dialogWidth = screenWidth * 0.5;
-    final double dialogHeight = screenHeight * 0.3;
-  
+
+    // Ajustar la posición horizontal para que el dropdown no se salga de la pantalla
+    const double dropdownWidth = 150;
+    const double horizontalPadding = 8; // margen mínimo desde los bordes
+    double adjustedDx = position.dx;
+    if (adjustedDx + dropdownWidth > screenWidth - horizontalPadding) {
+      adjustedDx = screenWidth - dropdownWidth - horizontalPadding;
+    }
+    if (adjustedDx < horizontalPadding) adjustedDx = horizontalPadding;
+    final Offset adjustedPosition = Offset(adjustedDx, position.dy);
 
     showDialog(
-      context: context, 
+      context: context,
       builder: (context) {
         return BlurShowDialogs(
-          position: position, 
-          size: size, 
+          position: adjustedPosition,
+          size: size,
           child: Material(
             elevation: 8,
             borderRadius: BorderRadius.circular(10),
-            color: widget.isDarkTheme
-              ? AppColors.darkBackground
-              : Colors.white,
+            color: widget.isDarkTheme ? AppColors.darkBackground : Colors.white,
             child: SizedBox(
-              width: dialogWidth,
-              height: dialogHeight,
+              width: 150,
+              height: 50,
               child: Stack(
                 children: [
                   Positioned(
@@ -98,11 +100,11 @@ class _ProfileWidgetState extends State<Profile> {
                         color: Colors.white54,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
-          )
+          ),
         );
       },
     );

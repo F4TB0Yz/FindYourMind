@@ -33,10 +33,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
-          create: (_) => ScreensProvider(
-            const HabitsScreen(),
-            ScreenType.habits,
-          ),
+          create: (_) =>
+              ScreensProvider(const HabitsScreen(), ScreenType.habits),
         ),
         ChangeNotifierProvider(create: (_) => NewHabitProvider()),
         ChangeNotifierProvider(
@@ -110,9 +108,7 @@ class _MainAppState extends State<MainApp> {
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
-      home: SafeArea(
-        child: AuthScreen(authService: dependencies.authService),
-      ),
+      home: SafeArea(child: AuthScreen(authService: dependencies.authService)),
     );
   }
 }
