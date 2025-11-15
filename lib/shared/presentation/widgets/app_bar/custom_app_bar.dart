@@ -1,11 +1,14 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
+import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/app_bar/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CustomAppBar extends StatefulWidget implements PreferredSizeWidget{
-  const CustomAppBar({super.key});
+class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
+  const CustomAppBar({super.key, required this.signOutUseCase});
+
+  final SignOutUseCase signOutUseCase;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -82,7 +85,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
           const SizedBox(width: 8),
 
           // Profile
-          Profile(isDarkTheme: isDarkTheme)
+          Profile(
+            isDarkTheme: isDarkTheme,
+            signOutUseCase: widget.signOutUseCase,
+          )
         ],
       ),
     );

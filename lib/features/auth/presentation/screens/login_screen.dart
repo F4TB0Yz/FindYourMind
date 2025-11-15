@@ -1,14 +1,20 @@
-import 'package:find_your_mind/core/services/auth_service.dart';
+import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/auth/presentation/screens/register_screen.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
+import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginScreen extends StatelessWidget {
-  final AuthService authService;
+  final SignInWithEmailUseCase signInUseCase;
+  final SignUpWithEmailUseCase signUpUseCase;
 
-  const LoginScreen({super.key, required this.authService});
+  const LoginScreen({
+    super.key,
+    required this.signInUseCase,
+    required this.signUpUseCase,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -84,28 +90,44 @@ class LoginScreen extends StatelessWidget {
                   ],
                 ),
             
-                const SizedBox(height: 50),
-            
+            const SizedBox(height: 50),
+        
                 CustomAuthButton(
                   onTap: () => onLoginPressed(context, emailController, passwordController),
-                  width: 150,
+                  width: 200,
+                  height: 55,
                   child: const Text(
-                    'Iniciar',
+                    'Iniciar Sesión',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
-            
-                const SizedBox(height: 20),
+                ),                const SizedBox(height: 20),
             
                 CustomAuthButton(
-                  child: SvgPicture.asset(
-                    'assets/icons/google.svg',
-                    width: 30,
-                    height: 30,
+                  width: 200,
+                  height: 55,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/google.svg',
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Continuar con Google',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             
@@ -126,7 +148,10 @@ class LoginScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context, 
                     MaterialPageRoute(
-                      builder: (context) => RegisterScreen(authService: authService),
+                      builder: (context) => RegisterScreen(
+                        signUpUseCase: signUpUseCase,
+                        signInUseCase: signInUseCase,
+                      ),
                     )
                   ),
                   child: const Text(
@@ -153,23 +178,62 @@ class LoginScreen extends StatelessWidget {
     return true;
   }
 
+  String _getFriendlyErrorMessage(String error) {
+    final errorLower = error.toLowerCase();
+    
+    if (errorLower.contains('invalid login credentials') || 
+        errorLower.contains('invalid_credentials')) {
+      return 'Correo o contraseña incorrectos';
+    }
+    
+    if (errorLower.contains('email') && errorLower.contains('invalid')) {
+      return 'El formato del email no es válido';
+    }
+    
+    if (errorLower.contains('network') || errorLower.contains('connection')) {
+      return 'Error de conexión. Verifica tu internet';
+    }
+    
+    if (errorLower.contains('too many requests')) {
+      return 'Demasiados intentos. Intenta más tarde';
+    }
+    
+    if (errorLower.contains('user not found')) {
+      return 'Usuario no encontrado';
+    }
+    
+    return 'Error al iniciar sesión. Intenta nuevamente';
+  }
+
   void onLoginPressed(BuildContext context, TextEditingController emailController, TextEditingController passwordController) async {
     if (!verifyFields(emailController, passwordController)) {
+      if (context.mounted) {
+        CustomToast.showToast(
+          context: context,
+          message: 'Por favor completa todos los campos',
+        );
+      }
       return;
     }
 
-    final email = emailController.text;
-    final password = passwordController.text;
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
     try {
-      await authService.signInWithEmail(email, password); 
+      await signInUseCase(email: email, password: password);
+      
+      if (context.mounted) {
+        CustomToast.showToast(
+          context: context,
+          message: '¡Inicio de sesión exitoso!',
+        );
+      }
     } catch (e) {
       if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al iniciar sesión: $e'),
-        ),
+      CustomToast.showToast(
+        context: context,
+        message: _getFriendlyErrorMessage(e.toString()),
       );
     }
   }

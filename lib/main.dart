@@ -6,6 +6,7 @@ import 'package:find_your_mind/features/habits/data/repositories/habit_repositor
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
+import 'package:find_your_mind/features/profile/presentation/screens/profile_screen.dart';
 import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
@@ -108,7 +109,20 @@ class _MainAppState extends State<MainApp> {
       darkTheme: AppTheme.getAppTheme(isDark: true),
       debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
-      home: SafeArea(child: AuthScreen(authService: dependencies.authService)),
+      home: SafeArea(
+        child: AuthScreen(
+          authService: dependencies.authService,
+          signInUseCase: dependencies.signInWithEmailUseCase,
+          signUpUseCase: dependencies.signUpWithEmailUseCase,
+          signOutUseCase: dependencies.signOutUseCase,
+        ),
+      ),
+      routes: {
+        '/profile': (context) => ProfileScreen(
+          getCurrentUserUseCase: dependencies.getCurrentUserUseCase,
+          signOutUseCase: dependencies.signOutUseCase,
+        ),
+      },
     );
   }
 }

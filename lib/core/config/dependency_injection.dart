@@ -1,6 +1,9 @@
 import 'package:find_your_mind/core/config/database_helper.dart';
 import 'package:find_your_mind/core/network/network_info.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
+import 'package:find_your_mind/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
+import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/habits/data/datasources/habits_local_datasource.dart';
 import 'package:find_your_mind/features/habits/data/datasources/habits_remote_datasource.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
@@ -34,15 +37,22 @@ class DependencyInjection {
   late final SyncService _syncService;
   late final AuthService _authService;
 
-  // Repositorio
+  // Repositorios
   late final HabitRepository _habitRepository;
+  late final AuthRepository _authRepository;
 
-  // Casos de uso
+  // Casos de uso de Hábitos
   late final CreateHabitUseCase _createHabitUseCase;
   late final UpdateHabitUseCase _updateHabitUseCase;
   late final DeleteHabitUseCase _deleteHabitUseCase;
   late final IncrementHabitProgressUseCase _incrementHabitProgressUseCase;
   late final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
+
+  // Casos de uso de Autenticación
+  late final SignInWithEmailUseCase _signInWithEmailUseCase;
+  late final SignUpWithEmailUseCase _signUpWithEmailUseCase;
+  late final SignOutUseCase _signOutUseCase;
+  late final GetCurrentUserUseCase _getCurrentUserUseCase;
 
   DependencyInjection._internal();
 
@@ -90,8 +100,17 @@ class DependencyInjection {
     _networkInfo = NetworkInfoImpl(InternetConnectionChecker.instance);
     _supabaseClient = Supabase.instance.client;
 
-  // Inicializar servicio de autenticación
-  _authService = SupabaseAuthService(_supabaseClient);
+    // Inicializar servicio de autenticación
+    _authService = SupabaseAuthService(_supabaseClient);
+
+    // Inicializar repositorio de autenticación
+    _authRepository = AuthRepositoryImpl(authService: _authService);
+
+    // Inicializar casos de uso de autenticación
+    _signInWithEmailUseCase = SignInWithEmailUseCase(authRepository: _authRepository);
+    _signUpWithEmailUseCase = SignUpWithEmailUseCase(authRepository: _authRepository);
+    _signOutUseCase = SignOutUseCase(authRepository: _authRepository);
+    _getCurrentUserUseCase = GetCurrentUserUseCase(authRepository: _authRepository);
 
     // 2. Inicializar datasources
     _remoteDataSource = HabitsRemoteDataSourceImpl(client: _supabaseClient);
@@ -129,12 +148,13 @@ class DependencyInjection {
 
   // Getters para acceder a las dependencias
   HabitRepository get habitRepository => _habitRepository;
+  AuthRepository get authRepository => _authRepository;
   DatabaseHelper get databaseHelper => _databaseHelper;
   NetworkInfo get networkInfo => _networkInfo;
   SyncService get syncService => _syncService;
   AuthService get authService => _authService;
 
-  // Getters para los casos de uso
+  // Getters para los casos de uso de Hábitos
   CreateHabitUseCase get createHabitUseCase => _createHabitUseCase;
   UpdateHabitUseCase get updateHabitUseCase => _updateHabitUseCase;
   DeleteHabitUseCase get deleteHabitUseCase => _deleteHabitUseCase;
@@ -142,4 +162,10 @@ class DependencyInjection {
       _incrementHabitProgressUseCase;
   DecrementHabitProgressUseCase get decrementHabitProgressUseCase =>
       _decrementHabitProgressUseCase;
+
+  // Getters para los casos de uso de Autenticación
+  SignInWithEmailUseCase get signInWithEmailUseCase => _signInWithEmailUseCase;
+  SignUpWithEmailUseCase get signUpWithEmailUseCase => _signUpWithEmailUseCase;
+  SignOutUseCase get signOutUseCase => _signOutUseCase;
+  GetCurrentUserUseCase get getCurrentUserUseCase => _getCurrentUserUseCase;
 }
