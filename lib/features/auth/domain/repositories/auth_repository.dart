@@ -14,6 +14,10 @@ abstract class AuthRepository {
   /// Lanza excepciones en caso de error
   Future<UserEntity> signUpWithEmail(String email, String password);
 
+  /// Inicia sesión con Google
+  /// Lanza excepciones en caso de error
+  Future<UserEntity> signInWithGoogle();
+
   /// Cierra la sesión actual del usuario
   Future<void> signOut();
 

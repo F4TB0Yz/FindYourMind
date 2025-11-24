@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
@@ -126,9 +125,12 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     HabitsProvider habitsProvider,
     ScreensProvider screensProvider,
   ) async {
+    // Obtener el ID del usuario autenticado dinámicamente
+    final userId = await habitsProvider.getUserId();
+    
     final habit = HabitEntity(
       id: '', // El id se obtiene el repositorio,
-      userId: AppConstants.currentUserId, // TODO: CAMBIAR POR ID DEL USUARIO CUANDO HAYA AUTH,
+      userId: userId,
       title: newHabitProvider.titleController.text,
       description: newHabitProvider.descriptionController.text,
       icon: newHabitProvider.selectedIcon,

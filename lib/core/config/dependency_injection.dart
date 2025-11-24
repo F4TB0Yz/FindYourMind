@@ -1,6 +1,7 @@
 import 'package:find_your_mind/core/config/database_helper.dart';
 import 'package:find_your_mind/core/network/network_info.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
+import 'package:find_your_mind/features/auth/data/datasources/users_remote_datasource.dart';
 import 'package:find_your_mind/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
@@ -32,6 +33,7 @@ class DependencyInjection {
   // Datasources
   late final HabitsRemoteDataSource _remoteDataSource;
   late final HabitsLocalDatasource _localDataSource;
+  late final UsersRemoteDataSource _usersRemoteDataSource;
 
   // Servicios
   late final SyncService _syncService;
@@ -51,6 +53,7 @@ class DependencyInjection {
   // Casos de uso de Autenticación
   late final SignInWithEmailUseCase _signInWithEmailUseCase;
   late final SignUpWithEmailUseCase _signUpWithEmailUseCase;
+  late final SignInWithGoogleUseCase _signInWithGoogleUseCase;
   late final SignOutUseCase _signOutUseCase;
   late final GetCurrentUserUseCase _getCurrentUserUseCase;
 
@@ -102,14 +105,27 @@ class DependencyInjection {
 
     // Inicializar servicio de autenticación
     _authService = SupabaseAuthService(_supabaseClient);
+    print('✅ [DI] AuthService inicializado');
+
+    // Inicializar datasource de usuarios
+    _usersRemoteDataSource = UsersRemoteDataSourceImpl(client: _supabaseClient);
+    print('✅ [DI] UsersRemoteDataSource inicializado');
 
     // Inicializar repositorio de autenticación
-    _authRepository = AuthRepositoryImpl(authService: _authService);
+    _authRepository = AuthRepositoryImpl(
+      authService: _authService,
+      usersDataSource: _usersRemoteDataSource,
+    );
+    print('✅ [DI] AuthRepository inicializado con UsersRemoteDataSource');
 
     // Inicializar casos de uso de autenticación
     _signInWithEmailUseCase = SignInWithEmailUseCase(authRepository: _authRepository);
     _signUpWithEmailUseCase = SignUpWithEmailUseCase(authRepository: _authRepository);
-    _signOutUseCase = SignOutUseCase(authRepository: _authRepository);
+    _signInWithGoogleUseCase = SignInWithGoogleUseCase(authRepository: _authRepository);
+    _signOutUseCase = SignOutUseCase(
+      authRepository: _authRepository,
+      databaseHelper: _databaseHelper,
+    );
     _getCurrentUserUseCase = GetCurrentUserUseCase(authRepository: _authRepository);
 
     // 2. Inicializar datasources
@@ -166,6 +182,10 @@ class DependencyInjection {
   // Getters para los casos de uso de Autenticación
   SignInWithEmailUseCase get signInWithEmailUseCase => _signInWithEmailUseCase;
   SignUpWithEmailUseCase get signUpWithEmailUseCase => _signUpWithEmailUseCase;
+  SignInWithGoogleUseCase get signInWithGoogleUseCase => _signInWithGoogleUseCase;
   SignOutUseCase get signOutUseCase => _signOutUseCase;
   GetCurrentUserUseCase get getCurrentUserUseCase => _getCurrentUserUseCase;
+  
+  /// Verifica si el sistema de autenticación está correctamente inicializado
+  bool get isAuthInitialized => _isInitialized;
 }

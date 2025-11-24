@@ -1,8 +1,11 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
+import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
+import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
@@ -364,9 +367,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (shouldLogout ?? false) {
       try {
+        // Limpiar providers antes del logout
+        final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
+        final syncProvider = Provider.of<SyncProvider>(context, listen: false);
+        
+        habitsProvider.clearAllData();
+        syncProvider.resetSyncState();
+        
+        // Ejecutar el logout (ya limpia la base de datos SQLite)
         await widget.signOutUseCase();
         if (!mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        // Volver a la pantalla de autenticación (home)
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       } catch (e) {
         if (!mounted) return;
         CustomToast.showToast(

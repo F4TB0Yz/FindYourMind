@@ -47,6 +47,7 @@ void main() async {
                 dependencies.incrementHabitProgressUseCase,
             decrementHabitProgressUseCase:
                 dependencies.decrementHabitProgressUseCase,
+            getCurrentUserUseCase: dependencies.getCurrentUserUseCase,
             repository: dependencies.habitRepository as HabitRepositoryImpl,
           ),
         ),
@@ -61,10 +62,26 @@ Future<void> _loadEnv() async {
   await dotenv.load(fileName: ".env");
 
   SupabaseConfig.validateConfig();
+  
+  // Inicializar Supabase con configuración específica para OAuth
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl!,
     anonKey: SupabaseConfig.supabaseAnonKey!,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.pkce,
+      autoRefreshToken: true,
+    ),
   );
+  
+  // Configurar el listener de deep links para OAuth
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    final session = data.session;
+    if (session != null) {
+      print('🔐 [MAIN] Sesión detectada: ${session.user.email}');
+    }
+  });
+  
+  print('✅ [MAIN] Supabase inicializado con soporte para OAuth/PKCE (Windows)');
 }
 
 class MainApp extends StatefulWidget {
@@ -114,6 +131,7 @@ class _MainAppState extends State<MainApp> {
           authService: dependencies.authService,
           signInUseCase: dependencies.signInWithEmailUseCase,
           signUpUseCase: dependencies.signUpWithEmailUseCase,
+          signInWithGoogleUseCase: dependencies.signInWithGoogleUseCase,
           signOutUseCase: dependencies.signOutUseCase,
         ),
       ),

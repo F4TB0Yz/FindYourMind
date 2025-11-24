@@ -115,45 +115,47 @@ class _HabitsScreenState extends State<HabitsScreen> {
       
           // Lista de Habitos
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: habitsProvider.habits.length + (habitsProvider.isLoading && habitsProvider.hasMore && habitsProvider.habits.isNotEmpty ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Mostrar indicador de carga al final solo si hay hábitos ya cargados y está cargando más
-                if (index >= habitsProvider.habits.length) {
-                  // Puedes cambiar entre estos estilos:
-                  // return const CustomLoadingIndicator(text: 'Cargando más hábitos...'); // Estilo 1: Circular con texto
-                  return const CustomLoadingDots(); // Estilo 2: Puntos animados (recomendado)
-                  // return const CustomLoadingBar(text: 'Cargando...'); // Estilo 3: Barra de progreso
-                }
+            child: habitsProvider.isLoading && habitsProvider.habits.isEmpty
+                ? const Center(child: CustomLoadingIndicator(text: 'Cargando hábitos...'))
+                : ListView.builder(
+                    controller: _scrollController,
+                    itemCount: habitsProvider.habits.length + (habitsProvider.isLoading && habitsProvider.hasMore && habitsProvider.habits.isNotEmpty ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      // Mostrar indicador de carga al final solo si hay hábitos ya cargados y está cargando más
+                      if (index >= habitsProvider.habits.length) {
+                        // Puedes cambiar entre estos estilos:
+                        // return const CustomLoadingIndicator(text: 'Cargando más hábitos...'); // Estilo 1: Circular con texto
+                        return const CustomLoadingDots(); // Estilo 2: Puntos animados (recomendado)
+                        // return const CustomLoadingBar(text: 'Cargando...'); // Estilo 3: Barra de progreso
+                      }
 
-                return TweenAnimationBuilder<double>(
-                  key: ValueKey(habitsProvider.habits[index].id),
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: Duration(milliseconds: 300 + (index * 50).clamp(0, 500)),
-                  curve: Curves.easeOut,
-                  builder: (context, value, child) {
-                    return Transform.translate(
-                      offset: Offset(0, 20 * (1 - value)),
-                      child: Opacity(
-                        opacity: value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Column(
-                    children: [                  
-                      ItemHabit(
-                        itemHabit: habitsProvider.habits[index],
-                        habitsProvider: habitsProvider,
-                      ),
+                      return TweenAnimationBuilder<double>(
+                        key: ValueKey(habitsProvider.habits[index].id),
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: Duration(milliseconds: 300 + (index * 50).clamp(0, 500)),
+                        curve: Curves.easeOut,
+                        builder: (context, value, child) {
+                          return Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: Opacity(
+                              opacity: value,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: [                  
+                            ItemHabit(
+                              itemHabit: habitsProvider.habits[index],
+                              habitsProvider: habitsProvider,
+                            ),
 
-                      const SizedBox(height: 10),
-                    ],
+                            const SizedBox(height: 10),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         
           const SizedBox(height: 10),

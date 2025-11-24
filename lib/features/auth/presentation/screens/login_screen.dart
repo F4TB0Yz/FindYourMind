@@ -9,11 +9,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 class LoginScreen extends StatelessWidget {
   final SignInWithEmailUseCase signInUseCase;
   final SignUpWithEmailUseCase signUpUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
 
   const LoginScreen({
     super.key,
     required this.signInUseCase,
     required this.signUpUseCase,
+    required this.signInWithGoogleUseCase,
   });
 
   @override
@@ -108,6 +110,7 @@ class LoginScreen extends StatelessWidget {
                 ),                const SizedBox(height: 20),
             
                 CustomAuthButton(
+                  onTap: () => onGoogleLoginPressed(context),
                   width: 200,
                   height: 55,
                   child: Row(
@@ -151,6 +154,7 @@ class LoginScreen extends StatelessWidget {
                       builder: (context) => RegisterScreen(
                         signUpUseCase: signUpUseCase,
                         signInUseCase: signInUseCase,
+                        signInWithGoogleUseCase: signInWithGoogleUseCase,
                       ),
                     )
                   ),
@@ -234,6 +238,37 @@ class LoginScreen extends StatelessWidget {
       CustomToast.showToast(
         context: context,
         message: _getFriendlyErrorMessage(e.toString()),
+      );
+    }
+  }
+
+  void onGoogleLoginPressed(BuildContext context) async {
+    try {
+      await signInWithGoogleUseCase();
+      
+      // El navegador se abrirá para completar la autenticación
+      // Cuando el usuario regrese, el StreamBuilder en AuthScreen
+      // detectará la sesión automáticamente
+      if (context.mounted) {
+        CustomToast.showToast(
+          context: context,
+          message: 'Redirigiendo a Google...',
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String errorMessage = 'Error al autenticar con Google';
+      
+      if (e.toString().contains('OAuth no está configurado') ||
+          e.toString().contains('validation_failed') ||
+          e.toString().contains('missing OAuth secret')) {
+        errorMessage = 'Google no está configurado. Contacta al administrador';
+      }
+
+      CustomToast.showToast(
+        context: context,
+        message: errorMessage,
       );
     }
   }

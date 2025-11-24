@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:find_your_mind/core/constants/animation_constants.dart';
-import 'package:find_your_mind/core/utils/date_utils.dart' as custom_date_utils;
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/slidable_item.dart';
@@ -62,17 +61,8 @@ class _ItemHabitState extends State<ItemHabit> {
       _timeSinceStart = currentTime;
     }
 
-    // Buscar el progreso de HOY específicamente
-    final String todayString = custom_date_utils.DateInfoUtils.todayString();
-    final int todayIndex = widget.itemHabit.progress.indexWhere(
-      (progress) => progress.date == todayString,
-    );
-
-    // Contador de progreso de hoy (si existe), sino 0
-    final int counterToday = todayIndex != -1
-        ? widget.itemHabit.progress[todayIndex].dailyCounter
-        : 0;
-
+    // 🔄 Obtener contador y meta DESDE EL PROVIDER (datos actualizados)
+    final int counterToday = widget.habitsProvider.getTodayCount(widget.itemHabit.id);
     final int dailyGoal = widget.itemHabit.dailyGoal;
 
     return Padding(

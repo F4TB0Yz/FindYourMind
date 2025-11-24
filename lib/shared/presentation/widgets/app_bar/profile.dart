@@ -1,7 +1,10 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
+import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
+import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/blur_show_dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   const Profile({
@@ -189,13 +192,16 @@ class _ProfileWidgetState extends State<Profile> {
     );
   }
 
-  Future<void> _handleSignOut(BuildContext context) async {
+  Future<void> _handleSignOut(BuildContext dropdownContext) async {
     try {
-      Navigator.of(context).pop(); // Cerrar el dropdown
+      // Guardar el contexto raíz antes de cerrar el dropdown
+      final rootContext = context;
+      
+      Navigator.of(dropdownContext).pop(); // Cerrar el dropdown
       
       // Mostrar un diálogo de confirmación
       final shouldLogout = await showDialog<bool>(
-        context: context,
+        context: rootContext,
         builder: (context) => AlertDialog(
           title: const Text('Cerrar sesión'),
           content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
@@ -213,15 +219,22 @@ class _ProfileWidgetState extends State<Profile> {
       );
 
       if (shouldLogout ?? false) {
-        // Ejecutar el logout
+        // Limpiar providers antes del logout
+        final habitsProvider = Provider.of<HabitsProvider>(rootContext, listen: false);
+        final syncProvider = Provider.of<SyncProvider>(rootContext, listen: false);
+        
+        habitsProvider.clearAllData();
+        syncProvider.resetSyncState();
+        
+        // Ejecutar el logout (ya limpia la base de datos SQLite)
         await widget.signOutUseCase();
         
-        if (!context.mounted) return;
-        // Navegar a la pantalla de login
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        if (!rootContext.mounted) return;
+        // Volver a la pantalla de autenticación (home)
+        Navigator.of(rootContext).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al cerrar sesión: $e'),

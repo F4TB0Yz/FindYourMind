@@ -210,6 +210,26 @@ class DatabaseHelper {
     print('🎉 [DB] Base de datos inicializada correctamente');
   }
 
+  /// Limpia todas las tablas de la base de datos (útil al cerrar sesión)
+  /// Mantiene la estructura pero elimina todos los datos
+  Future<void> clearAllTables() async {
+    print('🧹 [DB] Limpiando todas las tablas...');
+    
+    try {
+      final db = await database;
+      
+      // Eliminar todos los datos de las tablas
+      await db.delete('habits');
+      await db.delete('habit_progress');
+      await db.delete('pending_sync');
+      
+      print('✅ [DB] Todas las tablas limpiadas exitosamente');
+    } catch (e) {
+      print('❌ [DB] Error al limpiar tablas: $e');
+      rethrow;
+    }
+  }
+
   Future<void> close() async {
     final db = await database;
     await db.close();

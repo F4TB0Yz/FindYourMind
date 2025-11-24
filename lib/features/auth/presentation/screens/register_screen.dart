@@ -8,11 +8,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 class RegisterScreen extends StatelessWidget {
   final SignUpWithEmailUseCase signUpUseCase;
   final SignInWithEmailUseCase signInUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
 
   const RegisterScreen({
     super.key,
     required this.signUpUseCase,
     required this.signInUseCase,
+    required this.signInWithGoogleUseCase,
   });
 
   @override
@@ -107,6 +109,7 @@ class RegisterScreen extends StatelessWidget {
                 ),                const SizedBox(height: 20),
             
                 CustomAuthButton(
+                  onTap: () => onGoogleRegisterPressed(context),
                   width: 200,
                   height: 55,
                   child: Row(
@@ -167,8 +170,9 @@ class RegisterScreen extends StatelessWidget {
     
     if (errorLower.contains('user already registered') || 
         errorLower.contains('already exists') ||
+        errorLower.contains('user_already_exists') ||
         errorLower.contains('already been registered')) {
-      return 'Este correo ya está registrado';
+      return 'Este correo ya está registrado. Por favor inicia sesión';
     }
     
     if (errorLower.contains('email') && errorLower.contains('invalid')) {
@@ -185,6 +189,10 @@ class RegisterScreen extends StatelessWidget {
     
     if (errorLower.contains('too many requests')) {
       return 'Demasiados intentos. Intenta más tarde';
+    }
+    
+    if (errorLower.contains('database error')) {
+      return 'Error de configuración. Contacta al administrador';
     }
     
     return 'Error al crear la cuenta. Intenta nuevamente';
@@ -204,23 +212,71 @@ class RegisterScreen extends StatelessWidget {
       return;
     }
 
+    print('🎬 [SCREEN] RegisterScreen - Iniciando registro');
+    print('   Email: $email');
+    
     try {
-      await signUpUseCase(email: email, password: password);
+      print('📞 [SCREEN] Llamando a signUpUseCase...');
+      final user = await signUpUseCase(email: email, password: password);
+      print('✅ [SCREEN] signUpUseCase completado exitosamente');
+      print('   Usuario ID: ${user.id}');
 
       if (context.mounted) {
+        print('🎉 [SCREEN] Mostrando toast de éxito');
         CustomToast.showToast(
           context: context,
           message: '¡Registro exitoso!',
         );
         
-        // Navegar a la pantalla principal
-        Navigator.pushReplacementNamed(context, '/habits');
+        print('👉 [SCREEN] Cerrando RegisterScreen para que AuthScreen detecte la sesión');
+        // Cerrar la pantalla de registro para volver al AuthScreen
+        // El StreamBuilder detectará la sesión automáticamente
+        Navigator.of(context).pop();
+      }
+    } catch (e, stackTrace) {
+      print('❌ [SCREEN] Error en registro: $e');
+      print('   Stack trace: $stackTrace');
+      
+      if (!context.mounted) return;
+      
+      final errorMessage = _getFriendlyErrorMessage(e.toString());
+      print('📢 [SCREEN] Mostrando error al usuario: $errorMessage');
+      
+      CustomToast.showToast(
+        context: context,
+        message: errorMessage,
+      );
+    }
+  }
+
+  void onGoogleRegisterPressed(BuildContext context) async {
+    try {
+      await signInWithGoogleUseCase();
+      
+      // El navegador se abrirá para completar la autenticación
+      // Cuando el usuario regrese, el StreamBuilder en AuthScreen
+      // detectará la sesión automáticamente
+      if (context.mounted) {
+        CustomToast.showToast(
+          context: context,
+          message: 'Redirigiendo a Google...',
+        );
+        // No cerramos la pantalla aún, se cerrará cuando AuthScreen detecte la sesión
       }
     } catch (e) {
       if (!context.mounted) return;
+
+      String errorMessage = 'Error al registrar con Google';
+      
+      if (e.toString().contains('OAuth no está configurado') ||
+          e.toString().contains('validation_failed') ||
+          e.toString().contains('missing OAuth secret')) {
+        errorMessage = 'Google no está configurado. Contacta al administrador';
+      }
+
       CustomToast.showToast(
         context: context,
-        message: _getFriendlyErrorMessage(e.toString()),
+        message: errorMessage,
       );
     }
   }

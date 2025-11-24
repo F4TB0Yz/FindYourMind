@@ -8,6 +8,7 @@ import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_p
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
+import 'package:find_your_mind/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
@@ -19,6 +20,7 @@ class HabitsProvider extends ChangeNotifier {
   final DeleteHabitUseCase _deleteHabitUseCase;
   final IncrementHabitProgressUseCase _incrementHabitProgressUseCase;
   final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
   
   // Repositorio (para métodos que aún no tienen caso de uso)
   final HabitRepositoryImpl _repository;
@@ -41,9 +43,6 @@ class HabitsProvider extends ChangeNotifier {
   
   // Constantes
   static const int _pageSize = 10;
-  
-  // UUID del usuario de Supabase
-  final String _userId = AppConstants.currentUserId;
 
   // Constructor con inyección de dependencias
   HabitsProvider({
@@ -52,12 +51,14 @@ class HabitsProvider extends ChangeNotifier {
     required DeleteHabitUseCase deleteHabitUseCase,
     required IncrementHabitProgressUseCase incrementHabitProgressUseCase,
     required DecrementHabitProgressUseCase decrementHabitProgressUseCase,
+    required GetCurrentUserUseCase getCurrentUserUseCase,
     required HabitRepositoryImpl repository,
   })  : _createHabitUseCase = createHabitUseCase,
         _updateHabitUseCase = updateHabitUseCase,
         _deleteHabitUseCase = deleteHabitUseCase,
         _incrementHabitProgressUseCase = incrementHabitProgressUseCase,
         _decrementHabitProgressUseCase = decrementHabitProgressUseCase,
+        _getCurrentUserUseCase = getCurrentUserUseCase,
         _repository = repository;
 
   // Getters
@@ -69,6 +70,23 @@ class HabitsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
   bool get hasError => _lastError != null;
+
+  /// Obtiene el ID del usuario autenticado
+  /// Retorna el ID del usuario actual o un valor por defecto si no hay sesión
+  Future<String> getUserId() async {
+    try {
+      final user = await _getCurrentUserUseCase();
+      if (user != null && user.id.isNotEmpty) {
+        return user.id;
+      }
+      // Fallback al ID hardcodeado si no hay usuario autenticado
+      if (kDebugMode) print('⚠️ No hay usuario autenticado, usando ID por defecto');
+      return AppConstants.currentUserId;
+    } catch (e) {
+      if (kDebugMode) print('❌ Error al obtener usuario: $e');
+      return AppConstants.currentUserId;
+    }
+  }
 
   /// Obtiene el contador de progreso del día actual para un hábito específico
   /// Retorna 0 si no hay progreso para hoy
@@ -129,11 +147,19 @@ class HabitsProvider extends ChangeNotifier {
   Future<void> refreshHabitsFromLocal() async {
     try {
       print('🔄 [PROVIDER] Refrescando desde SQLite...');
-      final updatedHabits = await _repository.getHabitsByEmail(_userId);
+      final userId = await getUserId();
+      final updatedHabits = await _repository.getHabitsByEmail(userId);
       _habits.clear();
-      _habits.addAll(updatedHabits);
+      
+      // Agregar hábitos verificando duplicados (por si acaso)
+      for (final habit in updatedHabits) {
+        if (!_habits.any((h) => h.id == habit.id)) {
+          _habits.add(habit);
+        }
+      }
+      
       notifyListeners();
-      print('✅ [PROVIDER] Refrescado exitoso - ${updatedHabits.length} hábitos');
+      print('✅ [PROVIDER] Refrescado exitoso - ${_habits.length} hábitos');
     } catch (e) {
       // Error no crítico - los datos ya están cargados en memoria
       if (kDebugMode) print('⚠️ Error al refrescar desde SQLite (datos ya en memoria): $e');
@@ -148,6 +174,13 @@ class HabitsProvider extends ChangeNotifier {
   /// Notifica al SyncProvider que hay cambios pendientes
   void _notifyPendingChanges() {
     _syncProvider?.markPendingChanges();
+  }
+
+  /// Limpia todos los hábitos y progreso en memoria (llamar en logout)
+  void clearAllData() {
+    _habits.clear();
+    notifyListeners();
+    print('🧹 [PROVIDER] Memoria limpiada - hábitos eliminados');
   }
 
   void changeTitle(String newTitle) {
@@ -174,27 +207,39 @@ class HabitsProvider extends ChangeNotifier {
     if (kDebugMode) print('🚀 [PROVIDER] Iniciando loadHabits()...');
     _currentPage = 0;
     _habits.clear();
+    _isLoading = true;
     clearError(); // Limpiar errores previos
     notifyListeners();
 
     try {
       if (kDebugMode) print('📞 [PROVIDER] Llamando a repository.getHabitsByEmailPaginated...');
-      // Cargar desde SQLite (offline-first, instantáneo) - NO mostramos loading
+      final userId = await getUserId();
+      // Cargar desde SQLite (offline-first, instantáneo)
       final List<HabitEntity> habits = await _repository.getHabitsByEmailPaginated(
-        email: _userId,
+        email: userId,
         limit: _pageSize,
         offset: 0,
       );
       
       if (kDebugMode) print('✅ [PROVIDER] Recibidos ${habits.length} hábitos del repository');
-      _habits.addAll(habits);
+      
+      // Agregar solo hábitos que no existan ya (prevenir duplicados)
+      for (final habit in habits) {
+        if (!_habits.any((h) => h.id == habit.id)) {
+          _habits.add(habit);
+        } else {
+          if (kDebugMode) print('⚠️ [PROVIDER] Hábito duplicado detectado y omitido: ${habit.id}');
+        }
+      }
+      
       _hasMore = habits.length == _pageSize;
       _currentPage = 1;
-      notifyListeners();
       
     } catch (e) {
       if (kDebugMode) print('❌ [PROVIDER] Error loadHabits: $e');
       _setError('Error al cargar los hábitos: ${e.toString()}');
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
     
@@ -209,13 +254,22 @@ class HabitsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final userId = await getUserId();
       final List<HabitEntity> newHabits = await _repository.getHabitsByEmailPaginated(
-        email: _userId,
+        email: userId,
         limit: _pageSize,
         offset: _currentPage * _pageSize,
       );
       
-      _habits.addAll(newHabits);
+      // Agregar solo hábitos que no existan ya (prevenir duplicados)
+      for (final habit in newHabits) {
+        if (!_habits.any((h) => h.id == habit.id)) {
+          _habits.add(habit);
+        } else {
+          if (kDebugMode) print('⚠️ [PROVIDER] Hábito duplicado en loadMoreHabits: ${habit.id}');
+        }
+      }
+      
       _hasMore = newHabits.length == _pageSize;
       _currentPage++;
     } catch (e) {
@@ -295,12 +349,13 @@ class HabitsProvider extends ChangeNotifier {
       final habit = _habits[habitIndex];
       final String todayString = DateInfoUtils.todayString();
       
-      // 2. Buscar progreso de hoy
+      // 2. Buscar progreso de hoy EN EL HÁBITO ACTUALIZADO
       final todayIndex = habit.progress.indexWhere(
         (progress) => progress.date == todayString,
       );
 
       HabitProgress optimisticProgress;
+      bool isNewProgress = false;
 
       if (todayIndex == -1) {
         // Crear nuevo progreso optimista para la UI
@@ -312,6 +367,11 @@ class HabitsProvider extends ChangeNotifier {
           dailyGoal: habit.dailyGoal,
           dailyCounter: 1,
         );
+        isNewProgress = true;
+        
+        if (kDebugMode) {
+          print('🆕 Creando nuevo progreso optimista: $progressId');
+        }
       } else {
         // Validar si ya se alcanzó la meta
         final todayProgress = habit.progress[todayIndex];
@@ -324,30 +384,55 @@ class HabitsProvider extends ChangeNotifier {
         optimisticProgress = todayProgress.copyWith(
           dailyCounter: todayProgress.dailyCounter + 1,
         );
+        
+        if (kDebugMode) {
+          print('➕ Incrementando progreso existente: ${todayProgress.id} (${todayProgress.dailyCounter} → ${optimisticProgress.dailyCounter})');
+        }
       }
 
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
       updateHabitProgressOptimistic(optimisticProgress);
 
       // 💾 Ejecutar caso de uso en segundo plano (NO bloqueante)
-      _incrementHabitProgressUseCase.execute(habit: habit).then((result) {
+      // IMPORTANTE: Crear un hábito actualizado con el progreso optimista para el use case
+      final habitWithOptimisticProgress = isNewProgress
+          ? habit.copyWith(progress: [...habit.progress, optimisticProgress])
+          : habit.copyWith(
+              progress: habit.progress.map((p) {
+                if (p.date == todayString) {
+                  return optimisticProgress;
+                }
+                return p;
+              }).toList(),
+            );
+      
+      _incrementHabitProgressUseCase.execute(habit: habitWithOptimisticProgress).then((result) {
         result.fold(
           (failure) {
             if (kDebugMode) print('❌ Error al incrementar: ${failure.message}');
-            // Revertir cambio optimista si falla
-            if (todayIndex == -1) {
-              // Era un nuevo progreso, eliminarlo
-              final idx = _habits.indexWhere((h) => h.id == habitId);
-              if (idx != -1) {
-                _habits[idx].progress.removeWhere((p) => p.id == optimisticProgress.id);
-                notifyListeners();
+            
+            // ⚠️ NO revertir si el error es "Ya se alcanzó la meta" (ValidationFailure)
+            // porque significa que el objetivo YA se logró correctamente
+            final isValidationError = failure.message.contains('Ya se alcanzó la meta');
+            
+            if (!isValidationError) {
+              // Revertir cambio optimista solo si es un error real (no validación)
+              if (isNewProgress) {
+                // Era un nuevo progreso, eliminarlo
+                final idx = _habits.indexWhere((h) => h.id == habitId);
+                if (idx != -1) {
+                  _habits[idx].progress.removeWhere((p) => p.id == optimisticProgress.id);
+                  notifyListeners();
+                }
+              } else {
+                // Era una actualización, revertir el contador
+                final revertedProgress = optimisticProgress.copyWith(
+                  dailyCounter: optimisticProgress.dailyCounter - 1,
+                );
+                updateHabitProgressOptimistic(revertedProgress);
               }
             } else {
-              // Era una actualización, revertir el contador
-              final revertedProgress = optimisticProgress.copyWith(
-                dailyCounter: optimisticProgress.dailyCounter - 1,
-              );
-              updateHabitProgressOptimistic(revertedProgress);
+              if (kDebugMode) print('ℹ️ No se revierte: la meta ya está alcanzada correctamente');
             }
           },
           (updatedProgress) {

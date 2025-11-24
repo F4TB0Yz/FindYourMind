@@ -56,6 +56,7 @@ class HabitRepositoryImpl implements HabitRepository {
     if (await _networkInfo.isConnected) {
       try {
         final remoteHabits = await _remoteDataSource.getHabitsByUserId(email);
+        
         if (remoteHabits.isNotEmpty) {
           await _localDataSource.saveHabits(remoteHabits);
           return remoteHabits;
@@ -317,30 +318,31 @@ class HabitRepositoryImpl implements HabitRepository {
         print('✅ Progreso creado localmente - ID: $progressId');
       }
 
-      // 2. 🌐 Sincronizar con Supabase ESPERANDO a que termine
+      // 2. 🚀 Sincronizar con Supabase en SEGUNDO PLANO (no bloqueante)
       if (await _networkInfo.isConnected) {
-        try {
-          await _remoteDataSource.createHabitProgress(progressWithId);
-          if (kDebugMode) {
-            print('✅ Progreso sincronizado con Supabase - ID: $progressId');
-          }
-        } catch (e) {
-          print('⚠️ Error sincronizando progreso: $e');
-          // Si falla, marcar como pendiente de sincronización
-          await _syncService.markPendingSync(
-            entityType: 'progress',
-            entityId: progressId,
-            action: 'create',
-            data: {
-              'id': progressId,
-              'habit_id': habitProgress.habitId,
-              'date': habitProgress.date,
-              'daily_goal': habitProgress.dailyGoal,
-              'daily_counter': habitProgress.dailyCounter,
-            },
-          );
-          // Continuar y retornar el ID local, el usuario puede trabajar offline
-        }
+        // Usar unawaited para no bloquear la UI
+        unawaited(
+          _remoteDataSource.createHabitProgress(progressWithId).then((_) {
+            if (kDebugMode) {
+              print('✅ [REMOTE] Progreso sincronizado con Supabase - ID: $progressId');
+            }
+          }).catchError((e) async {
+            print('⚠️ Error sincronizando progreso: $e');
+            // Si falla, marcar como pendiente de sincronización
+            await _syncService.markPendingSync(
+              entityType: 'progress',
+              entityId: progressId,
+              action: 'create',
+              data: {
+                'id': progressId,
+                'habit_id': habitProgress.habitId,
+                'date': habitProgress.date,
+                'daily_goal': habitProgress.dailyGoal,
+                'daily_counter': habitProgress.dailyCounter,
+              },
+            );
+          }),
+        );
       } else {
         // Sin internet, marcar para sincronizar después
         await _syncService.markPendingSync(
@@ -357,7 +359,7 @@ class HabitRepositoryImpl implements HabitRepository {
         );
       }
 
-      // 3. Retornar ID único (el mismo para SQLite y Supabase)
+      // 3. Retornar ID único INMEDIATAMENTE (sin esperar a Supabase)
       return Right(progressId);
     } catch (e) {
       return Left(

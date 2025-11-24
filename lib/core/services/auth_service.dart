@@ -12,6 +12,9 @@ abstract class AuthService {
 
   Future<User?>   signUpWithEmail(String email, String password);
 
+  /// Inicia sesión con Google. Retorna el usuario si fue exitosa.
+  Future<User?> signInWithGoogle();
+
   /// Cierra la sesión actual.
   Future<void> signOut();
 
