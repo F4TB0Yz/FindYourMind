@@ -9,6 +9,7 @@ import 'package:find_your_mind/shared/presentation/providers/screen_provider.dar
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 class SlidableItem extends StatefulWidget {
@@ -50,9 +51,9 @@ class _SlidableItemState extends State<SlidableItem> {
       key: ValueKey(widget.habit.id),
       startActionPane: ActionPane(
         motion: const StretchMotion(),
-        extentRatio: 0.35,
+        extentRatio: 0.40, // Ligeramente más amplio para acomodar botones circulares
         children: [
-          SlidableAction(
+          CustomSlidableAction(
             onPressed: (context) {
               // Acción de editar
               widget.habitsProvider.changeTitle(widget.habit.title);
@@ -61,12 +62,25 @@ class _SlidableItemState extends State<SlidableItem> {
                 ScreenType.habits
               );
             },
-            backgroundColor: AppColors.accentText.withValues(alpha: 0.15),
+            backgroundColor: Colors.transparent,
             foregroundColor: AppColors.accentText,
-            icon: Icons.info_outline_rounded,
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(8))
+            padding: EdgeInsets.zero,
+            child: Container(
+              width: 50,
+              height: 50,
+              margin: const EdgeInsets.only(left: 12),
+              decoration: BoxDecoration(
+                color: AppColors.accentText.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.edit2, // Icono moderno lineal
+                size: 22,
+                color: AppColors.accentText,
+              ),
+            ),
           ),
-          SlidableAction(
+          CustomSlidableAction(
             onPressed: (context) async {              
               // Acción de eliminar - Mostrar diálogo de confirmación
               final confirmed = await DeleteHabitDialog.show(
@@ -74,9 +88,7 @@ class _SlidableItemState extends State<SlidableItem> {
                 widget.habit.title,
               );
                             
-              if (!confirmed) {
-                return;
-              }
+              if (!confirmed) return;
                             
               try {
                 await widget.habitsProvider.deleteHabit(widget.habit.id);
@@ -96,10 +108,23 @@ class _SlidableItemState extends State<SlidableItem> {
                 }
               }
             },
-            backgroundColor: AppColors.dangerMuted.withValues(alpha: 0.15),
+            backgroundColor: Colors.transparent,
             foregroundColor: AppColors.dangerMuted,
-            icon: Icons.delete,
-            borderRadius: const BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)) 
+            padding: EdgeInsets.zero,
+            child: Container(
+              width: 50,
+              height: 50,
+              margin: const EdgeInsets.only(left: 12, right: 6),
+              decoration: BoxDecoration(
+                color: AppColors.dangerMuted.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.trash2, // Icono moderno lineal
+                size: 22,
+                color: AppColors.dangerMuted,
+              ),
+            ),
           ),
         ]
       ),
