@@ -40,7 +40,7 @@ class _ProfileWidgetState extends State<Profile> {
           children: [
             CircleAvatar(
               radius: 12,
-              backgroundColor: Colors.blue,
+              backgroundColor: Color(0xFF30363d),
               child: Text(
                 'JF',
                 style: TextStyle(
