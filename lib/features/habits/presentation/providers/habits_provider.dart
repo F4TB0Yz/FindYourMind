@@ -146,7 +146,7 @@ class HabitsProvider extends ChangeNotifier {
   /// Recarga hábitos desde SQLite sin mostrar loading (llamado por SyncProvider)
   Future<void> refreshHabitsFromLocal() async {
     try {
-      print('🔄 [PROVIDER] Refrescando desde SQLite...');
+      if (kDebugMode) print('🔄 [PROVIDER] Refrescando desde SQLite...');
       final userId = await getUserId();
       final updatedHabits = await _repository.getHabitsByEmail(userId);
       _habits.clear();
@@ -159,7 +159,7 @@ class HabitsProvider extends ChangeNotifier {
       }
       
       notifyListeners();
-      print('✅ [PROVIDER] Refrescado exitoso - ${_habits.length} hábitos');
+      if (kDebugMode) print('✅ [PROVIDER] Refrescado exitoso - ${_habits.length} hábitos');
     } catch (e) {
       // Error no crítico - los datos ya están cargados en memoria
       if (kDebugMode) print('⚠️ Error al refrescar desde SQLite (datos ya en memoria): $e');
@@ -180,7 +180,7 @@ class HabitsProvider extends ChangeNotifier {
   void clearAllData() {
     _habits.clear();
     notifyListeners();
-    print('🧹 [PROVIDER] Memoria limpiada - hábitos eliminados');
+    if (kDebugMode) print('🧹 [PROVIDER] Memoria limpiada - hábitos eliminados');
   }
 
   void changeTitle(String newTitle) {
@@ -661,7 +661,10 @@ class HabitsProvider extends ChangeNotifier {
         dailyCounter: 0,
       );
       
-      _habits[habitIndex].progress.add(newProgress);
+      final updatedHabit = _habits[habitIndex].copyWith(
+        progress: [..._habits[habitIndex].progress, newProgress],
+      );
+      _habits[habitIndex] = updatedHabit;
       notifyListeners();
       
       if (kDebugMode) print('✅ Progreso agregado a la UI con UUID: $progressId');

@@ -4,6 +4,10 @@ import 'package:find_your_mind/features/habits/presentation/widgets/card_option_
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Selector de tipo de hábito: Salud, Personal y Productividad.
+///
+/// Solo permite seleccionar un tipo a la vez. El estado seleccionado
+/// se comunica visualmente mediante borde y color del [CardOptionCustom].
 class TypeHabitSelector extends StatelessWidget {
   const TypeHabitSelector({super.key});
 
@@ -14,31 +18,22 @@ class TypeHabitSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tipo de Habito',
+          'Tipo de Hábito',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.white38
+            color: Color(0xFF8B949E),
           ),
         ),
-
         SizedBox(height: 10),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _TypeHabitButton(
-              label: 'Salud', 
-              type: TypeHabit.health, 
-            ),
-            _TypeHabitButton(
-              label: 'Personal', 
-              type: TypeHabit.personal, 
-            ),
-            _TypeHabitButton(
-              label: 'Productividad', 
-              type: TypeHabit.productivity, 
-            )
+            Expanded(child: _TypeHabitButton(label: 'Salud', type: TypeHabit.health)),
+            SizedBox(width: 8),
+            Expanded(child: _TypeHabitButton(label: 'Personal', type: TypeHabit.personal)),
+            SizedBox(width: 8),
+            Expanded(child: _TypeHabitButton(label: 'Productividad', type: TypeHabit.productivity)),
           ],
         ),
       ],
@@ -46,36 +41,30 @@ class TypeHabitSelector extends StatelessWidget {
   }
 }
 
+/// Botón de tipo de hábito individual con estado seleccionado/disponible/deshabilitado.
 class _TypeHabitButton extends StatelessWidget {
   final String label;
   final TypeHabit type;
 
-  const _TypeHabitButton({
-    required this.label, 
-    required this.type, 
-  });
+  const _TypeHabitButton({required this.label, required this.type});
 
   @override
   Widget build(BuildContext context) {
-    final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
-
-    void onTapButton(NewHabitProvider provider, TypeHabit type) {
-      if (!provider.isTypeSelected(type) && provider.isSelectedTypeHabit) {
-        return;
-      }
-
-      if (provider.isTypeSelected(type) && newHabitProvider.typeHabitSelected == type) {
-        provider.clearTypeHabit();
-        return;
-      } 
-
-      provider.setTypeHabit(type);
-    }
+    final provider = Provider.of<NewHabitProvider>(context);
+    final bool isSelected = provider.typeHabitSelected == type;
+    final bool hasSelection = provider.isSelectedTypeHabit;
 
     return CardOptionCustom(
       title: label,
-      canBeSelected: !newHabitProvider.isSelectedTypeHabit,
-      onTap: () => onTapButton(newHabitProvider, type),
+      isSelected: isSelected,
+      canBeSelected: !hasSelection || isSelected,
+      onTap: () {
+        if (isSelected) {
+          provider.clearTypeHabit();
+        } else {
+          provider.setTypeHabit(type);
+        }
+      },
     );
   }
 }

@@ -1,20 +1,25 @@
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
+/// Indicador pulsante para el día actual en el progreso semanal.
+///
+/// Anima la opacidad del borde entre 0.5 y 1.0.
+/// Sin sombras neón — solo un borde animado sobrio.
 class PulsingTodayIndicator extends StatefulWidget {
   final int day;
   final bool isCompleted;
 
   const PulsingTodayIndicator({
-    super.key, 
+    super.key,
     required this.day,
     required this.isCompleted,
   });
 
   @override
-  State<PulsingTodayIndicator> createState() => PulsingTodayIndicatorState();
+  State<PulsingTodayIndicator> createState() => _PulsingTodayIndicatorState();
 }
 
-class PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
+class _PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -23,15 +28,12 @@ class PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
       vsync: this,
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
+    _animation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
 
@@ -43,65 +45,45 @@ class PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
 
   @override
   Widget build(BuildContext context) {
-    // Color dinámico según si está completado o no
-    final Color neonColor = widget.isCompleted 
-        ? const Color(0xFF00FF41)  // Verde neón si está completado
-        : const Color(0xFFFF1744);  // Rojo neón si NO está completado
-    
+    final Color borderColor = widget.isCompleted
+        ? AppColors.successMuted
+        : AppColors.dangerMuted;
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
         return Container(
-          width: 40,
-          height: 40,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: widget.isCompleted
-                ? Colors.green.withValues(alpha: 0.3)
-                : Colors.red.withValues(alpha: 0.3),
+                ? AppColors.successMuted.withValues(alpha: 0.12)
+                : AppColors.dangerMuted.withValues(alpha: 0.08),
             border: Border.all(
-              color: neonColor,
-              width: 1.5 * _animation.value,
+              color: borderColor.withValues(alpha: _animation.value),
+              width: 1.5,
             ),
             boxShadow: [
-              // Sombra interior más intensa
               BoxShadow(
-                color: neonColor.withValues(alpha: 0.4 * _animation.value),
-                blurRadius: 8 * _animation.value,
-                spreadRadius: 1.5 * _animation.value,
-              ),
-              // Sombra exterior brillante
-              BoxShadow(
-                color: neonColor.withValues(alpha: 0.25 * _animation.value),
-                blurRadius: 16 * _animation.value,
-                spreadRadius: 3 * _animation.value,
-              ),
-              // Sombra extra para más resplandor
-              BoxShadow(
-                color: neonColor.withValues(alpha: 0.15 * _animation.value),
-                blurRadius: 24 * _animation.value,
-                spreadRadius: 4 * _animation.value,
+                color: borderColor.withValues(alpha: 0.15 * _animation.value),
+                blurRadius: 4,
               ),
             ],
           ),
-          child: Center(
-            child: Text(
-              '${widget.day}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                shadows: [
-                  Shadow(
-                    color: neonColor.withValues(alpha: 0.6 * _animation.value),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: child,
         );
       },
+      child: Center(
+        child: Text(
+          '${widget.day}',
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -36,25 +36,25 @@ class _ProfileWidgetState extends State<Profile> {
               : const Color(0xFFFFFFFF),
         ),
         padding: const EdgeInsets.all(5),
-        child: const Row(
+        child: Row(
           children: [
             CircleAvatar(
-              radius: 12,
-              backgroundColor: Color(0xFF30363d),
-              child: Text(
+              radius: 14,
+              backgroundColor: AppColors.accentText.withValues(alpha: 0.15),
+              child: const Text(
                 'JF',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                  color: AppColors.accentText,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            SizedBox(width: 4),
-            Icon(
+            const SizedBox(width: 4),
+            const Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: Colors.white54,
-              size: 18,
+              color: AppColors.textSecondary,
+              size: 20,
             ),
           ],
         ),
@@ -129,7 +129,7 @@ class _ProfileWidgetState extends State<Profile> {
                   
                   // Divisor
                   Divider(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     height: 1,
                   ),
                   
@@ -219,6 +219,7 @@ class _ProfileWidgetState extends State<Profile> {
       );
 
       if (shouldLogout ?? false) {
+        if (!rootContext.mounted) return;
         // Limpiar providers antes del logout
         final habitsProvider = Provider.of<HabitsProvider>(rootContext, listen: false);
         final syncProvider = Provider.of<SyncProvider>(rootContext, listen: false);

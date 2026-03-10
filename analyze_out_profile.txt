@@ -1,0 +1,28 @@
+﻿Analyzing app_bar...                                            
+
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\presentation\widgets\app_bar\profile.dart:132:41 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\shared\presentation\widgets\app_bar\profile.dart:223:60 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\shared\presentation\widgets\app_bar\profile.dart:224:56 - use_build_context_synchronously
+
+flutter : 3 issues 
+found. (ran in 2.0s)
+En línea: 1 Carácter: 
+1
++ flutter analyze lib/
+shared/presentation/wi
+dgets/app_bar/ 
+--no-pub 2>& ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (3 issues f   
+ ound. (ran in 2.0    
+s):String) [], Re    
+moteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 

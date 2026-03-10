@@ -13,7 +13,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final SignOutUseCase signOutUseCase;
 
   @override
-  Size get preferredSize => const Size.fromHeight(50);
+  Size get preferredSize => const Size.fromHeight(70);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final bool isDarkTheme = themeProvider.themeMode == ThemeMode.dark;
 
     return Container(
-      height: 50,
+      height: 100,
       decoration: const BoxDecoration(
         color: Color(0xFF0d1117),
         border: Border(
@@ -34,7 +34,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Image.asset(
             'assets/images/app_logo.png',
-            height: 28,
+            height: 70,
             fit: BoxFit.contain,
           ),
           Profile(

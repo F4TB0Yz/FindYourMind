@@ -1,3 +1,4 @@
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/habit_detail_screen.dart';
@@ -60,10 +61,10 @@ class _SlidableItemState extends State<SlidableItem> {
                 ScreenType.habits
               );
             },
-            backgroundColor: const Color.fromARGB(84, 80, 78, 78),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.accentText.withValues(alpha: 0.15),
+            foregroundColor: AppColors.accentText,
             icon: Icons.info_outline_rounded,
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12))
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), bottomLeft: Radius.circular(8))
           ),
           SlidableAction(
             onPressed: (context) async {              
@@ -95,10 +96,10 @@ class _SlidableItemState extends State<SlidableItem> {
                 }
               }
             },
-            backgroundColor: const Color.fromARGB(84, 80, 78, 78),
-            foregroundColor: Colors.red,
+            backgroundColor: AppColors.dangerMuted.withValues(alpha: 0.15),
+            foregroundColor: AppColors.dangerMuted,
             icon: Icons.delete,
-            borderRadius: const BorderRadius.only(topRight: Radius.circular(12), bottomRight: Radius.circular(12)) 
+            borderRadius: const BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)) 
           ),
         ]
       ),

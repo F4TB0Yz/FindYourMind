@@ -3,6 +3,10 @@ import 'package:find_your_mind/features/habits/presentation/providers/new_habit_
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+/// Control numérico para configurar la meta diaria de un hábito.
+///
+/// Puede operar con el [NewHabitProvider] (pantalla de creación) o con
+/// un valor local y callback [onChanged] (pantalla de edición).
 class DailyGoalCounter extends StatelessWidget {
   final int? initialValue;
   final ValueChanged<int>? onChanged;
@@ -17,93 +21,94 @@ class DailyGoalCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Si useProvider es true, usa el NewHabitProvider (para crear hábitos)
-    // Si es false, usa el valor local (para editar hábitos)
     if (useProvider) {
-      return _buildBackground(_buildWithProvider(context));
-    } else {
-      return _buildBackground(_buildWithLocalState(context));
+      final provider = Provider.of<NewHabitProvider>(context);
+      return _CounterLayout(
+        value: provider.dailyGoal,
+        onDecrement: provider.dailyGoal > 1
+            ? () => provider.setDailyGoal(provider.dailyGoal - 1)
+            : null,
+        onIncrement: () => provider.setDailyGoal(provider.dailyGoal + 1),
+      );
     }
-  }
 
-  Widget _buildBackground(Widget child) {
+    final currentValue = initialValue ?? 1;
+    return _CounterLayout(
+      value: currentValue,
+      onDecrement: currentValue > 1 && onChanged != null
+          ? () => onChanged!(currentValue - 1)
+          : null,
+      onIncrement: onChanged != null ? () => onChanged!(currentValue + 1) : null,
+    );
+  }
+}
+
+/// Layout del contador: botón menos, valor, botón más.
+class _CounterLayout extends StatelessWidget {
+  final int value;
+  final VoidCallback? onDecrement;
+  final VoidCallback? onIncrement;
+
+  const _CounterLayout({
+    required this.value,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.darkBackground,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderSubtle, width: 1),
       ),
-      child: child,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _CounterButton(
+            icon: Icons.remove,
+            onTap: onDecrement,
+          ),
+          Text(
+            '$value',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          _CounterButton(
+            icon: Icons.add,
+            onTap: onIncrement,
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildWithProvider(BuildContext context) {
-    NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
+/// Botón de incremento o decremento del contador.
+class _CounterButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          onPressed: () {
-            if (newHabitProvider.dailyGoal > 1) {
-              newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal - 1);
-            }
-          },
-          icon: const Icon(Icons.remove),
-          iconSize: 32,
-        ),
-        Text(
-          newHabitProvider.dailyGoal.toString(),
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          onPressed: () {
-            newHabitProvider.setDailyGoal(newHabitProvider.dailyGoal + 1);
-          },
-          icon: const Icon(Icons.add),
-          iconSize: 32,
-        ),
-      ],
-    );
-  }
+  const _CounterButton({required this.icon, required this.onTap});
 
-  Widget _buildWithLocalState(BuildContext context) {
-    final int currentValue = initialValue ?? 1;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          onPressed: () {
-            if (currentValue > 1 && onChanged != null) {
-              onChanged!(currentValue - 1);
-            }
-          },
-          icon: const Icon(Icons.remove),
-          iconSize: 32,
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Icon(
+          icon,
+          size: 20,
+          color: onTap != null ? AppColors.textSecondary : AppColors.textMuted,
         ),
-        Text(
-          currentValue.toString(),
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
-        ),
-        IconButton(
-          onPressed: () {
-            if (onChanged != null) {
-              onChanged!(currentValue + 1);
-            }
-          },
-          icon: const Icon(Icons.add),
-          iconSize: 32,
-        ),
-      ],
+      ),
     );
   }
 }

@@ -66,21 +66,17 @@ class _ItemHabitState extends State<ItemHabit> {
     final int dailyGoal = widget.itemHabit.dailyGoal;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-        clipBehavior: Clip.antiAlias,
-        child: SlidableItem(
-          habit: widget.itemHabit,
-          habitsProvider: widget.habitsProvider,
-          timeSinceStart: _timeSinceStart,
-          counterToday: counterToday,
-          dailyGoal: dailyGoal,
-          isFlashingRed: _isFlashingRed,
-          isFlashingGreen: _isFlashingGreen,
-          onTap: _onTapCompleteHabit,
-          onLongPress: _onLongPress,
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: SlidableItem(
+        habit: widget.itemHabit,
+        habitsProvider: widget.habitsProvider,
+        timeSinceStart: _timeSinceStart,
+        counterToday: counterToday,
+        dailyGoal: dailyGoal,
+        isFlashingRed: _isFlashingRed,
+        isFlashingGreen: _isFlashingGreen,
+        onTap: _onTapCompleteHabit,
+        onLongPress: _onLongPress,
       ),
     );
   }

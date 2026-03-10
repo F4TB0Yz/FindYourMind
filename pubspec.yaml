@@ -18,6 +18,7 @@ dependencies:
   flutter_slidable: 4.0.3
   flutter_svg: 2.2.1
   fluttertoast: 9.0.0
+  home_widget: ^0.8.1
   internet_connection_checker: ^3.0.1
   lucide_icons: 0.257.0
   path: ^1.9.0

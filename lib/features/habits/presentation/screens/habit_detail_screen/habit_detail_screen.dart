@@ -3,8 +3,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/details_view.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/editing_view.dart';
+import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,108 +22,149 @@ class HabitDetailScreen extends StatefulWidget {
 }
 
 class _HabitDetailScreenState extends State<HabitDetailScreen> {
-  late bool isEditing;
-  late ScreensProvider screensProvider;
-  late HabitsProvider habitsProvider;
+  late bool _isEditing;
+  late HabitsProvider _habitsProvider;
 
   @override
   Widget build(BuildContext context) {
-    habitsProvider = Provider.of<HabitsProvider>(context);
-    screensProvider = Provider.of<ScreensProvider>(context);
-    isEditing = habitsProvider.isEditing;
+    _habitsProvider = Provider.of<HabitsProvider>(context);
+    _isEditing = _habitsProvider.isEditing;
 
-    // Obtener el hábito actualizado del provider
-    final currentHabit = habitsProvider.habits.firstWhere(
+    // Obtener el hábito actualizado desde el provider para reflejar cambios en tiempo real
+    final currentHabit = _habitsProvider.habits.firstWhere(
       (h) => h.id == widget.habit.id,
       orElse: () => widget.habit,
     );
 
-    return ContainerBorderScreens(
-      screenType: ScreenType.detailHabit,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      endWidget: _buildToggleEditButton(),
-      child: Column(
-        children: [
-          // Container First Info
-          _buildHabitInfoContainer(currentHabit),
+    return Column(
+      children: [
+        _HabitDetailHeader(
+          habit: currentHabit,
+          isEditing: _isEditing,
+          onToggleEdit: () => _habitsProvider.changeIsEditing(!_isEditing),
+        ),
+        const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: !_isEditing
+                    ? DetailsView(habit: currentHabit)
+                    : EditingView(habit: currentHabit),
+              ),
+            ),
+          ],
+        );
+  }
+}
 
+/// Nuevo header nativo para la vista de detalle.
+class _HabitDetailHeader extends StatelessWidget {
+  final HabitEntity habit;
+  final bool isEditing;
+  final VoidCallback onToggleEdit;
+
+  const _HabitDetailHeader({
+    required this.habit,
+    required this.isEditing,
+    required this.onToggleEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textSecondary),
+            onPressed: () {
+              // Si está editando y presiona atrás, salir de edición. Si no, volver a la lista.
+              if (isEditing) {
+                onToggleEdit();
+              } else {
+                screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+              }
+            },
+            padding: const EdgeInsets.all(8),
+            splashRadius: 24,
+            tooltip: 'Volver',
+          ),
+          const SizedBox(width: 4),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4.0),
-              child: !isEditing 
-                ? DetailsView(habit: currentHabit)
-                : EditingView(habit: currentHabit)
-            )
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isEditing ? 'Editar Hábito' : 'Detalles',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                if (!isEditing)
+                  Text(
+                    '${habit.daysSinceStart + 1} días activos',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          _EditToggleButton(
+            isEditing: isEditing,
+            onToggle: onToggleEdit,
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildHabitInfoContainer(HabitEntity currentHabit) {
-    final totalDays = currentHabit.daysSinceStart + 1;
+/// Botón discreto para editar/cancelar.
+class _EditToggleButton extends StatelessWidget {
+  final bool isEditing;
+  final VoidCallback onToggle;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(15),
-      color: AppColors.darkBackground,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Días desde el inicio
-          Text(
-            totalDays.toString(),
-            style: const TextStyle(
-              fontSize: 64,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-              height: 1.0, // Reduce el espacio vertical entre líneas
-            ),
-          ),
+  const _EditToggleButton({
+    required this.isEditing,
+    required this.onToggle,
+  });
 
-          const SizedBox(height: 10),
-
-          Text(
-            totalDays == 1 ? 'Día' : 'Días',
-            style: const TextStyle(
-              fontSize: 24,
-              color: Colors.white60,
-              fontWeight: FontWeight.w500,
-              height: 1.0,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleEditButton() {
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        habitsProvider.changeIsEditing(!isEditing);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(6),
+      onTap: onToggle,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isEditing 
-              ? const Color.fromARGB(40, 163, 36, 36)
+          color: isEditing
+              ? AppColors.dangerMuted.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isEditing 
-                ? const Color.fromARGB(255, 83, 8, 8)
-                : Colors.transparent,
+            color: isEditing
+                ? AppColors.dangerMuted.withValues(alpha: 0.4)
+                : AppColors.borderSubtle,
             width: 1,
           ),
         ),
-        child: Icon(
-          isEditing ? Icons.close : Icons.edit,
-          color: Colors.white,
-          size: 14,
+        child: Text(
+          isEditing ? 'Cancelar' : 'Editar',
+          style: TextStyle(
+            color: isEditing ? AppColors.dangerMuted : AppColors.textSecondary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
-
 }

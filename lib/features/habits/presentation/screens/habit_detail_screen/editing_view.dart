@@ -1,8 +1,8 @@
+﻿import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
@@ -49,156 +49,127 @@ class _EditingViewState extends State<EditingView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 15),
+        const SizedBox(height: 12),
 
         // Selector de icono
         const Text(
-          'Icono del Hábito',
+          'Icono',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.white38,
+            color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
-        Stack(
-          children: [
-            AddIcon(
-              size: 64,
-              saveIcon: (newIcon) {
-                setState(() {
-                  _selectedIcon = newIcon;
-                });
-              }, 
-              withText: false,
-              initialIcon: _selectedIcon,
-            ),
-
-            const SizedBox(width: 10),
-
-            const Positioned(
-              left: 60,
-              top: 0,
-              child: Icon(
-                Icons.mode_edit_outline_outlined,
-                color: Color.fromARGB(255, 187, 180, 155),
-                size: 24,
+        Center(
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.borderSubtle),
+                  color: AppColors.darkBackground,
+                ),
+                padding: const EdgeInsets.all(4),
+                child: AddIcon(
+                  size: 64,
+                  saveIcon: (newIcon) {
+                    setState(() {
+                      _selectedIcon = newIcon;
+                    });
+                  }, 
+                  withText: false,
+                  initialIcon: _selectedIcon,
+                ),
               ),
-            )
-          ],
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentText,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.darkBackgroundAlt, width: 2),
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    color: AppColors.darkBackgroundAlt,
+                    size: 14,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
 
         // Título del hábito
-        _buildCustomTextField(
+        _LabeledTextField(
           controller: _titleController,
-          label: 'Título del Hábito',
-          fontSize: 18,
-        ),
-
-        const SizedBox(height: 15),
-
-        // Descripción
-        _buildCustomTextField(
-          controller: _descriptionController,
-          label: 'Descripción',
-          fontSize: 14,
-          isSubtitle: true,
+          label: 'Título',
+          hint: 'Ej. Leer un libro',
         ),
 
         const SizedBox(height: 20),
+
+        // Descripción
+        _LabeledTextField(
+          controller: _descriptionController,
+          label: 'Descripción (Opcional)',
+          hint: 'Notas adicionales sobre el hábito',
+          maxLines: 3,
+        ),
+
+        const SizedBox(height: 24),
 
         // Meta Diaria
         const Text(
           'Meta Diaria',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Colors.white38,
+            color: AppColors.textSecondary,
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
-        DailyGoalCounter(
-          useProvider: false,
-          initialValue: _dailyGoal,
-          onChanged: (newValue) {
-            setState(() {
-              _dailyGoal = newValue;
-            });
-          },
-        ),
+        const DailyGoalCounter(),
 
-        const SizedBox(height: 50),
+        const SizedBox(height: 48),
 
-        // Botones de acción
-        Row(
-          children: [
-            Expanded(
-              child: CustomButton(
-                title: 'CANCELAR',
-                onTap: () {
-                  setState(() {
-                    // Restaurar valores originales
-                    habitsProvider.changeIsEditing(false);
-                    _titleController.text = widget.habit.title;
-                    _descriptionController.text = widget.habit.description;
-                    _selectedIcon = widget.habit.icon;
-                    _dailyGoal = widget.habit.dailyGoal;
-                  });
-                },
+        // Botón único principal
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: () => _saveHabit(habitsProvider, screensProvider),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.successMuted.withValues(alpha: 0.15),
+              foregroundColor: AppColors.successMuted,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(
+                  color: AppColors.successMuted.withValues(alpha: 0.4),
+                  width: 1,
+                ),
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: CustomButton(
-                title: 'GUARDAR',
-                onTap: () => _saveHabit(habitsProvider, screensProvider),
+            child: const Text(
+              'Guardar Cambios',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ],
+          ),
         ),
 
-        const SizedBox(height: 15),
-      ],
-    );
-  }
-
-  Widget _buildCustomTextField({
-    required TextEditingController controller,
-    required String label,
-    required double fontSize,
-    bool isSubtitle = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: isSubtitle ? Colors.white24 : Colors.white38,
-          ),
-        ),
-        const SizedBox(height: 5),
-        TextField(
-          controller: controller,
-          maxLength: isSubtitle ? null : 30,
-          style: TextStyle(
-            fontSize: fontSize,
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -207,13 +178,12 @@ class _EditingViewState extends State<EditingView> {
     if (_titleController.text.trim().isEmpty) {
       CustomToast.showToast(
         context: context,
-        message: 'El título no puede estar vacío',
+        message: 'El título es requerido',
       );
       return;
     }
 
     try {
-      // Crear el hábito actualizado con los nuevos valores
       final updatedHabit = widget.habit.copyWith(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -221,29 +191,78 @@ class _EditingViewState extends State<EditingView> {
         dailyGoal: _dailyGoal,
       );
 
-      // 🚀 Actualización optimista: no esperar, la UI se actualiza inmediatamente
       habitsProvider.updateHabit(updatedHabit);
-
-      // Salir del modo edición inmediatamente
       habitsProvider.changeIsEditing(false);
 
       if (!mounted) return;
 
       CustomToast.showToast(
         context: context,
-        message: 'Hábito actualizado exitosamente',
+        message: 'Hábito guardado',
       );
 
-      // Navegar de vuelta inmediatamente
       screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
-
     } catch (e) {
       if (!mounted) return;
-
       CustomToast.showToast(
         context: context,
-        message: 'Error al actualizar el hábito',
+        message: 'Error al actualizar',
       );
     }
+  }
+}
+
+/// Campo de texto de estilo linear, enclosed en un container de fondo.
+class _LabeledTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final int maxLines;
+
+  const _LabeledTextField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.darkBackground,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.borderSubtle),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: const TextStyle(
+              fontSize: 15,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w400,
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: AppColors.textMuted),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

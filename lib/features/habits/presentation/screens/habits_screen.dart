@@ -1,15 +1,12 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/custom_button.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
 import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
-import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,16 +24,11 @@ class _HabitsScreenState extends State<HabitsScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Diferir resetTitle hasta después del primer frame para evitar llamar setState durante build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
-        habitsProvider.resetTitle();
+        Provider.of<HabitsProvider>(context, listen: false).resetTitle();
       }
     });
-
-    // Configurar listener para scroll infinito
     _scrollController.addListener(_onScroll);
   }
 
@@ -48,126 +40,182 @@ class _HabitsScreenState extends State<HabitsScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.8) {
-      // Cuando está al 80% del scroll, cargar más hábitos
-      final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
-      habitsProvider.loadMoreHabits();
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      Provider.of<HabitsProvider>(context, listen: false).loadMoreHabits();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(context);
-    final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
+    final screensProvider = Provider.of<ScreensProvider>(context);
+    final habitsProvider = Provider.of<HabitsProvider>(context);
 
-    return CustomBorderContainer(
-      child: _buildHabitsView(screensProvider, habitsProvider),
+    return Column(
+      children: [
+        // Header nativo: título + sync + botón +
+        _HabitsHeader(
+          onAddTap: () => screensProvider.setScreenWidget(
+            const NewHabitScreen(),
+            ScreenType.newHabit,
+          ),
+        ),
+
+        // Divisor
+        const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
+
+        // Filtros
+        const _HabitsTabBar(),
+
+        // Banner offline
+        Consumer<SyncProvider>(
+          builder: (context, syncProvider, _) => OfflineModeBanner(
+            pendingChanges: syncProvider.pendingChangesCount,
+            onSyncPressed: () async => syncProvider.syncWithServer(),
+          ),
+        ),
+
+        // Lista
+        Expanded(
+          child: habitsProvider.isLoading && habitsProvider.habits.isEmpty
+              ? const Center(
+                  child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
+                )
+              : ListView.builder(
+                  controller: _scrollController,
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  itemCount: habitsProvider.habits.length +
+                      (habitsProvider.isLoading &&
+                              habitsProvider.hasMore &&
+                              habitsProvider.habits.isNotEmpty
+                          ? 1
+                          : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= habitsProvider.habits.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: CustomLoadingDots(),
+                      );
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ItemHabit(
+                        itemHabit: habitsProvider.habits[index],
+                        habitsProvider: habitsProvider,
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _buildHabitsView(ScreensProvider screensProvider, HabitsProvider habitsProvider) { 
-    return ContainerBorderScreens(
-      screenType: ScreenType.habits,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-      child: Column(
+/// Header de la pantalla: "Hábitos" con sync y botón de agregar.
+class _HabitsHeader extends StatelessWidget {
+  final VoidCallback onAddTap;
+
+  const _HabitsHeader({required this.onAddTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      child: Row(
         children: [
-          // TabView con indicador de sincronización
-          Container(
-            width: double.infinity,
-            height: 30,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            margin: const EdgeInsets.symmetric(horizontal: 15),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              color: AppColors.darkBackground
+          const Text(
+            'Hábitos',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.3,
             ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Todos'),
-                Text('Recomendados'),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // ⭐ Widget de sincronización agregado
-                    SyncStatusIndicator(),
-                    SizedBox(width: 8),
-                    Text('+'),
-                  ],
+          ),
+          const SizedBox(width: 8),
+          const SyncStatusIndicator(),
+          const Spacer(),
+          GestureDetector(
+            onTap: onAddTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.textSecondary.withValues(alpha: 0.3), 
+                  width: 1,
                 ),
-              ],
+              ),
+              child: const Icon(
+                Icons.add,
+                size: 16,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-      
-          const SizedBox(height: 15),
+        ],
+      ),
+    );
+  }
+}
 
-          // ⭐ Banner de modo offline agregado
-          Consumer<SyncProvider>(
-            builder: (context, syncProvider, _) {
-              return OfflineModeBanner(
-                pendingChanges: syncProvider.pendingChangesCount,
-                onSyncPressed: () async {
-                  await syncProvider.syncWithServer();
-                },
-              );
-            },
-          ),
-      
-          // Lista de Habitos
-          Expanded(
-            child: habitsProvider.isLoading && habitsProvider.habits.isEmpty
-                ? const Center(child: CustomLoadingIndicator(text: 'Cargando hábitos...'))
-                : ListView.builder(
-                    controller: _scrollController,
-                    itemCount: habitsProvider.habits.length + (habitsProvider.isLoading && habitsProvider.hasMore && habitsProvider.habits.isNotEmpty ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      // Mostrar indicador de carga al final solo si hay hábitos ya cargados y está cargando más
-                      if (index >= habitsProvider.habits.length) {
-                        // Puedes cambiar entre estos estilos:
-                        // return const CustomLoadingIndicator(text: 'Cargando más hábitos...'); // Estilo 1: Circular con texto
-                        return const CustomLoadingDots(); // Estilo 2: Puntos animados (recomendado)
-                        // return const CustomLoadingBar(text: 'Cargando...'); // Estilo 3: Barra de progreso
-                      }
+/// Tabs de filtro: Todos / Recomendados.
+///
+/// El tab activo tiene un underline de color primario.
+class _HabitsTabBar extends StatelessWidget {
+  const _HabitsTabBar();
 
-                      return TweenAnimationBuilder<double>(
-                        key: ValueKey(habitsProvider.habits[index].id),
-                        tween: Tween(begin: 0.0, end: 1.0),
-                        duration: Duration(milliseconds: 300 + (index * 50).clamp(0, 500)),
-                        curve: Curves.easeOut,
-                        builder: (context, value, child) {
-                          return Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: Opacity(
-                              opacity: value,
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Column(
-                          children: [                  
-                            ItemHabit(
-                              itemHabit: habitsProvider.habits[index],
-                              habitsProvider: habitsProvider,
-                            ),
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          _Tab(label: 'Todos', isActive: true),
+          const SizedBox(width: 20),
+          _Tab(label: 'Recomendados', isActive: false),
+        ],
+      ),
+    );
+  }
+}
 
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+class _Tab extends StatelessWidget {
+  final String label;
+  final bool isActive;
+
+  const _Tab({required this.label, required this.isActive});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+            ),
           ),
-        
-          const SizedBox(height: 10),
-      
-          CustomButton(
-            title: 'AGREGAR NUEVO HABITO',
-            onTap: () {
-              screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
-            },
+          const SizedBox(height: 4),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            height: 2,
+            width: isActive ? 24 : 0,
+            decoration: BoxDecoration(
+              color: AppColors.accentText,
+              borderRadius: BorderRadius.circular(1),
+            ),
           ),
-      
-          const SizedBox(height: 15)
         ],
       ),
     );

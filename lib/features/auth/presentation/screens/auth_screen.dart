@@ -72,11 +72,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
           return Scaffold(
             appBar: CustomAppBar(signOutUseCase: widget.signOutUseCase),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: AnimatedScreenTransition(
-                child: screensProvider.currentPageWidget,
-              ),
+            body: AnimatedScreenTransition(
+              child: screensProvider.currentPageWidget,
             ),
             bottomNavigationBar: const CustomBottomBar(),
           );

@@ -1,55 +1,57 @@
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
-class CardOptionCustom extends StatefulWidget {
+/// Opción seleccionable usada en el selector de tipo de hábito.
+///
+/// Muestra un estado seleccionado claro mediante borde de color y fondo sutil,
+/// y un estado deshabilitado cuando otro tipo ya fue elegido.
+class CardOptionCustom extends StatelessWidget {
   final String title;
   final bool? canBeSelected;
   final VoidCallback? onTap;
-  final double? width;
-  final double? height;
-  
+  final bool isSelected;
+
   const CardOptionCustom({
     super.key,
     required this.title,
     this.onTap,
     this.canBeSelected,
-    this.width,
-    this.height,
+    this.isSelected = false,
   });
 
   @override
-  State<CardOptionCustom> createState() => _CardOptionCustomState();
-}
-
-class _CardOptionCustomState extends State<CardOptionCustom> {
-  Color colorCard = const Color(0xFF1A1A1A);
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (widget.onTap != null) {
-          widget.onTap!();
-        }
+    final bool disabled = canBeSelected == false && !isSelected;
 
-        setState(() {
-          colorCard = (widget.canBeSelected == true)
-            ? const Color(0xFF3A3A3A) 
-            : const Color(0xFF1A1A1A);
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    return GestureDetector(
+      onTap: disabled ? null : onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          color: colorCard
+          borderRadius: BorderRadius.circular(6),
+          color: isSelected
+              ? AppColors.successMuted.withValues(alpha: 0.1)
+              : AppColors.darkBackgroundAlt,
+          border: Border.all(
+            color: isSelected
+                ? AppColors.successMuted.withValues(alpha: 0.6)
+                : AppColors.borderSubtle,
+            width: 1,
+          ),
         ),
         child: Center(
           child: Text(
-            widget.title,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w500
+            title,
+            style: TextStyle(
+              color: isSelected
+                  ? AppColors.successMuted
+                  : disabled
+                      ? AppColors.textMuted
+                      : AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
