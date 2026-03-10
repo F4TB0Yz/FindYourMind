@@ -1,12 +1,13 @@
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/auth/presentation/screens/register_screen.dart';
+import 'package:find_your_mind/features/auth/presentation/utils/auth_error_helper.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   final SignInWithEmailUseCase signInUseCase;
   final SignUpWithEmailUseCase signUpUseCase;
   final SignInWithGoogleUseCase signInWithGoogleUseCase;
@@ -19,257 +20,238 @@ class LoginScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
-    return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: 50,
-              right: 50,
-              bottom: 30,
-            ),
-            child: Column(
-              children: [
-                Image.asset('assets/images/app_logo.png', width: 200),
-            
-                const Text(
-                  '¿ Ya tienes una cuenta ? ',
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            
-                const SizedBox(height: 10),
-                
-                const Text(
-                  'Inicia sesión',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            
-                const SizedBox(height: 10),
-            
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Correo',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500
-                      ),
-                    ),
-            
-                    const SizedBox(height: 10),
-            
-                    CustomAuthField(controller: emailController),
-            
-                    const SizedBox(height: 10),
-            
-                    const Text(
-                      'Contraseña',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500
-                      ),
-                    ),
-            
-                    const SizedBox(height: 10),
-            
-                    CustomAuthField(controller: passwordController, isPassword: true),
-                  ],
-                ),
-            
-            const SizedBox(height: 50),
-        
-                CustomAuthButton(
-                  onTap: () => onLoginPressed(context, emailController, passwordController),
-                  width: 200,
-                  height: 55,
-                  child: const Text(
-                    'Iniciar Sesión',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),                const SizedBox(height: 20),
-            
-                CustomAuthButton(
-                  onTap: () => onGoogleLoginPressed(context),
-                  width: 200,
-                  height: 55,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/google.svg',
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Continuar con Google',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            
-                const SizedBox(height: 30),
-            
-                const Text(
-                  '¿ Aun no tienes una cuenta ? ',
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            
-                const SizedBox(height: 10),
-                
-                GestureDetector(
-                  onTap: () => Navigator.push(
-                    context, 
-                    MaterialPageRoute(
-                      builder: (context) => RegisterScreen(
-                        signUpUseCase: signUpUseCase,
-                        signInUseCase: signInUseCase,
-                        signInWithGoogleUseCase: signInWithGoogleUseCase,
-                      ),
-                    )
-                  ),
-                  child: const Text(
-                    'Registrarse',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+class _LoginScreenState extends State<LoginScreen> {
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
+  late final FocusNode _passwordFocusNode;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _passwordFocusNode = FocusNode();
   }
 
-  bool verifyFields(TextEditingController emailController, TextEditingController passwordController) {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      return false;
-    }
-    return true;
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
   }
 
-  String _getFriendlyErrorMessage(String error) {
-    final errorLower = error.toLowerCase();
-    
-    if (errorLower.contains('invalid login credentials') || 
-        errorLower.contains('invalid_credentials')) {
-      return 'Correo o contraseña incorrectos';
-    }
-    
-    if (errorLower.contains('email') && errorLower.contains('invalid')) {
-      return 'El formato del email no es válido';
-    }
-    
-    if (errorLower.contains('network') || errorLower.contains('connection')) {
-      return 'Error de conexión. Verifica tu internet';
-    }
-    
-    if (errorLower.contains('too many requests')) {
-      return 'Demasiados intentos. Intenta más tarde';
-    }
-    
-    if (errorLower.contains('user not found')) {
-      return 'Usuario no encontrado';
-    }
-    
-    return 'Error al iniciar sesión. Intenta nuevamente';
+  bool _fieldsAreValid() {
+    return _emailController.text.trim().isNotEmpty &&
+        _passwordController.text.trim().isNotEmpty;
   }
 
-  void onLoginPressed(BuildContext context, TextEditingController emailController, TextEditingController passwordController) async {
-    if (!verifyFields(emailController, passwordController)) {
-      if (context.mounted) {
-        CustomToast.showToast(
-          context: context,
-          message: 'Por favor completa todos los campos',
-        );
-      }
+  void _showError(String message) {
+    if (!mounted) return;
+    CustomToast.showToast(context: context, message: message);
+  }
+
+  Future<void> _onLoginPressed() async {
+    if (!_fieldsAreValid()) {
+      _showError('Por favor completa todos los campos');
       return;
     }
 
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
+    setState(() => _isLoading = true);
 
     try {
-      await signInUseCase(email: email, password: password);
-      
-      if (context.mounted) {
-        CustomToast.showToast(
-          context: context,
-          message: '¡Inicio de sesión exitoso!',
-        );
+      await widget.signInUseCase(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      if (mounted) {
+        CustomToast.showToast(context: context, message: '¡Bienvenido!');
       }
     } catch (e) {
-      if (!context.mounted) return;
-
-      CustomToast.showToast(
-        context: context,
-        message: _getFriendlyErrorMessage(e.toString()),
-      );
+      _showError(getAuthErrorMessage(e.toString()));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void onGoogleLoginPressed(BuildContext context) async {
+  Future<void> _onGoogleLoginPressed() async {
     try {
-      await signInWithGoogleUseCase();
-      
-      // El navegador se abrirá para completar la autenticación
-      // Cuando el usuario regrese, el StreamBuilder en AuthScreen
-      // detectará la sesión automáticamente
-      if (context.mounted) {
+      await widget.signInWithGoogleUseCase();
+      if (mounted) {
         CustomToast.showToast(
           context: context,
           message: 'Redirigiendo a Google...',
         );
       }
     } catch (e) {
-      if (!context.mounted) return;
-
-      String errorMessage = 'Error al autenticar con Google';
-      
-      if (e.toString().contains('OAuth no está configurado') ||
-          e.toString().contains('validation_failed') ||
-          e.toString().contains('missing OAuth secret')) {
-        errorMessage = 'Google no está configurado. Contacta al administrador';
-      }
-
-      CustomToast.showToast(
-        context: context,
-        message: errorMessage,
-      );
+      _showError(getAuthErrorMessage(e.toString()));
     }
+  }
+
+  void _goToRegister() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisterScreen(
+          signUpUseCase: widget.signUpUseCase,
+          signInUseCase: widget.signInUseCase,
+          signInWithGoogleUseCase: widget.signInWithGoogleUseCase,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0d1117),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 48),
+              Center(
+                child: Image.asset('assets/images/app_logo.png', width: 150),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Inicia sesión',
+                style: TextStyle(
+                  color: Color(0xFFc9d1d9),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Ingresa tus credenciales para continuar',
+                style: TextStyle(
+                  color: Color(0xFF8b949e),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+              AuthInputField(
+                controller: _emailController,
+                label: 'Correo electrónico',
+                hint: 'tu@correo.com',
+                textInputAction: TextInputAction.next,
+                onSubmitted: () => _passwordFocusNode.requestFocus(),
+              ),
+              const SizedBox(height: 12),
+              AuthInputField(
+                controller: _passwordController,
+                label: 'Contraseña',
+                hint: '••••••••',
+                isPassword: true,
+                focusNode: _passwordFocusNode,
+                textInputAction: TextInputAction.done,
+                onSubmitted: _onLoginPressed,
+              ),
+              const SizedBox(height: 20),
+              AuthPrimaryButton(
+                onTap: _onLoginPressed,
+                isLoading: _isLoading,
+                child: const Text(
+                  'Iniciar sesión',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _OrDivider(),
+              const SizedBox(height: 12),
+              AuthSecondaryButton(
+                onTap: _onGoogleLoginPressed,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icons/google.svg',
+                      width: 18,
+                      height: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Continuar con Google',
+                      style: TextStyle(
+                        color: Color(0xFFc9d1d9),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '¿No tienes una cuenta?',
+                      style: TextStyle(
+                        color: Color(0xFF8b949e),
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    TextButton(
+                      onPressed: _goToRegister,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Regístrate',
+                        style: TextStyle(
+                          color: Color(0xFF58a6ff),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(
+          child: Divider(color: Color(0xFF30363d), thickness: 1),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'o',
+            style: TextStyle(color: Color(0xFF8b949e), fontSize: 12),
+          ),
+        ),
+        Expanded(
+          child: Divider(color: Color(0xFF30363d), thickness: 1),
+        ),
+      ],
+    );
   }
 }

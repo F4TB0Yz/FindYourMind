@@ -1,11 +1,12 @@
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
+import 'package:find_your_mind/features/auth/presentation/utils/auth_error_helper.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   final SignUpWithEmailUseCase signUpUseCase;
   final SignInWithEmailUseCase signInUseCase;
   final SignInWithGoogleUseCase signInWithGoogleUseCase;
@@ -18,266 +19,222 @@ class RegisterScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
 
+class _RegisterScreenState extends State<RegisterScreen> {
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
+  late final FocusNode _passwordFocusNode;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _passwordFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
+  }
+
+  bool _fieldsAreValid() {
+    return _emailController.text.trim().isNotEmpty &&
+        _passwordController.text.trim().isNotEmpty;
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    CustomToast.showToast(context: context, message: message);
+  }
+
+  Future<void> _onRegisterPressed() async {
+    if (!_fieldsAreValid()) {
+      _showError('Por favor completa todos los campos');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await widget.signUpUseCase(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      if (mounted) {
+        CustomToast.showToast(context: context, message: '¡Cuenta creada!');
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      _showError(getAuthErrorMessage(e.toString(), isRegister: true));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _onGoogleRegisterPressed() async {
+    try {
+      await widget.signInWithGoogleUseCase();
+      if (mounted) {
+        CustomToast.showToast(
+          context: context,
+          message: 'Redirigiendo a Google...',
+        );
+      }
+    } catch (e) {
+      _showError(getAuthErrorMessage(e.toString(), isRegister: true));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0d1117),
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(
-              left: 50,
-              right: 50,
-              bottom: 30,
-            ),
-            child: Column(
-              children: [
-                Image.asset('assets/images/app_logo.png', width: 200),
-            
-                const Text(
-                  '¿ Aun no tienes una cuenta ? ',
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 48),
+              Center(
+                child: Image.asset('assets/images/app_logo.png', width: 150),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Crear cuenta',
+                style: TextStyle(
+                  color: Color(0xFFc9d1d9),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
                 ),
-            
-                const SizedBox(height: 10),
-                
-                const Text(
-                  'Registrarse',
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Ingresa tus datos para registrarte',
+                style: TextStyle(
+                  color: Color(0xFF8b949e),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 24),
+              AuthInputField(
+                controller: _emailController,
+                label: 'Correo electrónico',
+                hint: 'tu@correo.com',
+                textInputAction: TextInputAction.next,
+                onSubmitted: () => _passwordFocusNode.requestFocus(),
+              ),
+              const SizedBox(height: 12),
+              AuthInputField(
+                controller: _passwordController,
+                label: 'Contraseña',
+                hint: 'Mínimo 6 caracteres',
+                isPassword: true,
+                focusNode: _passwordFocusNode,
+                textInputAction: TextInputAction.done,
+                onSubmitted: _onRegisterPressed,
+              ),
+              const SizedBox(height: 20),
+              AuthPrimaryButton(
+                onTap: _onRegisterPressed,
+                isLoading: _isLoading,
+                child: const Text(
+                  'Crear cuenta',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-            
-                const SizedBox(height: 10),
-            
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              const SizedBox(height: 12),
+              _OrDivider(),
+              const SizedBox(height: 12),
+              AuthSecondaryButton(
+                onTap: _onGoogleRegisterPressed,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    SvgPicture.asset(
+                      'assets/icons/google.svg',
+                      width: 18,
+                      height: 18,
+                    ),
+                    const SizedBox(width: 10),
                     const Text(
-                      'Correo',
+                      'Continuar con Google',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFFc9d1d9),
                         fontSize: 14,
-                        fontWeight: FontWeight.w500
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-            
-                    const SizedBox(height: 10),
-
-                    CustomAuthField(controller: emailController),
-
-                    const SizedBox(height: 10),
-            
-                    const Text(
-                      'Contraseña',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500
-                      ),
-                    ),
-            
-                    const SizedBox(height: 10),
-
-                    CustomAuthField(controller: passwordController, isPassword: true),
                   ],
                 ),
-            
-            const SizedBox(height: 50),
-        
-                CustomAuthButton(
-                  width: 200,
-                  height: 55,
-                  onTap: () => onRegisterPressed(context, emailController, passwordController),
-                  child: const Text(
-                    'Crear Cuenta',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),                const SizedBox(height: 20),
-            
-                CustomAuthButton(
-                  onTap: () => onGoogleRegisterPressed(context),
-                  width: 200,
-                  height: 55,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/google.svg',
-                        width: 24,
-                        height: 24,
+              ),
+              const SizedBox(height: 32),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '¿Ya tienes una cuenta?',
+                      style: TextStyle(
+                        color: Color(0xFF8b949e),
+                        fontSize: 14,
                       ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Continuar con Google',
+                    ),
+                    const SizedBox(width: 6),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Inicia sesión',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF58a6ff),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-            
-                const SizedBox(height: 30),
-            
-                const Text(
-                  '¿ Ya tienes una cuenta ? ',
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            
-                const SizedBox(height: 10),
-                
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Text(
-                    'Iniciar Sesión',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  String _getFriendlyErrorMessage(String error) {
-    final errorLower = error.toLowerCase();
-    
-    if (errorLower.contains('user already registered') || 
-        errorLower.contains('already exists') ||
-        errorLower.contains('user_already_exists') ||
-        errorLower.contains('already been registered')) {
-      return 'Este correo ya está registrado. Por favor inicia sesión';
-    }
-    
-    if (errorLower.contains('email') && errorLower.contains('invalid')) {
-      return 'El formato del email no es válido';
-    }
-    
-    if (errorLower.contains('password') && (errorLower.contains('short') || errorLower.contains('weak'))) {
-      return 'La contraseña debe tener al menos 6 caracteres';
-    }
-    
-    if (errorLower.contains('network') || errorLower.contains('connection')) {
-      return 'Error de conexión. Verifica tu internet';
-    }
-    
-    if (errorLower.contains('too many requests')) {
-      return 'Demasiados intentos. Intenta más tarde';
-    }
-    
-    if (errorLower.contains('database error')) {
-      return 'Error de configuración. Contacta al administrador';
-    }
-    
-    return 'Error al crear la cuenta. Intenta nuevamente';
-  }
-
-  void onRegisterPressed(BuildContext context, TextEditingController emailController, TextEditingController passwordController) async {
-    final String email = emailController.text.trim();
-    final String password = passwordController.text.trim();
-
-    // Validar campos
-    if (email.isEmpty || password.isEmpty) {
-      if (!context.mounted) return;
-      CustomToast.showToast(
-        context: context,
-        message: 'Por favor completa todos los campos',
-      );
-      return;
-    }
-
-    print('🎬 [SCREEN] RegisterScreen - Iniciando registro');
-    print('   Email: $email');
-    
-    try {
-      print('📞 [SCREEN] Llamando a signUpUseCase...');
-      final user = await signUpUseCase(email: email, password: password);
-      print('✅ [SCREEN] signUpUseCase completado exitosamente');
-      print('   Usuario ID: ${user.id}');
-
-      if (context.mounted) {
-        print('🎉 [SCREEN] Mostrando toast de éxito');
-        CustomToast.showToast(
-          context: context,
-          message: '¡Registro exitoso!',
-        );
-        
-        print('👉 [SCREEN] Cerrando RegisterScreen para que AuthScreen detecte la sesión');
-        // Cerrar la pantalla de registro para volver al AuthScreen
-        // El StreamBuilder detectará la sesión automáticamente
-        Navigator.of(context).pop();
-      }
-    } catch (e, stackTrace) {
-      print('❌ [SCREEN] Error en registro: $e');
-      print('   Stack trace: $stackTrace');
-      
-      if (!context.mounted) return;
-      
-      final errorMessage = _getFriendlyErrorMessage(e.toString());
-      print('📢 [SCREEN] Mostrando error al usuario: $errorMessage');
-      
-      CustomToast.showToast(
-        context: context,
-        message: errorMessage,
-      );
-    }
-  }
-
-  void onGoogleRegisterPressed(BuildContext context) async {
-    try {
-      await signInWithGoogleUseCase();
-      
-      // El navegador se abrirá para completar la autenticación
-      // Cuando el usuario regrese, el StreamBuilder en AuthScreen
-      // detectará la sesión automáticamente
-      if (context.mounted) {
-        CustomToast.showToast(
-          context: context,
-          message: 'Redirigiendo a Google...',
-        );
-        // No cerramos la pantalla aún, se cerrará cuando AuthScreen detecte la sesión
-      }
-    } catch (e) {
-      if (!context.mounted) return;
-
-      String errorMessage = 'Error al registrar con Google';
-      
-      if (e.toString().contains('OAuth no está configurado') ||
-          e.toString().contains('validation_failed') ||
-          e.toString().contains('missing OAuth secret')) {
-        errorMessage = 'Google no está configurado. Contacta al administrador';
-      }
-
-      CustomToast.showToast(
-        context: context,
-        message: errorMessage,
-      );
-    }
+class _OrDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(child: Divider(color: Color(0xFF30363d), thickness: 1)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'o',
+            style: TextStyle(color: Color(0xFF8b949e), fontSize: 12),
+          ),
+        ),
+        Expanded(child: Divider(color: Color(0xFF30363d), thickness: 1)),
+      ],
+    );
   }
 }

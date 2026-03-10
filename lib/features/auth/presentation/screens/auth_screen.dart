@@ -31,8 +31,24 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  String? _lastLoadedUserId; // Rastrear el último usuario cargado
-  bool _isLoadingHabits = false; // Prevenir llamadas concurrentes
+  /// Evita recargar hábitos si el usuario no cambió entre redraws del stream.
+  String? _lastLoadedUserId;
+
+  /// Previene llamadas concurrentes a loadHabits.
+  bool _isLoadingHabits = false;
+
+  void _loadHabitsForUser(String userId) {
+    if (_lastLoadedUserId == userId || _isLoadingHabits) return;
+
+    _isLoadingHabits = true;
+    _lastLoadedUserId = userId;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
+      await habitsProvider.loadHabits();
+      _isLoadingHabits = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,61 +58,38 @@ class _AuthScreenState extends State<AuthScreen> {
       stream: widget.authService.onAuthStateChange,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Scaffold(
+            backgroundColor: Color(0xFF0d1117),
+            body: SizedBox.shrink(),
+          );
         }
 
-        final Session? session = snapshot.hasData
-            ? snapshot.data!.session
-            : null;
+        final Session? session =
+            snapshot.hasData ? snapshot.data!.session : null;
 
         if (session != null) {
-          final currentUserId = session.user.id;
-          
-          // Solo cargar hábitos si es un usuario diferente al último cargado Y no hay carga en progreso
-          if (_lastLoadedUserId != currentUserId && !_isLoadingHabits) {
-            print('🔐 [AUTH_SCREEN] Nuevo usuario detectado: $currentUserId');
-            print('🔐 [AUTH_SCREEN] Último usuario cargado: $_lastLoadedUserId');
-            
-            // Marcar inmediatamente como cargando para prevenir llamadas concurrentes
-            _isLoadingHabits = true;
-            _lastLoadedUserId = currentUserId;
-            
-            WidgetsBinding.instance.addPostFrameCallback((_) async {
-              final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
-              
-              print('🔐 [AUTH_SCREEN] Llamando a loadHabits()...');
-              // Cargar hábitos desde SQLite (la sincronización automática se encargará del resto)
-              await habitsProvider.loadHabits();
-              _isLoadingHabits = false;
-              print('🔐 [AUTH_SCREEN] loadHabits() completado');
-            });
-          } else if (_lastLoadedUserId == currentUserId) {
-            print('🔐 [AUTH_SCREEN] Mismo usuario, no se recargan hábitos');
-          } else if (_isLoadingHabits) {
-            print('🔐 [AUTH_SCREEN] Carga ya en progreso, ignorando...');
-          }
-          
+          _loadHabitsForUser(session.user.id);
+
           return Scaffold(
             appBar: CustomAppBar(signOutUseCase: widget.signOutUseCase),
             body: Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: AnimatedScreenTransition(
                 child: screensProvider.currentPageWidget,
               ),
             ),
             bottomNavigationBar: const CustomBottomBar(),
           );
-        } else {
-          // Usuario no autenticado - resetear el tracking
-          _lastLoadedUserId = null;
-          _isLoadingHabits = false;
-          
-          return LoginScreen(
-            signInUseCase: widget.signInUseCase,
-            signUpUseCase: widget.signUpUseCase,
-            signInWithGoogleUseCase: widget.signInWithGoogleUseCase,
-          );
         }
+
+        _lastLoadedUserId = null;
+        _isLoadingHabits = false;
+
+        return LoginScreen(
+          signInUseCase: widget.signInUseCase,
+          signUpUseCase: widget.signUpUseCase,
+          signInWithGoogleUseCase: widget.signInWithGoogleUseCase,
+        );
       },
     );
   }
