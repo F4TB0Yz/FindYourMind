@@ -304,41 +304,42 @@ class HabitRepositoryImpl implements HabitRepository {
     required HabitProgress habitProgress,
   }) async {
     try {
-      // ✅ Usar el UUID que viene del provider (ya generado)
-      // Si por alguna razón no tiene ID, generar uno aquí como fallback
       final String progressId = habitProgress.id.isNotEmpty 
           ? habitProgress.id 
           : const Uuid().v4();
       final HabitProgress progressWithId = habitProgress.copyWith(id: progressId);
 
-      // 1. Guardar en SQLite primero (offline-first)
-      await _localDataSource.createHabitProgress(progressWithId);
+      // 1. Guardar en SQLite primero (offline-first) y obtener el ID real
+      final String? savedId = await _localDataSource.createHabitProgress(progressWithId);
+      final String finalProgressId = savedId ?? progressId;
+      
+      final HabitProgress finalProgress = progressWithId.copyWith(id: finalProgressId);
 
       if (kDebugMode) {
-        print('✅ Progreso creado localmente - ID: $progressId');
+        print('✅ Progreso creado/recuperado localmente - ID: $finalProgressId');
       }
 
       // 2. 🚀 Sincronizar con Supabase en SEGUNDO PLANO (no bloqueante)
       if (await _networkInfo.isConnected) {
         // Usar unawaited para no bloquear la UI
         unawaited(
-          _remoteDataSource.createHabitProgress(progressWithId).then((_) {
+          _remoteDataSource.createHabitProgress(finalProgress).then((_) {
             if (kDebugMode) {
-              print('✅ [REMOTE] Progreso sincronizado con Supabase - ID: $progressId');
+              print('✅ [REMOTE] Progreso sincronizado con Supabase - ID: $finalProgressId');
             }
           }).catchError((e) async {
             print('⚠️ Error sincronizando progreso: $e');
             // Si falla, marcar como pendiente de sincronización
             await _syncService.markPendingSync(
               entityType: 'progress',
-              entityId: progressId,
+              entityId: finalProgressId,
               action: 'create',
               data: {
-                'id': progressId,
-                'habit_id': habitProgress.habitId,
-                'date': habitProgress.date,
-                'daily_goal': habitProgress.dailyGoal,
-                'daily_counter': habitProgress.dailyCounter,
+                'id': finalProgressId,
+                'habit_id': finalProgress.habitId,
+                'date': finalProgress.date,
+                'daily_goal': finalProgress.dailyGoal,
+                'daily_counter': finalProgress.dailyCounter,
               },
             );
           }),
@@ -347,20 +348,20 @@ class HabitRepositoryImpl implements HabitRepository {
         // Sin internet, marcar para sincronizar después
         await _syncService.markPendingSync(
           entityType: 'progress',
-          entityId: progressId,
+          entityId: finalProgressId,
           action: 'create',
           data: {
-            'id': progressId,
-            'habit_id': habitProgress.habitId,
-            'date': habitProgress.date,
-            'daily_goal': habitProgress.dailyGoal,
-            'daily_counter': habitProgress.dailyCounter,
+            'id': finalProgressId,
+            'habit_id': finalProgress.habitId,
+            'date': finalProgress.date,
+            'daily_goal': finalProgress.dailyGoal,
+            'daily_counter': finalProgress.dailyCounter,
           },
         );
       }
 
       // 3. Retornar ID único INMEDIATAMENTE (sin esperar a Supabase)
-      return Right(progressId);
+      return Right(finalProgressId);
     } catch (e) {
       return Left(
         ServerFailure(message: 'Error al crear progreso: ${e.toString()}'),

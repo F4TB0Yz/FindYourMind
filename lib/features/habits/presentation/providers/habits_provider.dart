@@ -35,8 +35,8 @@ class HabitsProvider extends ChangeNotifier {
   int _currentPage = 0;
   final List<HabitEntity> _habits = [];
   
-  // Map para rastrear operaciones en progreso por hábito (prevenir race conditions)
-  final Map<String, Future<bool>> _ongoingProgressOperations = {};
+  // Mapa para evitar condiciones de carrera en SQLite al golpear repetidamente +/-
+  final Map<String, Future<void>> _ongoingDbOperations = {};
   
   // Referencia al SyncProvider para notificar cambios pendientes
   SyncProvider? _syncProvider;
@@ -315,24 +315,25 @@ class HabitsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Encola una operación de base de datos para que se ejecuten secuencialmente
+  /// Esto previene Race Conditions (ej: un UPDATE de -1 llegando antes que el INSERT de +1)
+  void _queueDbOperation(String habitId, Future<void> Function() operation) {
+    final previousOperation = _ongoingDbOperations[habitId] ?? Future.value();
+    
+    final newOperation = previousOperation.then((_) => operation());
+    _ongoingDbOperations[habitId] = newOperation;
+    
+    newOperation.whenComplete(() {
+      if (_ongoingDbOperations[habitId] == newOperation) {
+        _ongoingDbOperations.remove(habitId);
+      }
+    });
+  }
+
   /// Incrementa el contador de progreso del día actual con actualización optimista
   /// Permite múltiples clics rápidos para registrar varias completaciones
   Future<bool> incrementHabitProgress(String habitId) async {
-    // 🔒 Si ya hay una operación en progreso, esperar a que termine
-    if (_ongoingProgressOperations.containsKey(habitId)) {
-      if (kDebugMode) print('⏳ Esperando operación previa para: $habitId');
-      await _ongoingProgressOperations[habitId];
-    }
-
-    // Crear la nueva operación
-    final operation = _executeIncrementProgress(habitId);
-    _ongoingProgressOperations[habitId] = operation;
-
-    try {
-      return await operation;
-    } finally {
-      _ongoingProgressOperations.remove(habitId);
-    }
+    return _executeIncrementProgress(habitId);
   }
 
   /// Método interno que ejecuta el incremento
@@ -356,6 +357,7 @@ class HabitsProvider extends ChangeNotifier {
 
       HabitProgress optimisticProgress;
       bool isNewProgress = false;
+      HabitProgress? existingTodayProgress;
 
       if (todayIndex == -1) {
         // Crear nuevo progreso optimista para la UI
@@ -374,70 +376,77 @@ class HabitsProvider extends ChangeNotifier {
         }
       } else {
         // Validar si ya se alcanzó la meta
-        final todayProgress = habit.progress[todayIndex];
-        if (todayProgress.dailyCounter >= habit.dailyGoal) {
+        existingTodayProgress = habit.progress[todayIndex];
+        if (existingTodayProgress.dailyCounter >= habit.dailyGoal) {
           if (kDebugMode) print('⚠️ Meta diaria ya alcanzada');
           return false;
         }
         
         // Incrementar contador optimistamente
-        optimisticProgress = todayProgress.copyWith(
-          dailyCounter: todayProgress.dailyCounter + 1,
+        optimisticProgress = existingTodayProgress.copyWith(
+          dailyCounter: existingTodayProgress.dailyCounter + 1,
         );
         
         if (kDebugMode) {
-          print('➕ Incrementando progreso existente: ${todayProgress.id} (${todayProgress.dailyCounter} → ${optimisticProgress.dailyCounter})');
+          print('➕ Incrementando progreso existente: ${existingTodayProgress.id} (${existingTodayProgress.dailyCounter} → ${optimisticProgress.dailyCounter})');
         }
       }
 
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
       updateHabitProgressOptimistic(optimisticProgress);
 
-      // 💾 Ejecutar caso de uso en segundo plano (NO bloqueante)
-      // IMPORTANTE: Crear un hábito actualizado con el progreso optimista para el use case
-      final habitWithOptimisticProgress = isNewProgress
-          ? habit.copyWith(progress: [...habit.progress, optimisticProgress])
-          : habit.copyWith(
-              progress: habit.progress.map((p) {
-                if (p.date == todayString) {
-                  return optimisticProgress;
-                }
-                return p;
-              }).toList(),
-            );
-      
-      _incrementHabitProgressUseCase.execute(habit: habitWithOptimisticProgress).then((result) {
+      // 💾 Ejecutar caso de uso en segundo plano (SECUENCIALMENTE ENCOLADO)
+      _queueDbOperation(habitId, () async {
+        // IMPORTANTE: NO podemos usar simplemente el currentHabit de la lista 
+        // porque ya tiene el cambio optimista aplicado, lo que confunde las validaciones
+        // del UseCase. Debemos usar el 'habit' capturado (que tiene el contador anterior),
+        // PERO parchearle el UUID real más reciente en caso de que alguna operación
+        // asíncrona lo haya cambiado por un UUID proveniente de base de datos.
+        final currentHabitIndex = _habits.indexWhere((h) => h.id == habitId);
+        if (currentHabitIndex == -1) return;
+        
+        final latestHabit = _habits[currentHabitIndex];
+        final trueProgressIndex = latestHabit.progress.indexWhere((p) => p.date == todayString);
+        String trueId = optimisticProgress.id;
+        if (trueProgressIndex != -1) {
+          trueId = latestHabit.progress[trueProgressIndex].id;
+        }
+
+        HabitEntity fixedHabit = habit;
+        final fixedProgressIndex = fixedHabit.progress.indexWhere((p) => p.date == todayString);
+        if (fixedProgressIndex != -1) {
+          final fixedProgressList = [...fixedHabit.progress];
+          fixedProgressList[fixedProgressIndex] = fixedProgressList[fixedProgressIndex].copyWith(id: trueId);
+          fixedHabit = fixedHabit.copyWith(progress: fixedProgressList);
+        }
+
+        final result = await _incrementHabitProgressUseCase.execute(habit: fixedHabit);
+        
         result.fold(
           (failure) {
             if (kDebugMode) print('❌ Error al incrementar: ${failure.message}');
             
             // ⚠️ NO revertir si el error es "Ya se alcanzó la meta" (ValidationFailure)
-            // porque significa que el objetivo YA se logró correctamente
             final isValidationError = failure.message.contains('Ya se alcanzó la meta');
             
             if (!isValidationError) {
-              // Revertir cambio optimista solo si es un error real (no validación)
+              // Revertir cambio optimista
               if (isNewProgress) {
-                // Era un nuevo progreso, eliminarlo
                 final idx = _habits.indexWhere((h) => h.id == habitId);
                 if (idx != -1) {
                   _habits[idx].progress.removeWhere((p) => p.id == optimisticProgress.id);
                   notifyListeners();
                 }
               } else {
-                // Era una actualización, revertir el contador
-                final revertedProgress = optimisticProgress.copyWith(
-                  dailyCounter: optimisticProgress.dailyCounter - 1,
-                );
-                updateHabitProgressOptimistic(revertedProgress);
+                if (existingTodayProgress != null) {
+                  updateHabitProgressOptimistic(existingTodayProgress);
+                }
               }
-            } else {
-              if (kDebugMode) print('ℹ️ No se revierte: la meta ya está alcanzada correctamente');
             }
           },
           (updatedProgress) {
-            if (kDebugMode) print('✅ Progreso guardado: ${updatedProgress.dailyCounter}');
-            // Notificar cambios pendientes al SyncProvider
+            if (kDebugMode) print('✅ Progreso guardado y sincronizado: ${updatedProgress.dailyCounter}');
+            updateHabitProgressOptimistic(updatedProgress);
             _notifyPendingChanges();
           },
         );
@@ -445,29 +454,14 @@ class HabitsProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado en incrementHabitProgress: $e');
+      if (kDebugMode) print('❌ Error inesperado: $e');
       return false;
     }
   }
 
-  /// Decrementa el contador de progreso del día actual con actualización optimista
-  /// Permite múltiples clics rápidos para deshacer completaciones
+  /// Decrementa el contador de un hábito específico con actualización optimista
   Future<bool> decrementHabitProgress(String habitId) async {
-    // 🔒 Si ya hay una operación en progreso, esperar a que termine
-    if (_ongoingProgressOperations.containsKey(habitId)) {
-      if (kDebugMode) print('⏳ Esperando operación previa para: $habitId');
-      await _ongoingProgressOperations[habitId];
-    }
-
-    // Crear la nueva operación
-    final operation = _executeDecrementProgress(habitId);
-    _ongoingProgressOperations[habitId] = operation;
-
-    try {
-      return await operation;
-    } finally {
-      _ongoingProgressOperations.remove(habitId);
-    }
+    return _executeDecrementProgress(habitId);
   }
 
   /// Método interno que ejecuta el decremento
@@ -509,8 +503,30 @@ class HabitsProvider extends ChangeNotifier {
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
       updateHabitProgressOptimistic(optimisticProgress);
 
-      // 💾 Ejecutar caso de uso en segundo plano (NO bloqueante)
-      _decrementHabitProgressUseCase.execute(habit: habit).then((result) {
+      // 💾 Ejecutar caso de uso en segundo plano (SECUENCIALMENTE ENCOLADO)
+      _queueDbOperation(habitId, () async {
+        // IMPORTANTE: Al igual que en increment, usamos el hábito capturado
+        // pero inyectamos el UUID más reciente conocido para no causar "Progreso no encontrado"
+        final currentHabitIndex = _habits.indexWhere((h) => h.id == habitId);
+        if (currentHabitIndex == -1) return;
+        
+        final latestHabit = _habits[currentHabitIndex];
+        final trueProgressIndex = latestHabit.progress.indexWhere((p) => p.date == todayString);
+        String trueId = optimisticProgress.id;
+        if (trueProgressIndex != -1) {
+          trueId = latestHabit.progress[trueProgressIndex].id;
+        }
+
+        HabitEntity fixedHabit = habit;
+        final fixedProgressIndex = fixedHabit.progress.indexWhere((p) => p.date == todayString);
+        if (fixedProgressIndex != -1) {
+          final fixedProgressList = [...fixedHabit.progress];
+          fixedProgressList[fixedProgressIndex] = fixedProgressList[fixedProgressIndex].copyWith(id: trueId);
+          fixedHabit = fixedHabit.copyWith(progress: fixedProgressList);
+        }
+
+        final result = await _decrementHabitProgressUseCase.execute(habit: fixedHabit);
+        
         result.fold(
           (failure) {
             if (kDebugMode) print('❌ Error al decrementar: ${failure.message}');
@@ -519,7 +535,7 @@ class HabitsProvider extends ChangeNotifier {
           },
           (updatedProgress) {
             if (kDebugMode) print('✅ Progreso decrementado: ${updatedProgress.dailyCounter}');
-            // Notificar cambios pendientes al SyncProvider
+            updateHabitProgressOptimistic(updatedProgress);
             _notifyPendingChanges();
           },
         );
@@ -527,7 +543,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado en decrementHabitProgress: $e');
+      if (kDebugMode) print('❌ Error inesperado: $e');
       return false;
     }
   }

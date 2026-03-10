@@ -65,7 +65,7 @@ class IncrementHabitProgressUseCase {
 
       return result.fold(
         (failure) => Left(failure),
-        (_) => Right(newProgress),
+        (savedId) => Right(newProgress.copyWith(id: savedId ?? progressId)),
       );
     }
 

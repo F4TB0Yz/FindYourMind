@@ -48,9 +48,9 @@ class GestureCardHabitItem extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
           color: isFlashingGreen
-              ? AppColors.successMuted.withValues(alpha: 0.1)
+              ? AppColors.successMuted.withValues(alpha: 0.25)
               : isFlashingRed
-                  ? AppColors.dangerMuted.withValues(alpha: 0.1)
+                  ? AppColors.dangerMuted.withValues(alpha: 0.25)
                   : AppColors.darkBackground,
           border: Border.all(
             color: isFlashingGreen
