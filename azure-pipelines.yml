@@ -8,6 +8,14 @@ pool:
 
 # 3. Pasos: Las tareas que Azure hará en orden
 steps:
+- task: DownloadSecureFile@1
+  name: dotEnvFile
+  inputs:
+    secureFile: '.env'
+- script: |
+    cp $(dotEnvFile.secureFilePath) $(System.DefaultWorkingDirectory)/.env
+  displayName: 'Restaurar archivo .env'
+
 # Paso A: Preparar el entorno para Fluttersteps:
 # 1. Descargar Flutter manualmente (Sin plugins externos)
 - script: |
