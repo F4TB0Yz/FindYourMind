@@ -4,8 +4,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 
 /// Pruebas para [ItemHabitModel]
-/// 
-/// Verifica que la serialización (deserialización en este caso) y la 
+///
+/// Verifica que la serialización (deserialización en este caso) y la
 /// conversión a entidades de dominio funcionen correctamente.
 void main() {
   group('ItemHabitModel', () {
@@ -14,33 +14,33 @@ void main() {
     final tJson = {
       'id': '1',
       'user_id': 'user123',
-      'title': 'Drink Water',
-      'description': 'Stay hydrated',
+      'title': 'Tomar Agua',
+      'description': 'Mantenerse hidratado',
       'initial_date': '2025-01-01T00:00:00.000',
       'type': 'health',
       'icon': 'water_drop',
       'daily_goal': 8,
-      'progress': []
+      'progress': [],
     };
 
     // Modelo que esperamos obtener del JSON
     final tModel = ItemHabitModel(
       id: '1',
       userId: 'user123',
-      title: 'Drink Water',
-      description: 'Stay hydrated',
+      title: 'Tomar Agua',
+      description: 'Mantenerse hidratado',
       createdAt: DateTime.parse('2025-01-01T00:00:00.000'),
       typeHabit: 'health',
       iconString: 'water_drop',
       dailyGoal: 8,
-      progress: []
+      progress: [],
     );
 
     test('should return a valid model from JSON', () {
       // --- ACT (Ejecución) ---
       // Convertir el JSON a modelo
       final result = ItemHabitModel.fromJson(tJson);
-      
+
       // --- ASSERT (Verificación) ---
       // Verificar que cada campo coincida con lo esperado
       expect(result.id, tModel.id);
@@ -58,7 +58,7 @@ void main() {
       // --- ACT (Ejecución) ---
       // Convertir el modelo a la entidad de dominio
       final result = tModel.toEntity();
-      
+
       // --- ASSERT (Verificación) ---
       // Verificar que el resultado sea de tipo HabitEntity
       expect(result, isA<HabitEntity>());
