@@ -1,4 +1,6 @@
-class HabitProgress {
+import 'package:equatable/equatable.dart';
+
+class HabitProgress extends Equatable {
   final String id;
   final String habitId;
   final String date;
@@ -28,4 +30,7 @@ class HabitProgress {
       dailyCounter: dailyCounter ?? this.dailyCounter
     );
   }
+
+  @override
+  List<Object?> get props => [id, habitId, date, dailyGoal, dailyCounter];
 }

@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 
-class HabitEntity {
+class HabitEntity extends Equatable {
   final String id;
   final String userId;
   final String title;
@@ -60,18 +61,15 @@ class HabitEntity {
     final start = DateTime.parse(initialDate);
     final difference = now.difference(start);
 
-    // Si han pasado menos de un minuto (60 segundos)
     if (difference.inSeconds < 60) {
       return '${difference.inSeconds} s';
     }
     
-    // Si han pasado menos de una hora (60 minutos)
     if (difference.inMinutes < 60) {
       final seconds = difference.inSeconds % 60;
       return '${difference.inMinutes} m $seconds s';
     }
     
-    // Si han pasado menos de un día (24 horas)
     if (difference.inHours < 24) {
       final minutes = difference.inMinutes % 60;
       return '${difference.inHours} h $minutes m';
@@ -81,7 +79,6 @@ class HabitEntity {
       return '1 día';
     }
     
-    // Si han pasado menos de una semana (7 días)
     if (difference.inDays < 7) {
       return '${difference.inDays} días';
     }
@@ -90,13 +87,11 @@ class HabitEntity {
       return '1 semana';
     }
     
-    // Si han pasado menos de un mes (aproximadamente 30 días)
     if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
       return '$weeks semanas';
     }
     
-    // Calcular meses
     int months = (now.year - start.year) * 12 + now.month - start.month;
     if (now.day < start.day) {
       months--;
@@ -106,12 +101,10 @@ class HabitEntity {
       return '1 mes';
     }
 
-    
     if (months < 12) {
       return '$months meses';
     }
     
-    // Han pasado años
     final years = (months / 12).floor();
     final remainingMonths = months % 12;
     if (remainingMonths == 0) {
@@ -124,4 +117,17 @@ class HabitEntity {
       return '$years años $remainingMonths m';
     }
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    userId,
+    title,
+    description,
+    icon,
+    type,
+    dailyGoal,
+    initialDate,
+    progress
+  ];
 }

@@ -62,7 +62,7 @@ Future<void> _loadEnv() async {
   await dotenv.load(fileName: ".env");
 
   SupabaseConfig.validateConfig();
-  
+
   // Inicializar Supabase con configuración específica para OAuth
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl!,
@@ -72,7 +72,7 @@ Future<void> _loadEnv() async {
       autoRefreshToken: true,
     ),
   );
-  
+
   // Configurar el listener de deep links para OAuth
   Supabase.instance.client.auth.onAuthStateChange.listen((data) {
     final session = data.session;
@@ -80,7 +80,7 @@ Future<void> _loadEnv() async {
       print('🔐 [MAIN] Sesión detectada: ${session.user.email}');
     }
   });
-  
+
   print('✅ [MAIN] Supabase inicializado con soporte para OAuth/PKCE (Windows)');
 }
 
