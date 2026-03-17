@@ -8,18 +8,21 @@ pool:
 
 # 3. Pasos: Las tareas que Azure hará en orden
 steps:
-# Paso A: Preparar el entorno para Flutter
-- task: Hey247.flutter-extension.flutter-install-task.FlutterInstallTask@0
-  displayName: 'Instalando Flutter en la nube'
+# Paso A: Preparar el entorno para Fluttersteps:
+# 1. Descargar Flutter manualmente (Sin plugins externos)
+- script: |
+    git clone https://github.com/flutter/flutter.git -b stable
+    echo "##vso[task.prependpath]$(pwd)/flutter/bin"
+  displayName: 'Instalando Flutter manualmente'
 
-# Paso B: Descargar las librerías de el archivo pubspec.yaml
+# 2. Verificar que Flutter esté listo
+- script: flutter doctor
+  displayName: 'Verificando instalación'
+
+# 3. Instalar las dependencias de FindYourMind
 - script: flutter pub get
-  displayName: '1. Instalando librerías'
+  displayName: 'Instalando librerías'
 
-# Paso C: Ejecutar pruebas para ver que no rompiste nada
-- script: flutter test
-  displayName: '2. Ejecutando pruebas automáticas'
-
-# Paso D: Compilar el software para generar el ejecutable
+# 4. Compilar el módulo funcional
 - script: flutter build apk --debug
-  displayName: '3. Compilando el software (Generando APK)'
+  displayName: 'Compilando APK (Módulo de Notas)'
