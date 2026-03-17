@@ -2,9 +2,9 @@
 trigger:
 - main
 
-# 2. Entorno: Usamos una máquina virtual con Linux actualizada
+# 2. Entorno: Default para que busque el agente local
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Default'
 
 # 3. Pasos: Las tareas que Azure hará en orden
 steps:
