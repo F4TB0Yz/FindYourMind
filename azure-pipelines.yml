@@ -1,0 +1,25 @@
+# 1. Disparador: Se activa solo cuando se sube algo a la rama main
+trigger:
+- main
+
+# 2. Entorno: Usamos una máquina virtual con Linux actualizada
+pool:
+  vmImage: 'ubuntu-latest'
+
+# 3. Pasos: Las tareas que Azure hará en orden
+steps:
+# Paso A: Preparar el entorno para Flutter
+- task: Hey247.flutter-extension.flutter-install-task.FlutterInstallTask@0
+  displayName: 'Instalando Flutter en la nube'
+
+# Paso B: Descargar las librerías de el archivo pubspec.yaml
+- script: flutter pub get
+  displayName: '1. Instalando librerías'
+
+# Paso C: Ejecutar pruebas para ver que no rompiste nada
+- script: flutter test
+  displayName: '2. Ejecutando pruebas automáticas'
+
+# Paso D: Compilar el software para generar el ejecutable
+- script: flutter build apk --debug
+  displayName: '3. Compilando el software (Generando APK)'
