@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 
@@ -10,20 +12,9 @@ class SignInWithGoogleUseCase {
 
   /// Ejecuta el caso de uso de autenticación con Google
   /// Retorna:
-  ///   - UserEntity si la autenticación fue exitosa
-  /// Lanza:
-  ///   - Excepciones si hay errores en la autenticación
-  Future<UserEntity> call() async {
-    print('🚀 [USECASE] SignInWithGoogle - Iniciando autenticación con Google');
-    
-    try {
-      final user = await authRepository.signInWithGoogle();
-      print('✅ [USECASE] SignInWithGoogle - Autenticación exitosa');
-      print('   Usuario: ${user.email}');
-      return user;
-    } catch (e) {
-      print('❌ [USECASE] SignInWithGoogle - Error: $e');
-      rethrow;
-    }
+  ///   - Either<Failure, UserEntity>
+  Future<Either<Failure, UserEntity>> call() async {
+    // Delegar al repositorio
+    return await authRepository.signInWithGoogle();
   }
 }

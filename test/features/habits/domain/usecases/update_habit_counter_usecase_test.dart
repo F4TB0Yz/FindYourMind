@@ -7,13 +7,13 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
 
 // Mock del repositorio para simular llamadas a la base de datos sin ejecutar lógica real
 class MockHabitRepository extends Mock implements HabitRepository {}
 
 void main() {
-  late IncrementHabitProgressUseCase usecase;
+  late UpdateHabitCounterUseCase usecase;
   late MockHabitRepository mockRepository;
 
   setUpAll(() {
@@ -26,7 +26,7 @@ void main() {
   setUp(() {
     // Inicializar el caso de uso y su dependencia mockeada antes de cada prueba
     mockRepository = MockHabitRepository();
-    usecase = IncrementHabitProgressUseCase(mockRepository);
+    usecase = UpdateHabitCounterUseCase(mockRepository);
   });
 
   final String todayStr = DateInfoUtils.todayString();
@@ -86,14 +86,21 @@ void main() {
     // Verificar que se llamó a createHabitProgress en el repositorio
     verify(() => mockRepository.createHabitProgress(habitProgress: any(named: 'habitProgress'))).called(1);
     // Verificar que NUNCA se intentó actualizar un progreso existente
-    verifyNever(() => mockRepository.updateHabitProgress(any(), any(), any()));
+    verifyNever(() => mockRepository.updateHabitCounter(
+      habitId: any(named: 'habitId'),
+      progressId: any(named: 'progressId'),
+      newCounter: any(named: 'newCounter'),
+    ));
   });
 
   test('should increment counter when progress exists for today', () async {
     // --- ARRANGE (Preparación) ---
     // Simular que el repositorio responde con éxito al ACTUALIZAR un progreso existente
-    when(() => mockRepository.updateHabitProgress(any(), any(), any()))
-        .thenAnswer((_) async => const Right(null));
+    when(() => mockRepository.updateHabitCounter(
+      habitId: any(named: 'habitId'),
+      progressId: any(named: 'progressId'),
+      newCounter: any(named: 'newCounter'),
+    )).thenAnswer((_) async => const Right(null));
 
     // --- ACT (Ejecución) ---
     final result = await usecase.execute(habit: tHabitWithProgress);
@@ -106,8 +113,12 @@ void main() {
         expect(progress.dailyCounter, 3); // 2 + 1 = 3
       }
     );
-    // Verificar que se llamó a updateHabitProgress en el repositorio con los parámetros correctos
-    verify(() => mockRepository.updateHabitProgress('1', 'p1', 3)).called(1);
+    // Verificar que se llamó a updateHabitCounter en el repositorio con los parámetros correctos
+    verify(() => mockRepository.updateHabitCounter(
+      habitId: '1',
+      progressId: 'p1',
+      newCounter: 3,
+    )).called(1);
     // Verificar que NUNCA se intentó crear uno nuevo
     verifyNever(() => mockRepository.createHabitProgress(habitProgress: any(named: 'habitProgress')));
   });
@@ -137,6 +148,39 @@ void main() {
       (_) => fail('Debería ser Left')
     );
     // Verificar que NUNCA se procedió a actualizar en el repositorio
-    verifyNever(() => mockRepository.updateHabitProgress(any(), any(), any()));
+    verifyNever(() => mockRepository.updateHabitCounter(
+      habitId: any(named: 'habitId'),
+      progressId: any(named: 'progressId'),
+      newCounter: any(named: 'newCounter'),
+    ));
+  });
+
+  test('should return CacheFailure when database fails to update progress', () async {
+    // --- ARRANGE (Preparación) ---
+    // Simular que el repositorio devuelve un CacheFailure (Error de BD local)
+    when(() => mockRepository.updateHabitCounter(
+      habitId: any(named: 'habitId'),
+      progressId: any(named: 'progressId'),
+      newCounter: any(named: 'newCounter'),
+    )).thenAnswer((_) async => Left(CacheFailure(message: 'Error de base de datos')));
+
+    // --- ACT (Ejecución) ---
+    final result = await usecase.execute(habit: tHabitWithProgress);
+
+    // --- ASSERT (Verificación) ---
+    expect(result.isLeft(), true);
+    result.fold(
+      (failure) {
+        expect(failure, isA<CacheFailure>());
+        expect(failure.message, 'Error de base de datos');
+      },
+      (_) => fail('Debería ser Left'),
+    );
+    // Verificar que se llamó al repositorio pero el use case retornó el fallo adecuadamente
+    verify(() => mockRepository.updateHabitCounter(
+      habitId: '1',
+      progressId: 'p1',
+      newCounter: 3,
+    )).called(1);
   });
 }

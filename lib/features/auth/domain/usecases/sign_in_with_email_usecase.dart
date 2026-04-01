@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 
@@ -13,23 +15,21 @@ class SignInWithEmailUseCase {
   ///   - email: Email del usuario
   ///   - password: Contraseña del usuario
   /// Retorna:
-  ///   - UserEntity si el login fue exitoso
-  /// Lanza:
-  ///   - Excepciones si hay errores en la autenticación
-  Future<UserEntity> call({required String email, required String password}) async {
+  ///   - Either<Failure, UserEntity>
+  Future<Either<Failure, UserEntity>> call({required String email, required String password}) async {
     // Validar email no vacío
     if (email.isEmpty) {
-      throw ArgumentError('El email no puede estar vacío');
+      return Left(ValidationFailure('El email no puede estar vacío'));
     }
 
     // Validar contraseña no vacía
     if (password.isEmpty) {
-      throw ArgumentError('La contraseña no puede estar vacía');
+      return Left(ValidationFailure('La contraseña no puede estar vacía'));
     }
 
     // Validar formato básico del email
     if (!_isValidEmail(email)) {
-      throw ArgumentError('El formato del email no es válido');
+      return Left(ValidationFailure('El formato del email no es válido'));
     }
 
     // Delegar al repositorio

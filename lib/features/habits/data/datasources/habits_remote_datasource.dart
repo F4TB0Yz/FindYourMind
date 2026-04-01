@@ -28,7 +28,7 @@ abstract class HabitsRemoteDataSource {
   // Habit Progress
   Future<String?> createHabitProgress(HabitProgress habitProgress);
 
-  Future<void> incrementHabitProgress({
+  Future<void> updateHabitCounter({
     required String habitId,
     required String progressId,
     required int newCounter,
@@ -258,7 +258,7 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
   }
   
   @override
-  Future<void> incrementHabitProgress({
+  Future<void> updateHabitCounter({
     required String habitId, 
     required String progressId, 
     required int newCounter

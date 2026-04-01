@@ -5,32 +5,34 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/get_current_user_usecase.dart';
-import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
+import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:find_your_mind/core/utils/date_utils.dart';
 import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 
 // Mocks de los casos de uso y repositorio para simular dependencias
 class MockCreateHabitUseCase extends Mock implements CreateHabitUseCase {}
 class MockUpdateHabitUseCase extends Mock implements UpdateHabitUseCase {}
 class MockDeleteHabitUseCase extends Mock implements DeleteHabitUseCase {}
-class MockIncrementHabitProgressUseCase extends Mock implements IncrementHabitProgressUseCase {}
+class MockUpdateHabitCounterUseCase extends Mock implements UpdateHabitCounterUseCase {}
 class MockDecrementHabitProgressUseCase extends Mock implements DecrementHabitProgressUseCase {}
 class MockGetCurrentUserUseCase extends Mock implements GetCurrentUserUseCase {}
-class MockHabitRepositoryImpl extends Mock implements HabitRepositoryImpl {}
+class MockHabitRepository extends Mock implements HabitRepository {}
 
 void main() {
   late HabitsProvider provider;
   late MockCreateHabitUseCase mockCreateHabitUseCase;
   late MockUpdateHabitUseCase mockUpdateHabitUseCase;
   late MockDeleteHabitUseCase mockDeleteHabitUseCase;
-  late MockIncrementHabitProgressUseCase mockIncrementHabitProgressUseCase;
+  late MockUpdateHabitCounterUseCase mockUpdateHabitCounterUseCase;
   late MockDecrementHabitProgressUseCase mockDecrementHabitProgressUseCase;
   late MockGetCurrentUserUseCase mockGetCurrentUserUseCase;
-  late MockHabitRepositoryImpl mockRepository;
+  late MockHabitRepository mockRepository;
 
   setUpAll(() {
     // Registrar fallback para HabitEntity para que mocktail sepa manejarlo en any()
@@ -45,16 +47,16 @@ void main() {
     mockCreateHabitUseCase = MockCreateHabitUseCase();
     mockUpdateHabitUseCase = MockUpdateHabitUseCase();
     mockDeleteHabitUseCase = MockDeleteHabitUseCase();
-    mockIncrementHabitProgressUseCase = MockIncrementHabitProgressUseCase();
+    mockUpdateHabitCounterUseCase = MockUpdateHabitCounterUseCase();
     mockDecrementHabitProgressUseCase = MockDecrementHabitProgressUseCase();
     mockGetCurrentUserUseCase = MockGetCurrentUserUseCase();
-    mockRepository = MockHabitRepositoryImpl();
+    mockRepository = MockHabitRepository();
 
     provider = HabitsProvider(
       createHabitUseCase: mockCreateHabitUseCase,
       updateHabitUseCase: mockUpdateHabitUseCase,
       deleteHabitUseCase: mockDeleteHabitUseCase,
-      incrementHabitProgressUseCase: mockIncrementHabitProgressUseCase,
+      updateHabitCounterUseCase: mockUpdateHabitCounterUseCase,
       decrementHabitProgressUseCase: mockDecrementHabitProgressUseCase,
       getCurrentUserUseCase: mockGetCurrentUserUseCase,
       repository: mockRepository,
@@ -128,9 +130,9 @@ void main() {
   group('createHabit', () {
     test('should add habit to list immediately (optimistic) and call usecase', () async {
       // --- ARRANGE (Preparación) ---
-      // Simular que el caso de uso responde exitosamente
+      // Simular que el caso de uso responde exitosamente retornando el ID del hábito recibido
       when(() => mockCreateHabitUseCase.execute(habit: any(named: 'habit')))
-          .thenAnswer((_) async => const Right('generated-uuid'));
+          .thenAnswer((invocation) async => Right((invocation.namedArguments[#habit] as HabitEntity).id));
 
       // --- ACT (Ejecución) ---
       final resultId = await provider.createHabit(tHabit);
@@ -145,6 +147,87 @@ void main() {
       
       // Verificar que se llamó al caso de uso
       verify(() => mockCreateHabitUseCase.execute(habit: any(named: 'habit'))).called(1);
+    });
+  });
+
+  group('updateHabitCounter', () {
+    test('should increment counter optimistaclly and call usecase', () async {
+      // --- ARRANGE ---
+      final habitWithProgress = tHabit.copyWith(
+        progress: [
+          HabitProgress(
+            id: 'p1',
+            habitId: '1',
+            date: DateInfoUtils.todayString(),
+            dailyGoal: 8,
+            dailyCounter: 2,
+          )
+        ]
+      );
+      
+      // Reinicializar provider con el hábito
+      when(() => mockGetCurrentUserUseCase()).thenAnswer((_) async => tUser);
+      when(() => mockRepository.getHabitsByEmailPaginated(
+        email: any(named: 'email'),
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      )).thenAnswer((_) async => [habitWithProgress]);
+      
+      await provider.loadHabits();
+
+      final updatedProgress = habitWithProgress.progress.first.copyWith(dailyCounter: 3);
+      when(() => mockUpdateHabitCounterUseCase.execute(habit: any(named: 'habit')))
+          .thenAnswer((_) async => Right(updatedProgress));
+
+      // --- ACT ---
+      final result = await provider.updateHabitCounter('1');
+
+      // --- ASSERT ---
+      expect(result, true);
+      expect(provider.getTodayCount('1'), 3); // Optimista
+      
+      await Future.delayed(Duration.zero);
+      verify(() => mockUpdateHabitCounterUseCase.execute(habit: any(named: 'habit'))).called(1);
+    });
+  });
+
+  group('decrementHabitProgress', () {
+    test('should decrement counter optimistaclly and call usecase', () async {
+      // --- ARRANGE ---
+      final habitWithProgress = tHabit.copyWith(
+        progress: [
+          HabitProgress(
+            id: 'p1',
+            habitId: '1',
+            date: DateInfoUtils.todayString(),
+            dailyGoal: 8,
+            dailyCounter: 2,
+          )
+        ]
+      );
+      
+      when(() => mockGetCurrentUserUseCase()).thenAnswer((_) async => tUser);
+      when(() => mockRepository.getHabitsByEmailPaginated(
+        email: any(named: 'email'),
+        limit: any(named: 'limit'),
+        offset: any(named: 'offset'),
+      )).thenAnswer((_) async => [habitWithProgress]);
+      
+      await provider.loadHabits();
+
+      final updatedProgress = habitWithProgress.progress.first.copyWith(dailyCounter: 1);
+      when(() => mockDecrementHabitProgressUseCase.execute(habit: any(named: 'habit')))
+          .thenAnswer((_) async => Right(updatedProgress));
+
+      // --- ACT ---
+      final result = await provider.decrementHabitProgress('1');
+
+      // --- ASSERT ---
+      expect(result, true);
+      expect(provider.getTodayCount('1'), 1); // Optimista
+      
+      await Future.delayed(Duration.zero);
+      verify(() => mockDecrementHabitProgressUseCase.execute(habit: any(named: 'habit'))).called(1);
     });
   });
 }

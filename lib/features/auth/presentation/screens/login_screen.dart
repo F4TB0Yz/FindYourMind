@@ -1,6 +1,5 @@
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/auth/presentation/screens/register_screen.dart';
-import 'package:find_your_mind/features/auth/presentation/utils/auth_error_helper.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
@@ -63,32 +62,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    try {
-      await widget.signInUseCase(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+    final result = await widget.signInUseCase(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      result.fold(
+        (failure) => _showError(failure.message),
+        (_) => CustomToast.showToast(context: context, message: '¡Bienvenido!'),
       );
-      if (mounted) {
-        CustomToast.showToast(context: context, message: '¡Bienvenido!');
-      }
-    } catch (e) {
-      _showError(getAuthErrorMessage(e.toString()));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _onGoogleLoginPressed() async {
-    try {
-      await widget.signInWithGoogleUseCase();
-      if (mounted) {
-        CustomToast.showToast(
+    final result = await widget.signInWithGoogleUseCase();
+    if (mounted) {
+      result.fold(
+        (failure) => _showError(failure.message),
+        (_) => CustomToast.showToast(
           context: context,
           message: 'Redirigiendo a Google...',
-        );
-      }
-    } catch (e) {
-      _showError(getAuthErrorMessage(e.toString()));
+        ),
+      );
     }
   }
 

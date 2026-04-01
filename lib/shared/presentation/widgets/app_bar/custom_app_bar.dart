@@ -1,4 +1,3 @@
-import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/shared/presentation/widgets/app_bar/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,9 +7,7 @@ import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart
 /// AppBar de la aplicación. Logo a la izquierda, perfil a la derecha.
 /// Separado del contenido por un borde inferior sutil.
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key, required this.signOutUseCase});
-
-  final SignOutUseCase signOutUseCase;
+  const CustomAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(70);
@@ -39,7 +36,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           Profile(
             isDarkTheme: isDarkTheme,
-            signOutUseCase: signOutUseCase,
           ),
         ],
       ),

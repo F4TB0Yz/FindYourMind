@@ -71,7 +71,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _loadHabitsForUser(session.user.id);
 
           return Scaffold(
-            appBar: CustomAppBar(signOutUseCase: widget.signOutUseCase),
+            appBar: const CustomAppBar(),
             body: AnimatedScreenTransition(
               child: screensProvider.currentPageWidget,
             ),

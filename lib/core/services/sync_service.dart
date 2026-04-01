@@ -214,7 +214,7 @@ class SyncService {
           return true;
 
         case 'update':
-          await _remoteDataSource.incrementHabitProgress(
+          await _remoteDataSource.updateHabitCounter(
             habitId: data['habit_id'],
             progressId: data['id'],
             newCounter: data['daily_counter'],

@@ -13,12 +13,12 @@ import 'package:uuid/uuid.dart';
 /// - Crear un nuevo registro de progreso si no existe para hoy
 /// - Incrementar el contador si ya existe progreso para hoy
 /// - Validar que no se exceda la meta diaria
-class IncrementHabitProgressUseCase {
+class UpdateHabitCounterUseCase {
   final HabitRepository _repository;
 
-  IncrementHabitProgressUseCase(this._repository);
+  UpdateHabitCounterUseCase(this._repository);
 
-  /// Ejecuta el incremento del progreso diario
+  /// Ejecuta la actualización del contador diario
   /// 
   /// Parámetros:
   /// - [habit]: El hábito completo con su progreso actual
@@ -69,7 +69,7 @@ class IncrementHabitProgressUseCase {
       );
     }
 
-    // Caso 2: Ya existe progreso para hoy - INCREMENTAR
+    // Caso 2: Ya existe progreso para hoy - ACTUALIZAR CONTADOR
     final todayProgress = habit.progress[todayProgressIndex];
 
     // Validación: Meta diaria alcanzada
@@ -81,14 +81,14 @@ class IncrementHabitProgressUseCase {
       );
     }
 
-    // Incrementar contador
+    // Calcular nuevo contador
     final updatedCounter = todayProgress.dailyCounter + 1;
 
     // Actualizar en el repositorio
-    final result = await _repository.updateHabitProgress(
-      habit.id,
-      todayProgress.id,
-      updatedCounter,
+    final result = await _repository.updateHabitCounter(
+      habitId: habit.id,
+      progressId: todayProgress.id,
+      newCounter: updatedCounter,
     );
 
     return result.fold(

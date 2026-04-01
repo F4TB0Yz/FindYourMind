@@ -29,7 +29,7 @@
     *   **Logging en lugar de Prints:** Queda prohibido usar print(). Todo registro debe usar una herramienta de Logging (ej. el package logger), separando por niveles (INFO, DEBUG, ERROR) para que, en producción, se guarden los errores en la base para analíticas o debugeo futuro en remoto.
 
 5. **Cultura de Desarrollo (Git y Linting)**
-    *   **Commits Convencionales:** Todo commit debe seguir la estructura estándar (feat:, fix:, chore:, refactor:, docs:). Nada de commits diciendo "arregle un bug de pantalla".
+    *   **Commits Convencionales:** Todo commit debe seguir la estructura estándar y debe ser en español (feat:, fix:, chore:, refactor:, docs:). Nada de commits diciendo "arregle un bug de pantalla".
     *   **Cero Warnings de Linter:** El código no puede subirse al repo si el comando flutter analyze o dart analyze reporta algún Warning, no solo errores. Se recomiendan activar las reglas de flutter_lints (o very_good_analysis).
 
 ==================================================

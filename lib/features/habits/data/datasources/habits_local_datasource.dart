@@ -30,7 +30,7 @@ abstract class HabitsLocalDatasource {
 
   Future<void> deleteHabitProgress(String habitId);
 
-  Future<void> incrementHabitProgress({
+  Future<void> updateHabitCounter({
     required String habitId,
     required String progressId,
     required int newCounter,
@@ -359,7 +359,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   }
 
   @override
-  Future<void> incrementHabitProgress({
+  Future<void> updateHabitCounter({
     required String habitId,
     required String progressId,
     required int newCounter,

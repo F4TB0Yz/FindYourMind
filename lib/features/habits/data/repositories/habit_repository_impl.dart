@@ -222,11 +222,11 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<Either<Failure, void>> updateHabitProgress(
-    String habitId,
-    String progressId,
-    int newCounter,
-  ) async {
+  Future<Either<Failure, void>> updateHabitCounter({
+    required String habitId,
+    required String progressId,
+    required int newCounter,
+  }) async {
     try {
       // 🔍 1. Obtener datos completos del progreso ANTES de actualizar
       final currentProgress = await _localDataSource.getHabitProgressById(
@@ -238,7 +238,7 @@ class HabitRepositoryImpl implements HabitRepository {
       }
 
       // 💾 2. Actualizar en SQLite primero
-      await _localDataSource.incrementHabitProgress(
+      await _localDataSource.updateHabitCounter(
         habitId: habitId,
         progressId: progressId,
         newCounter: newCounter,
@@ -249,7 +249,7 @@ class HabitRepositoryImpl implements HabitRepository {
         // Usar unawaited para no bloquear la UI
         unawaited(
           _remoteDataSource
-              .incrementHabitProgress(
+              .updateHabitCounter(
                 habitId: habitId,
                 progressId: progressId,
                 newCounter: newCounter,

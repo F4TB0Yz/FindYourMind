@@ -22,13 +22,13 @@ abstract class HabitRepository {
   /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló
   Future<Either<Failure, void>> updateHabit(HabitEntity habit);
 
-  /// Actualiza el progreso de un hábito
+  /// Actualiza el contador de un hábito
   /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló
-  Future<Either<Failure, void>> updateHabitProgress(
-    String habitId,
-    String progressId,
-    int newCounter,
-  );
+  Future<Either<Failure, void>> updateHabitCounter({
+    required String habitId,
+    required String progressId,
+    required int newCounter,
+  });
 
   /// Crea un nuevo registro de progreso para un hábito
   Future<Either<Failure, String?>> createHabitProgress({

@@ -66,10 +66,10 @@ class DecrementHabitProgressUseCase {
     final updatedCounter = todayProgress.dailyCounter - 1;
 
     // Actualizar en el repositorio
-    final result = await _repository.updateHabitProgress(
-      habit.id,
-      todayProgress.id,
-      updatedCounter,
+    final result = await _repository.updateHabitCounter(
+      habitId: habit.id,
+      progressId: todayProgress.id,
+      newCounter: updatedCounter,
     );
 
     return result.fold(

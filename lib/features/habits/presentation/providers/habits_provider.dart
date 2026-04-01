@@ -1,12 +1,12 @@
 import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/core/utils/date_utils.dart';
-import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
@@ -18,12 +18,12 @@ class HabitsProvider extends ChangeNotifier {
   final CreateHabitUseCase _createHabitUseCase;
   final UpdateHabitUseCase _updateHabitUseCase;
   final DeleteHabitUseCase _deleteHabitUseCase;
-  final IncrementHabitProgressUseCase _incrementHabitProgressUseCase;
+  final UpdateHabitCounterUseCase _updateHabitCounterUseCase;
   final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   
   // Repositorio (para métodos que aún no tienen caso de uso)
-  final HabitRepositoryImpl _repository;
+  final HabitRepository _repository;
   
   // Propiedades privadas
   String _titleScreen = AppStrings.habitsTitle;
@@ -49,14 +49,14 @@ class HabitsProvider extends ChangeNotifier {
     required CreateHabitUseCase createHabitUseCase,
     required UpdateHabitUseCase updateHabitUseCase,
     required DeleteHabitUseCase deleteHabitUseCase,
-    required IncrementHabitProgressUseCase incrementHabitProgressUseCase,
+    required UpdateHabitCounterUseCase updateHabitCounterUseCase,
     required DecrementHabitProgressUseCase decrementHabitProgressUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
-    required HabitRepositoryImpl repository,
+    required HabitRepository repository,
   })  : _createHabitUseCase = createHabitUseCase,
         _updateHabitUseCase = updateHabitUseCase,
         _deleteHabitUseCase = deleteHabitUseCase,
-        _incrementHabitProgressUseCase = incrementHabitProgressUseCase,
+        _updateHabitCounterUseCase = updateHabitCounterUseCase,
         _decrementHabitProgressUseCase = decrementHabitProgressUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _repository = repository;
@@ -283,7 +283,7 @@ class HabitsProvider extends ChangeNotifier {
 
   /// Actualiza el progreso de un hábito SOLO en la UI (sin tocar el repositorio)
   /// Este método es para actualizaciones optimistas instantáneas
-  void updateHabitProgressOptimistic(HabitProgress todayProgress) {
+  void updateHabitCounterOptimistic(HabitProgress todayProgress) {
     final habitIndex = _habits.indexWhere(
       (habit) => habit.id == todayProgress.habitId
     );
@@ -330,9 +330,9 @@ class HabitsProvider extends ChangeNotifier {
     });
   }
 
-  /// Incrementa el contador de progreso del día actual con actualización optimista
+  /// Actualiza el contador de progreso del día actual con actualización optimista
   /// Permite múltiples clics rápidos para registrar varias completaciones
-  Future<bool> incrementHabitProgress(String habitId) async {
+  Future<bool> updateHabitCounter(String habitId) async {
     return _executeIncrementProgress(habitId);
   }
 
@@ -393,7 +393,7 @@ class HabitsProvider extends ChangeNotifier {
       }
 
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
-      updateHabitProgressOptimistic(optimisticProgress);
+      updateHabitCounterOptimistic(optimisticProgress);
 
       // 💾 Ejecutar caso de uso en segundo plano (SECUENCIALMENTE ENCOLADO)
       _queueDbOperation(habitId, () async {
@@ -405,22 +405,19 @@ class HabitsProvider extends ChangeNotifier {
         final currentHabitIndex = _habits.indexWhere((h) => h.id == habitId);
         if (currentHabitIndex == -1) return;
         
+        // Obtenemos la última versión del hábito desde la lista (nuestra fuente de verdad)
         final latestHabit = _habits[currentHabitIndex];
-        final trueProgressIndex = latestHabit.progress.indexWhere((p) => p.date == todayString);
-        String trueId = optimisticProgress.id;
-        if (trueProgressIndex != -1) {
-          trueId = latestHabit.progress[trueProgressIndex].id;
-        }
+        
+        // Creamos una versión para el UseCase que use los IDs actuales pero el contador anterior
+        // para que la validación y el cálculo del +1 en el UseCase sean correctos.
+        final previousCounter = (existingTodayProgress?.dailyCounter ?? 0);
+        final habitToUseCase = latestHabit.copyWith(
+          progress: latestHabit.progress.map((p) => p.date == todayString 
+            ? p.copyWith(dailyCounter: previousCounter) 
+            : p).toList()
+        );
 
-        HabitEntity fixedHabit = habit;
-        final fixedProgressIndex = fixedHabit.progress.indexWhere((p) => p.date == todayString);
-        if (fixedProgressIndex != -1) {
-          final fixedProgressList = [...fixedHabit.progress];
-          fixedProgressList[fixedProgressIndex] = fixedProgressList[fixedProgressIndex].copyWith(id: trueId);
-          fixedHabit = fixedHabit.copyWith(progress: fixedProgressList);
-        }
-
-        final result = await _incrementHabitProgressUseCase.execute(habit: fixedHabit);
+        final result = await _updateHabitCounterUseCase.execute(habit: habitToUseCase);
         
         result.fold(
           (failure) {
@@ -439,14 +436,14 @@ class HabitsProvider extends ChangeNotifier {
                 }
               } else {
                 if (existingTodayProgress != null) {
-                  updateHabitProgressOptimistic(existingTodayProgress);
+                  updateHabitCounterOptimistic(existingTodayProgress);
                 }
               }
             }
           },
           (updatedProgress) {
             if (kDebugMode) print('✅ Progreso guardado y sincronizado: ${updatedProgress.dailyCounter}');
-            updateHabitProgressOptimistic(updatedProgress);
+            updateHabitCounterOptimistic(updatedProgress);
             _notifyPendingChanges();
           },
         );
@@ -501,7 +498,7 @@ class HabitsProvider extends ChangeNotifier {
       );
 
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
-      updateHabitProgressOptimistic(optimisticProgress);
+      updateHabitCounterOptimistic(optimisticProgress);
 
       // 💾 Ejecutar caso de uso en segundo plano (SECUENCIALMENTE ENCOLADO)
       _queueDbOperation(habitId, () async {
@@ -510,32 +507,27 @@ class HabitsProvider extends ChangeNotifier {
         final currentHabitIndex = _habits.indexWhere((h) => h.id == habitId);
         if (currentHabitIndex == -1) return;
         
+        // Obtenemos la última versión del hábito desde la lista
         final latestHabit = _habits[currentHabitIndex];
-        final trueProgressIndex = latestHabit.progress.indexWhere((p) => p.date == todayString);
-        String trueId = optimisticProgress.id;
-        if (trueProgressIndex != -1) {
-          trueId = latestHabit.progress[trueProgressIndex].id;
-        }
+        
+        // Aseguramos integridad de IDs cargando el estado de _habits con el contador previo
+        final habitToUseCase = latestHabit.copyWith(
+          progress: latestHabit.progress.map((p) => p.date == todayString 
+            ? p.copyWith(dailyCounter: todayProgress.dailyCounter) 
+            : p).toList()
+        );
 
-        HabitEntity fixedHabit = habit;
-        final fixedProgressIndex = fixedHabit.progress.indexWhere((p) => p.date == todayString);
-        if (fixedProgressIndex != -1) {
-          final fixedProgressList = [...fixedHabit.progress];
-          fixedProgressList[fixedProgressIndex] = fixedProgressList[fixedProgressIndex].copyWith(id: trueId);
-          fixedHabit = fixedHabit.copyWith(progress: fixedProgressList);
-        }
-
-        final result = await _decrementHabitProgressUseCase.execute(habit: fixedHabit);
+        final result = await _decrementHabitProgressUseCase.execute(habit: habitToUseCase);
         
         result.fold(
           (failure) {
             if (kDebugMode) print('❌ Error al decrementar: ${failure.message}');
             // Revertir cambio optimista si falla
-            updateHabitProgressOptimistic(todayProgress);
+            updateHabitCounterOptimistic(todayProgress);
           },
           (updatedProgress) {
             if (kDebugMode) print('✅ Progreso decrementado: ${updatedProgress.dailyCounter}');
-            updateHabitProgressOptimistic(updatedProgress);
+            updateHabitCounterOptimistic(updatedProgress);
             _notifyPendingChanges();
           },
         );
@@ -623,12 +615,14 @@ class HabitsProvider extends ChangeNotifier {
             _setError('Error al crear hábito: ${failure.message}');
           },
           (returnedId) {
-            // ✅ El ID retornado DEBE ser el mismo que generamos
-            if (returnedId != habitId) {
-              if (kDebugMode) {
-                print('⚠️ ADVERTENCIA: El repositorio retornó un ID diferente');
-                print('   Esperado: $habitId');
-                print('   Recibido: $returnedId');
+            // ✅ Si el repositorio retorna un ID diferente (ej. generado por el server),
+            // actualizamos la referencia en nuestra lista para mantener integridad.
+            if (returnedId != null && returnedId != habitId) {
+              final index = _habits.indexWhere((h) => h.id == habitId);
+              if (index != -1) {
+                _habits[index] = _habits[index].copyWith(id: returnedId);
+                notifyListeners();
+                if (kDebugMode) print('🔄 ID de hábito actualizado en UI de $habitId a $returnedId');
               }
             }
             

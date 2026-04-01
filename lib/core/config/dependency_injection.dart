@@ -12,7 +12,7 @@ import 'package:find_your_mind/features/habits/domain/repositories/habit_reposit
 import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/increment_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -47,7 +47,7 @@ class DependencyInjection {
   late final CreateHabitUseCase _createHabitUseCase;
   late final UpdateHabitUseCase _updateHabitUseCase;
   late final DeleteHabitUseCase _deleteHabitUseCase;
-  late final IncrementHabitProgressUseCase _incrementHabitProgressUseCase;
+  late final UpdateHabitCounterUseCase _updateHabitCounterUseCase;
   late final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
 
   // Casos de uso de Autenticación
@@ -152,7 +152,7 @@ class DependencyInjection {
     _createHabitUseCase = CreateHabitUseCase(_habitRepository);
     _updateHabitUseCase = UpdateHabitUseCase(_habitRepository);
     _deleteHabitUseCase = DeleteHabitUseCase(_habitRepository);
-    _incrementHabitProgressUseCase = IncrementHabitProgressUseCase(
+    _updateHabitCounterUseCase = UpdateHabitCounterUseCase(
       _habitRepository,
     );
     _decrementHabitProgressUseCase = DecrementHabitProgressUseCase(
@@ -169,13 +169,14 @@ class DependencyInjection {
   NetworkInfo get networkInfo => _networkInfo;
   SyncService get syncService => _syncService;
   AuthService get authService => _authService;
+  UsersRemoteDataSource get usersRemoteDataSource => _usersRemoteDataSource;
 
   // Getters para los casos de uso de Hábitos
   CreateHabitUseCase get createHabitUseCase => _createHabitUseCase;
   UpdateHabitUseCase get updateHabitUseCase => _updateHabitUseCase;
   DeleteHabitUseCase get deleteHabitUseCase => _deleteHabitUseCase;
-  IncrementHabitProgressUseCase get incrementHabitProgressUseCase =>
-      _incrementHabitProgressUseCase;
+  UpdateHabitCounterUseCase get updateHabitCounterUseCase =>
+      _updateHabitCounterUseCase;
   DecrementHabitProgressUseCase get decrementHabitProgressUseCase =>
       _decrementHabitProgressUseCase;
 

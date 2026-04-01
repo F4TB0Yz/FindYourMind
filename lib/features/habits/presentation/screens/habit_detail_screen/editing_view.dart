@@ -1,4 +1,4 @@
-﻿import 'package:find_your_mind/core/constants/color_constants.dart';
+import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
@@ -137,7 +137,17 @@ class _EditingViewState extends State<EditingView> {
 
         const SizedBox(height: 12),
 
-        const DailyGoalCounter(),
+        // El contador opera en modo local: muestra la meta actual del hábito
+        // y notifica cambios al estado local mediante onChanged.
+        DailyGoalCounter(
+          useProvider: false,
+          initialValue: _dailyGoal,
+          onChanged: (newGoal) {
+            setState(() {
+              _dailyGoal = newGoal;
+            });
+          },
+        ),
 
         const SizedBox(height: 48),
 
@@ -179,6 +189,17 @@ class _EditingViewState extends State<EditingView> {
       CustomToast.showToast(
         context: context,
         message: 'El título es requerido',
+      );
+      return;
+    }
+
+    // Validar que la nueva meta diaria no sea menor que el progreso de hoy.
+    // Si el usuario ya registró 5 de 5 y baja la meta a 3, no debe poderse guardar.
+    final int todayCount = habitsProvider.getTodayCount(widget.habit.id);
+    if (_dailyGoal < todayCount) {
+      CustomToast.showToast(
+        context: context,
+        message: 'La meta diaria no puede ser menor que tu progreso de hoy ($todayCount)',
       );
       return;
     }

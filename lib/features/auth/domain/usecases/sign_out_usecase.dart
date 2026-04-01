@@ -1,4 +1,6 @@
+import 'package:dartz/dartz.dart';
 import 'package:find_your_mind/core/config/database_helper.dart';
+import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 
 /// Caso de uso para cerrar sesión
@@ -14,24 +16,15 @@ class SignOutUseCase {
 
   /// Ejecuta el caso de uso de logout
   /// Cierra la sesión actual del usuario y limpia los datos locales
-  /// Lanza:
-  ///   - Excepciones si hay errores al cerrar sesión
-  Future<void> call() async {
-    print('🚪 [USECASE] SignOut - Iniciando cierre de sesión');
-    
+  Future<Either<Failure, void>> call() async {
     try {
       // 1. Limpiar SQLite antes de cerrar sesión
-      print('🧹 [USECASE] Limpiando datos locales...');
       await databaseHelper.clearAllTables();
-      print('✅ [USECASE] Datos locales limpiados');
       
       // 2. Cerrar sesión en Supabase
-      print('🔓 [USECASE] Cerrando sesión en Supabase...');
-      await authRepository.signOut();
-      print('✅ [USECASE] Sesión cerrada exitosamente');
+      return await authRepository.signOut();
     } catch (e) {
-      print('❌ [USECASE] Error en SignOut: $e');
-      rethrow;
+      return Left(CacheFailure(message: 'Error al limpiar datos locales: ${e.toString()}'));
     }
   }
 }

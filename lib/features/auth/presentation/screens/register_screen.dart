@@ -1,5 +1,4 @@
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
-import 'package:find_your_mind/features/auth/presentation/utils/auth_error_helper.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
@@ -62,33 +61,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    try {
-      await widget.signUpUseCase(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+    final result = await widget.signUpUseCase(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      result.fold(
+        (failure) => _showError(failure.message),
+        (_) {
+          CustomToast.showToast(context: context, message: '¡Cuenta creada!');
+          Navigator.of(context).pop();
+        },
       );
-      if (mounted) {
-        CustomToast.showToast(context: context, message: '¡Cuenta creada!');
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      _showError(getAuthErrorMessage(e.toString(), isRegister: true));
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _onGoogleRegisterPressed() async {
-    try {
-      await widget.signInWithGoogleUseCase();
-      if (mounted) {
-        CustomToast.showToast(
+    final result = await widget.signInWithGoogleUseCase();
+    if (mounted) {
+      result.fold(
+        (failure) => _showError(failure.message),
+        (_) => CustomToast.showToast(
           context: context,
           message: 'Redirigiendo a Google...',
-        );
-      }
-    } catch (e) {
-      _showError(getAuthErrorMessage(e.toString(), isRegister: true));
+        ),
+      );
     }
   }
 

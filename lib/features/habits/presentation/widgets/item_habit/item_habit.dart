@@ -89,7 +89,7 @@ class _ItemHabitState extends State<ItemHabit> {
     }
 
     // 🚀 Incrementar y obtener resultado
-    final bool success = await widget.habitsProvider.incrementHabitProgress(widget.itemHabit.id);
+    final bool success = await widget.habitsProvider.updateHabitCounter(widget.itemHabit.id);
 
     // Mostrar animación SOLO si fue exitoso
     if (success && mounted) {
