@@ -1,6 +1,8 @@
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/features/notes/presentation/screens/notes_screen.dart';
 import 'package:find_your_mind/features/tasks/presentation/screens/tasks_screen.dart';
+import 'package:find_your_mind/features/profile/presentation/screens/profile_screen.dart';
+import 'package:find_your_mind/features/auth/presentation/providers/auth_service_locator.dart';
 import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_item_bar.dart';
 import 'package:flutter/material.dart';
@@ -14,31 +16,38 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 60,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0d1117),
-        border: Border(
-          top: BorderSide(color: Color(0xFF30363d), width: 1),
-        ),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return BottomAppBar(
+      height: 65,
+      padding: EdgeInsets.zero,
+      color: const Color(0xFF0d1117),
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          CustomItemBar(
+          const CustomItemBar(
             icon: LucideIcons.penTool,
             screen: NotesScreen(),
             screenType: ScreenType.notes,
           ),
-          CustomItemBar(
+          const CustomItemBar(
             icon: LucideIcons.checkSquare,
             screen: TasksScreen(),
             screenType: ScreenType.tasks,
           ),
-          CustomItemBar(
+          const SizedBox(width: 48), // Espacio para el FAB
+          const CustomItemBar(
             icon: LucideIcons.clock,
             screen: HabitsScreen(),
             screenType: ScreenType.habits,
+          ),
+          CustomItemBar(
+            icon: LucideIcons.user,
+            screen: ProfileScreen(
+              getCurrentUserUseCase: AuthServiceLocator().getCurrentUserUseCase,
+              signOutUseCase: AuthServiceLocator().signOutUseCase,
+            ),
+            screenType: ScreenType.profile,
           ),
         ],
       ),

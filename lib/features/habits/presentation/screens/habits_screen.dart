@@ -1,11 +1,8 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
@@ -49,18 +46,12 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screensProvider = Provider.of<ScreensProvider>(context);
     final habitsProvider = Provider.of<HabitsProvider>(context);
 
     return Column(
       children: [
         // Header nativo: título + sync + botón +
-        _HabitsHeader(
-          onAddTap: () => screensProvider.setScreenWidget(
-            const NewHabitScreen(),
-            ScreenType.newHabit,
-          ),
-        ),
+        const _HabitsHeader(),
 
         // Divisor
         const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
@@ -117,9 +108,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
 /// Header de la pantalla: "Hábitos" con sync y botón de agregar.
 class _HabitsHeader extends StatelessWidget {
-  final VoidCallback onAddTap;
-
-  const _HabitsHeader({required this.onAddTap});
+  const _HabitsHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -131,29 +120,8 @@ class _HabitsHeader extends StatelessWidget {
             'Hábitos',
             style: AppTextStyles.h3,
           ),
-          const SizedBox(width: 8),
-          const SyncStatusIndicator(),
-          const Spacer(),
-          GestureDetector(
-            onTap: onAddTap,
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.textSecondary.withValues(alpha: 0.3), 
-                  width: 1,
-                ),
-              ),
-              child: const Icon(
-                Icons.add,
-                size: 16,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
+          SizedBox(width: 8),
+          SyncStatusIndicator(),
         ],
       ),
     );

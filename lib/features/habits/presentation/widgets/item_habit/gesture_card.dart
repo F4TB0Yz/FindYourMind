@@ -1,13 +1,12 @@
+import 'dart:math' as math;
+import 'dart:ui';
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-/// Card visual de un hábito en la lista principal.
-///
-/// Muestra ícono, título, barra de progreso y tiempo desde el inicio.
-/// Responde visualmente al toque (flash verde) y long press (flash rojo).
+/// Card visual de un hábito en la lista principal con Glassmorfismo y efectos.
 class GestureCardHabitItem extends StatelessWidget {
   final HabitEntity habit;
   final String timeSinceStart;
@@ -30,82 +29,147 @@ class GestureCardHabitItem extends StatelessWidget {
     required this.onLongPress,
   });
 
+  bool get _isAtRisk {
+    final now = DateTime.now();
+    final double progress = dailyGoal > 0 ? counterToday / dailyGoal : 0;
+    
+    // Si no ha empezado y ya es tarde (después de las 6 PM)
+    if (counterToday == 0 && now.hour >= 18) return true;
+    
+    // Si lleva menos del 50% y es muy tarde (después de las 10 PM)
+    if (progress < 0.5 && now.hour >= 22) return true;
+    
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isFlashing = isFlashingRed || isFlashingGreen;
     final double progress = dailyGoal > 0
         ? (counterToday / dailyGoal).clamp(0.0, 1.0)
         : 0.0;
+    final bool isComplete = progress >= 1.0;
+    final bool atRisk = _isAtRisk;
 
-    return GestureDetector(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        width: double.infinity,
-        margin: const EdgeInsets.all(1),
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          color: isFlashingGreen
-              ? AppColors.successMuted.withValues(alpha: 0.25)
-              : isFlashingRed
-                  ? AppColors.dangerMuted.withValues(alpha: 0.25)
-                  : AppColors.darkBackground,
-          border: Border.all(
-            color: isFlashingGreen
-                ? AppColors.successMuted.withValues(alpha: 0.45)
-                : isFlashingRed
-                    ? AppColors.dangerMuted.withValues(alpha: 0.45)
-                    : AppColors.borderSubtle,
-            width: 1,
-          ),
-          boxShadow: isFlashing
-              ? [
-                  BoxShadow(
-                    color: isFlashingGreen
-                        ? AppColors.successMuted.withValues(alpha: 0.12)
-                        : AppColors.dangerMuted.withValues(alpha: 0.12),
-                    blurRadius: 6,
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              habit.icon,
-              width: 36,
-              height: 36,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _HabitCardContent(
-                title: habit.title,
-                progress: progress,
-                counterToday: counterToday,
-                dailyGoal: dailyGoal,
+    return _ShakeWidget(
+      active: atRisk && !isComplete,
+      child: GestureDetector(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: isFlashingGreen
+                    ? AppColors.successMuted.withValues(alpha: 0.3)
+                    : isFlashingRed
+                        ? AppColors.dangerMuted.withValues(alpha: 0.3)
+                        : atRisk && !isComplete
+                            ? Colors.black.withValues(alpha: 0.4) // Desaturado/Oscuro
+                            : AppColors.darkBackground.withValues(alpha: 0.7),
+                border: Border.all(
+                  color: isFlashingGreen
+                      ? AppColors.successMuted.withValues(alpha: 0.6)
+                      : isFlashingRed
+                          ? AppColors.dangerMuted.withValues(alpha: 0.6)
+                          : isComplete
+                              ? AppColors.successMuted.withValues(alpha: 0.5)
+                              : AppColors.borderSubtle.withValues(alpha: 0.5),
+                  width: isComplete ? 1.5 : 1,
+                ),
+                boxShadow: [
+                  if (isComplete)
+                    BoxShadow(
+                      color: AppColors.successMuted.withValues(alpha: 0.15),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  if (isFlashing)
+                    BoxShadow(
+                      color: isFlashingGreen
+                          ? AppColors.successMuted.withValues(alpha: 0.2)
+                          : AppColors.dangerMuted.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                    ),
+                ],
+              ),
+              child: Opacity(
+                opacity: atRisk && !isComplete ? 0.7 : 1.0,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      habit.icon,
+                      width: 38,
+                      height: 38,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _HabitCardContent(
+                        title: habit.title,
+                        progress: progress,
+                        counterToday: counterToday,
+                        dailyGoal: dailyGoal,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$counterToday/$dailyGoal',
+                          style: AppTextStyles.counter.copyWith(
+                            fontSize: 13,
+                            color: isComplete ? AppColors.successMuted : AppColors.accentText,
+                          ),
+                        ),
+                        Text(
+                          timeSinceStart,
+                          style: AppTextStyles.timerSmall.copyWith(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$counterToday/$dailyGoal',
-                  style: AppTextStyles.counter.copyWith(fontSize: 12),
-                ),
-                Text(
-                  timeSinceStart,
-                  style: AppTextStyles.timerSmall,
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// Widget interno para la vibración visual (Aversión a la pérdida).
+class _ShakeWidget extends StatelessWidget {
+  final Widget child;
+  final bool active;
+
+  const _ShakeWidget({required this.child, required this.active});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!active) return child;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, value, child) {
+        final double offset = math.sin(value * math.pi * 10) * 1.5;
+        return Transform.translate(
+          offset: Offset(offset, 0),
+          child: child,
+        );
+      },
+      child: child,
     );
   }
 }

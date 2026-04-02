@@ -4,6 +4,7 @@ class ScreenType {
   static const tasks = ScreenType._('TAREAS');
   static const newHabit = ScreenType._('NUEVO HABITO');
   static const detailHabit = ScreenType._('DETALLE HABITO');
+  static const profile = ScreenType._('PERFIL');
 
   final String name;
 

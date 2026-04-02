@@ -4,8 +4,11 @@ import 'package:find_your_mind/features/auth/presentation/screens/login_screen.d
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/animated_screen_transition.dart';
+import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/app_bar/custom_app_bar.dart';
+import 'package:find_your_mind/shared/presentation/widgets/fab/expandable_fab.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -76,6 +79,42 @@ class _AuthScreenState extends State<AuthScreen> {
               child: screensProvider.currentPageWidget,
             ),
             bottomNavigationBar: const CustomBottomBar(),
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+            floatingActionButton: screensProvider.currentScreenType == ScreenType.habits 
+                ? ExpandableFab(
+                    distance: 105, 
+                    children: [
+                      ActionButton(
+                        onPressed: () => screensProvider.setScreenWidget(
+                          const NewHabitScreen(), 
+                          ScreenType.newHabit,
+                        ),
+                        icon: const Icon(Icons.add_task),
+                        color: const Color(0xFF6366F1), // Indigo - Hábito
+                      ),
+                      ActionButton(
+                        onPressed: () {
+                          // TODO: Implementar NewNoteScreen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Creación de Notas: Próximamente')),
+                          );
+                        },
+                        icon: const Icon(Icons.note_add),
+                        color: const Color(0xFF10B981), // Emerald - Nota
+                      ),
+                      ActionButton(
+                        onPressed: () {
+                          // TODO: Implementar NewTaskScreen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Creación de Tareas: Próximamente')),
+                          );
+                        },
+                        icon: const Icon(Icons.playlist_add),
+                        color: const Color(0xFF0EA5E9), // Sky - Tarea
+                      ),
+                    ],
+                  ) 
+              : null,
           );
         }
 
