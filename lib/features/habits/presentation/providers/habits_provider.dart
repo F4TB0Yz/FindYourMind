@@ -1,4 +1,7 @@
+/// Capa: Presentation → Providers
+/// Gestiona el estado de los hábitos y su progreso local.
 import 'package:find_your_mind/core/constants/string_constants.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/utils/date_utils.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
@@ -34,6 +37,9 @@ class HabitsProvider extends ChangeNotifier {
   bool _hasMore = true;
   int _currentPage = 0;
   final List<HabitEntity> _habits = [];
+  
+  // Semáforo para evitar cargas concurrentes
+  Future<void>? _activeLoadFuture;
   
   // Mapa para evitar condiciones de carrera en SQLite al golpear repetidamente +/-
   final Map<String, Future<void>> _ongoingDbOperations = {};
@@ -80,10 +86,10 @@ class HabitsProvider extends ChangeNotifier {
         return user.id;
       }
       // Fallback al ID hardcodeado si no hay usuario autenticado
-      if (kDebugMode) print('⚠️ No hay usuario autenticado, usando ID por defecto');
+      AppLogger.w('No hay usuario autenticado, usando ID por defecto');
       return AppConstants.currentUserId;
     } catch (e) {
-      if (kDebugMode) print('❌ Error al obtener usuario: $e');
+      AppLogger.e('Error al obtener usuario', error: e);
       return AppConstants.currentUserId;
     }
   }
@@ -131,7 +137,7 @@ class HabitsProvider extends ChangeNotifier {
     _lastError = error;
     _lastErrorTime = DateTime.now();
     notifyListeners();
-    if (kDebugMode) print('❌ Error: $error');
+    AppLogger.e('Error: $error');
   }
 
   /// Limpia el error actual
@@ -146,7 +152,7 @@ class HabitsProvider extends ChangeNotifier {
   /// Recarga hábitos desde SQLite sin mostrar loading (llamado por SyncProvider)
   Future<void> refreshHabitsFromLocal() async {
     try {
-      if (kDebugMode) print('🔄 [PROVIDER] Refrescando desde SQLite...');
+      AppLogger.d('[PROVIDER] Refrescando desde SQLite...');
       final userId = await getUserId();
       final updatedHabits = await _repository.getHabitsByEmail(userId);
       _habits.clear();
@@ -159,10 +165,10 @@ class HabitsProvider extends ChangeNotifier {
       }
       
       notifyListeners();
-      if (kDebugMode) print('✅ [PROVIDER] Refrescado exitoso - ${_habits.length} hábitos');
+      AppLogger.d('[PROVIDER] Refrescado exitoso - ${_habits.length} hábitos');
     } catch (e) {
       // Error no crítico - los datos ya están cargados en memoria
-      if (kDebugMode) print('⚠️ Error al refrescar desde SQLite (datos ya en memoria): $e');
+      AppLogger.w('Error al refrescar desde SQLite (datos ya en memoria)', error: e);
     }
   }
 
@@ -180,7 +186,7 @@ class HabitsProvider extends ChangeNotifier {
   void clearAllData() {
     _habits.clear();
     notifyListeners();
-    if (kDebugMode) print('🧹 [PROVIDER] Memoria limpiada - hábitos eliminados');
+    AppLogger.d('[PROVIDER] Memoria limpiada - hábitos eliminados');
   }
 
   void changeTitle(String newTitle) {
@@ -204,46 +210,62 @@ class HabitsProvider extends ChangeNotifier {
 
   /// Carga hábitos desde SQLite (instantáneo) y sincroniza en segundo plano
   Future<void> loadHabits() async {
-    if (kDebugMode) print('🚀 [PROVIDER] Iniciando loadHabits()...');
-    _currentPage = 0;
-    _habits.clear();
-    _isLoading = true;
-    clearError(); // Limpiar errores previos
-    notifyListeners();
+    // Patrón de semáforo para evitar ejecuciones concurrentes
+    if (_activeLoadFuture != null) {
+      AppLogger.d('[PROVIDER] loadHabits() bloqueada por carga preexistente.');
+      return _activeLoadFuture;
+    }
+
+    _activeLoadFuture = (() async {
+      AppLogger.d('[PROVIDER] Iniciando loadHabits()...');
+      
+      // Estado Inicial
+      _isLoading = true;
+      clearError();
+      notifyListeners();
+
+      try {
+        final userId = await getUserId();
+        
+        // Cargar desde SQLite (offline-first, instantáneo)
+        final List<HabitEntity> habits = await _repository.getHabitsByEmailPaginated(
+          email: userId,
+          limit: _pageSize,
+          offset: 0,
+        );
+        
+        AppLogger.d('[PROVIDER] Recibidos ${habits.length} hábitos del repository');
+        
+        // Carga Atómica: limpieza e inserción consecutivas
+        _habits.clear();
+        for (final habit in habits) {
+          // Deduplicación Preventiva
+          if (!_habits.any((h) => h.id == habit.id)) {
+            _habits.add(habit);
+          } else {
+            AppLogger.w('[PROVIDER] Hábito duplicado detectado y omitido: ${habit.id}');
+          }
+        }
+        
+        _hasMore = habits.length == _pageSize;
+        _currentPage = 1;
+        
+        AppLogger.d('[PROVIDER] loadHabits() finalizado - ${_habits.length} hábitos en memoria');
+      } catch (e) {
+        AppLogger.e('[PROVIDER] Error loadHabits: $e');
+        _setError('Error al cargar los hábitos: ${e.toString()}');
+      } finally {
+        _isLoading = false;
+        notifyListeners();
+      }
+    })();
 
     try {
-      if (kDebugMode) print('📞 [PROVIDER] Llamando a repository.getHabitsByEmailPaginated...');
-      final userId = await getUserId();
-      // Cargar desde SQLite (offline-first, instantáneo)
-      final List<HabitEntity> habits = await _repository.getHabitsByEmailPaginated(
-        email: userId,
-        limit: _pageSize,
-        offset: 0,
-      );
-      
-      if (kDebugMode) print('✅ [PROVIDER] Recibidos ${habits.length} hábitos del repository');
-      
-      // Agregar solo hábitos que no existan ya (prevenir duplicados)
-      for (final habit in habits) {
-        if (!_habits.any((h) => h.id == habit.id)) {
-          _habits.add(habit);
-        } else {
-          if (kDebugMode) print('⚠️ [PROVIDER] Hábito duplicado detectado y omitido: ${habit.id}');
-        }
-      }
-      
-      _hasMore = habits.length == _pageSize;
-      _currentPage = 1;
-      
-    } catch (e) {
-      if (kDebugMode) print('❌ [PROVIDER] Error loadHabits: $e');
-      _setError('Error al cargar los hábitos: ${e.toString()}');
+      await _activeLoadFuture;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      // Limpieza del semáforo
+      _activeLoadFuture = null;
     }
-    
-    if (kDebugMode) print('🏁 [PROVIDER] loadHabits() finalizado - ${_habits.length} hábitos en memoria');
   }
 
   /// Carga más hábitos con paginación
@@ -266,14 +288,14 @@ class HabitsProvider extends ChangeNotifier {
         if (!_habits.any((h) => h.id == habit.id)) {
           _habits.add(habit);
         } else {
-          if (kDebugMode) print('⚠️ [PROVIDER] Hábito duplicado en loadMoreHabits: ${habit.id}');
+          AppLogger.w('[PROVIDER] Hábito duplicado en loadMoreHabits: ${habit.id}');
         }
       }
       
       _hasMore = newHabits.length == _pageSize;
       _currentPage++;
     } catch (e) {
-      if (kDebugMode) print('❌ Error loadMoreHabits: $e');
+      AppLogger.e('[PROVIDER] Error loadMoreHabits', error: e);
       _setError('Error al cargar más hábitos: ${e.toString()}');
     } finally {
       _isLoading = false;
@@ -289,13 +311,13 @@ class HabitsProvider extends ChangeNotifier {
     );
 
     if (habitIndex == -1) {
-      if (kDebugMode) print('⚠️ Hábito no encontrado en la lista local');
+      AppLogger.w('Hábito no encontrado en la lista local: ${todayProgress.habitId}');
       return;
     }
 
     final progressIndex = _habits[habitIndex]
       .progress
-      .indexWhere((p) => p.id == todayProgress.id);
+      .indexWhere((p) => p.date == todayProgress.date);
 
     if (progressIndex == -1) {
       // Agregar nuevo progreso
@@ -343,7 +365,7 @@ class HabitsProvider extends ChangeNotifier {
       // 1. Validar que el hábito existe en la lista local
       final habitIndex = _habits.indexWhere((h) => h.id == habitId);
       if (habitIndex == -1) {
-        if (kDebugMode) print('⚠️ Hábito no encontrado: $habitId');
+        AppLogger.w('Hábito no encontrado: $habitId');
         return false;
       }
 
@@ -371,14 +393,12 @@ class HabitsProvider extends ChangeNotifier {
         );
         isNewProgress = true;
         
-        if (kDebugMode) {
-          print('🆕 Creando nuevo progreso optimista: $progressId');
-        }
+        AppLogger.d('🆕 Creando nuevo progreso optimista: $progressId');
       } else {
         // Validar si ya se alcanzó la meta
         existingTodayProgress = habit.progress[todayIndex];
         if (existingTodayProgress.dailyCounter >= habit.dailyGoal) {
-          if (kDebugMode) print('⚠️ Meta diaria ya alcanzada');
+          AppLogger.w('Meta diaria ya alcanzada para $habitId');
           return false;
         }
         
@@ -387,9 +407,7 @@ class HabitsProvider extends ChangeNotifier {
           dailyCounter: existingTodayProgress.dailyCounter + 1,
         );
         
-        if (kDebugMode) {
-          print('➕ Incrementando progreso existente: ${existingTodayProgress.id} (${existingTodayProgress.dailyCounter} → ${optimisticProgress.dailyCounter})');
-        }
+        AppLogger.d('➕ Incrementando progreso existente: ${existingTodayProgress.id} (${existingTodayProgress.dailyCounter} → ${optimisticProgress.dailyCounter})');
       }
 
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
@@ -411,17 +429,21 @@ class HabitsProvider extends ChangeNotifier {
         // Creamos una versión para el UseCase que use los IDs actuales pero el contador anterior
         // para que la validación y el cálculo del +1 en el UseCase sean correctos.
         final previousCounter = (existingTodayProgress?.dailyCounter ?? 0);
-        final habitToUseCase = latestHabit.copyWith(
-          progress: latestHabit.progress.map((p) => p.date == todayString 
-            ? p.copyWith(dailyCounter: previousCounter) 
-            : p).toList()
-        );
+        
+        // Si no existía progreso previo, filtramos el optimista para que UseCase lo cree
+        final updatedProgressList = isNewProgress
+            ? latestHabit.progress.where((p) => p.date != todayString).toList()
+            : latestHabit.progress.map((p) => p.date == todayString 
+                ? p.copyWith(dailyCounter: previousCounter) 
+                : p).toList();
+
+        final habitToUseCase = latestHabit.copyWith(progress: updatedProgressList);
 
         final result = await _updateHabitCounterUseCase.execute(habit: habitToUseCase);
         
         result.fold(
           (failure) {
-            if (kDebugMode) print('❌ Error al incrementar: ${failure.message}');
+            AppLogger.e('Error al incrementar: ${failure.message}');
             
             // ⚠️ NO revertir si el error es "Ya se alcanzó la meta" (ValidationFailure)
             final isValidationError = failure.message.contains('Ya se alcanzó la meta');
@@ -442,7 +464,7 @@ class HabitsProvider extends ChangeNotifier {
             }
           },
           (updatedProgress) {
-            if (kDebugMode) print('✅ Progreso guardado y sincronizado: ${updatedProgress.dailyCounter}');
+            AppLogger.d('✅ Progreso guardado y sincronizado: ${updatedProgress.dailyCounter}');
             updateHabitCounterOptimistic(updatedProgress);
             _notifyPendingChanges();
           },
@@ -451,7 +473,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado: $e');
+      AppLogger.e('Error inesperado en incremento', error: e);
       return false;
     }
   }
@@ -468,7 +490,7 @@ class HabitsProvider extends ChangeNotifier {
       // 1. Validar que el hábito existe en la lista local
       final habitIndex = _habits.indexWhere((h) => h.id == habitId);
       if (habitIndex == -1) {
-        if (kDebugMode) print('⚠️ Hábito no encontrado: $habitId');
+        AppLogger.w('Hábito no encontrado: $habitId');
         return false;
       }
 
@@ -481,14 +503,14 @@ class HabitsProvider extends ChangeNotifier {
       );
 
       if (todayIndex == -1) {
-        if (kDebugMode) print('⚠️ No hay progreso para hoy');
+        AppLogger.w('No hay progreso para hoy en $habitId');
         return false;
       }
 
       final todayProgress = habit.progress[todayIndex];
 
       if (todayProgress.dailyCounter <= 0) {
-        if (kDebugMode) print('⚠️ El contador ya está en 0');
+        AppLogger.w('El contador ya está en 0 para $habitId');
         return false;
       }
 
@@ -521,12 +543,12 @@ class HabitsProvider extends ChangeNotifier {
         
         result.fold(
           (failure) {
-            if (kDebugMode) print('❌ Error al decrementar: ${failure.message}');
+            AppLogger.e('Error al decrementar: ${failure.message}');
             // Revertir cambio optimista si falla
             updateHabitCounterOptimistic(todayProgress);
           },
           (updatedProgress) {
-            if (kDebugMode) print('✅ Progreso decrementado: ${updatedProgress.dailyCounter}');
+            AppLogger.d('✅ Progreso decrementado: ${updatedProgress.dailyCounter}');
             updateHabitCounterOptimistic(updatedProgress);
             _notifyPendingChanges();
           },
@@ -535,7 +557,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado: $e');
+      AppLogger.e('Error inesperado en decremento', error: e);
       return false;
     }
   }
@@ -547,7 +569,7 @@ class HabitsProvider extends ChangeNotifier {
       // 1. Validar que el hábito existe en la lista local
       final habitIndex = _habits.indexWhere((h) => h.id == updatedHabit.id);
       if (habitIndex == -1) {
-        if (kDebugMode) print('⚠️ Hábito no encontrado en la lista local');
+        AppLogger.w('Hábito no encontrado en la lista local: ${updatedHabit.id}');
         return false;
       }
 
@@ -558,13 +580,13 @@ class HabitsProvider extends ChangeNotifier {
       _habits[habitIndex] = updatedHabit;
       notifyListeners();
       
-      if (kDebugMode) print('✅ UI actualizada inmediatamente con el hábito modificado');
+      AppLogger.d('✅ UI actualizada inmediatamente con el hábito modificado: ${updatedHabit.id}');
 
       // 💾 3. Ejecutar caso de uso en segundo plano (NO bloqueante)
       _updateHabitUseCase.execute(habit: updatedHabit).then((result) {
         result.fold(
           (failure) {
-            if (kDebugMode) print('❌ Error al actualizar hábito: ${failure.message}');
+            AppLogger.e('Error al actualizar hábito: ${failure.message}');
             // Revertir cambio optimista si falla
             final idx = _habits.indexWhere((h) => h.id == updatedHabit.id);
             if (idx != -1) {
@@ -574,7 +596,7 @@ class HabitsProvider extends ChangeNotifier {
             _setError('Error al actualizar hábito: ${failure.message}');
           },
           (_) {
-            if (kDebugMode) print('✅ Hábito actualizado exitosamente: ${updatedHabit.id}');
+            AppLogger.d('✅ Hábito actualizado exitosamente: ${updatedHabit.id}');
             // Notificar cambios pendientes al SyncProvider
             _notifyPendingChanges();
           },
@@ -583,7 +605,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado en updateHabit: $e');
+      AppLogger.e('Error inesperado en updateHabit', error: e);
       _setError('Error inesperado al actualizar hábito: ${e.toString()}');
       return false;
     }
@@ -601,13 +623,13 @@ class HabitsProvider extends ChangeNotifier {
       _habits.insert(0, habitWithId);
       notifyListeners();
       
-      if (kDebugMode) print('✅ Hábito agregado a la UI con UUID: $habitId');
+      AppLogger.d('✅ Hábito agregado a la UI con UUID: $habitId');
 
       // 💾 3. Ejecutar caso de uso en segundo plano (NO bloqueante)
       _createHabitUseCase.execute(habit: habitWithId).then((result) {
         result.fold(
           (failure) {
-            if (kDebugMode) print('❌ Error al crear hábito: ${failure.message}');
+            AppLogger.e('Error al crear hábito: ${failure.message}');
             
             // Revertir cambio optimista si falla
             _habits.removeWhere((h) => h.id == habitId);
@@ -622,11 +644,11 @@ class HabitsProvider extends ChangeNotifier {
               if (index != -1) {
                 _habits[index] = _habits[index].copyWith(id: returnedId);
                 notifyListeners();
-                if (kDebugMode) print('🔄 ID de hábito actualizado en UI de $habitId a $returnedId');
+                AppLogger.d('🔄 ID de hábito actualizado en UI de $habitId a $returnedId');
               }
             }
             
-            if (kDebugMode) print('✅ Hábito guardado exitosamente: $habitId');
+            AppLogger.d('✅ Hábito guardado exitosamente: $habitId');
             
             // Notificar cambios pendientes al SyncProvider
             _notifyPendingChanges();
@@ -636,7 +658,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return habitId; // Retornar inmediatamente el UUID generado
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado en createHabit: $e');
+      AppLogger.e('Error inesperado en createHabit', error: e);
       _setError('Error inesperado al crear hábito: ${e.toString()}');
       return null;
     }
@@ -655,7 +677,7 @@ class HabitsProvider extends ChangeNotifier {
       final habitIndex = _habits.indexWhere((h) => h.id == habitId);
       
       if (habitIndex == -1) {
-        if (kDebugMode) print('⚠️ Hábito con ID $habitId no encontrado');
+        AppLogger.w('Hábito con ID $habitId no encontrado');
         return null;
       }
 
@@ -677,7 +699,7 @@ class HabitsProvider extends ChangeNotifier {
       _habits[habitIndex] = updatedHabit;
       notifyListeners();
       
-      if (kDebugMode) print('✅ Progreso agregado a la UI con UUID: $progressId');
+      AppLogger.d('✅ Progreso agregado a la UI con UUID: $progressId');
 
       // 💾 3. Guardar en el repositorio (SQLite + Supabase con el MISMO UUID)
       final result = await _repository.createHabitProgress(
@@ -686,7 +708,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return result.fold(
         (failure) {
-          if (kDebugMode) print('❌ Error al crear progreso: ${failure.message}');
+          AppLogger.e('Error al crear progreso: ${failure.message}');
           
           // Revertir cambio optimista si falla
           _habits[habitIndex].progress.removeWhere((p) => p.id == progressId);
@@ -697,14 +719,10 @@ class HabitsProvider extends ChangeNotifier {
         (returnedId) {
           // ✅ El ID retornado DEBE ser el mismo que generamos
           if (returnedId != progressId) {
-            if (kDebugMode) {
-              print('⚠️ ADVERTENCIA: El repositorio retornó un ID diferente');
-              print('   Esperado: $progressId');
-              print('   Recibido: $returnedId');
-            }
+            AppLogger.w('ADVERTENCIA: El repositorio retornó un ID diferente. Esperado: $progressId, Recibido: $returnedId');
           }
           
-          if (kDebugMode) print('✅ Progreso guardado exitosamente: $progressId');
+          AppLogger.d('✅ Progreso guardado exitosamente: $progressId');
           
           // Notificar cambios pendientes al SyncProvider
           _notifyPendingChanges();
@@ -713,7 +731,7 @@ class HabitsProvider extends ChangeNotifier {
         },
       );
     } catch (e) {
-      if (kDebugMode) print('❌ Error createHabitProgress: $e');
+      AppLogger.e('Error createHabitProgress', error: e);
       return null;
     }
   }
@@ -734,7 +752,7 @@ class HabitsProvider extends ChangeNotifier {
       _deleteHabitUseCase.execute(habitId: habitId).then((result) {
         result.fold(
           (failure) {
-            if (kDebugMode) print('❌ Error al eliminar hábito: ${failure.message}');
+            AppLogger.e('Error al eliminar hábito: ${failure.message}');
             
             // Revertir cambio optimista si falla
             if (deletedHabit != null && habitIndex != -1) {
@@ -745,7 +763,7 @@ class HabitsProvider extends ChangeNotifier {
             _setError('Error al eliminar hábito: ${failure.message}');
           },
           (_) {
-            if (kDebugMode) print('✅ Hábito eliminado exitosamente: $habitId');
+            AppLogger.d('✅ Hábito eliminado exitosamente: $habitId');
             // Notificar cambios pendientes al SyncProvider
             _notifyPendingChanges();
           },
@@ -754,7 +772,7 @@ class HabitsProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      if (kDebugMode) print('❌ Error inesperado en deleteHabit: $e');
+      AppLogger.e('Error inesperado en deleteHabit', error: e);
       _setError('Error inesperado al eliminar hábito: ${e.toString()}');
       return false;
     }

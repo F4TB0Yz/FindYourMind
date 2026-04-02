@@ -7,11 +7,11 @@
 - Se ha unificado el sistema de logging utilizando un wrapper centralizado para eliminar `print()` directos.
 
 ## 🎯 ÚLTIMA ACCIÓN REALIZADA
-- **Refactorización de Logging y Documentación XML** — 8 archivos modificados y 1 creado:
-  1. **`lib/core/utils/app_logger.dart` (NUEVO)**: Implementación de un wrapper singleton para el paquete `logger`. Proporciona niveles `debug`, `info`, `warning` y `error`. Configurado con `PrettyPrinter` para legibilidad.
-  2. **Refactorización Global de `print()`**: Se eliminaron todas las llamadas a `print()` en la capa de datos (`lib/features/habits/data/`, `lib/features/auth/data/`), servicios (`lib/core/services/sync_service.dart`) y `main.dart`, reemplazándolas por niveles adecuados de `AppLogger`.
-  3. **Documentación de Encabezados**: Se añadieron/estandarizaron los encabezados de documentación ("Capa: ...") en todos los archivos modificados durante el sprint para mantener la trazabilidad de la arquitectura.
-  4. **Limpieza de código**: Eliminación de importaciones innecesarias como `flutter/foundation.dart` (usada para `kDebugMode`) ya que `AppLogger` gestiona el filtrado por niveles automáticamente.
+- **Implementación de Semáforo y Carga Atómica** — `lib/features/habits/presentation/providers/habits_provider.dart`:
+  1. **Evitar Concurrencia**: Se añadió la propiedad `_activeLoadFuture` para actuar como un semáforo en `loadHabits()`, evitando múltiples llamadas simultáneas que generaban redundancia en SQLite y advertencias de duplicados.
+  2. **Carga Atómica**: Se refactorizó el flujo de carga para que la limpieza de `_habits.clear()` y la inserción de datos sean consecutivas antes de notificar a la UI, evitando "flicker" o estados inconsistentes.
+  3. **Estandarización de Logs**: Se eliminaron los últimos `print()` y `kDebugMode` en favor de `AppLogger` en `loadHabits()` y `loadMoreHabits()`.
+  4. **Nulabilidad y Nomenclatura**: Se aseguró el cumplimiento de nulabilidad estricta y nomenclatura semántica en el proveedor.
 
 ## 🐛 BUGS DETECTADOS
 1. **Bloqueo de Ejecución de Tests**: El SDK de Flutter en el entorno no permite ejecutar `flutter test` ni `flutter analyze` por no ser un clon de Git. La consistencia se garantiza mediante inspección manual y feedback estático del IDE.
