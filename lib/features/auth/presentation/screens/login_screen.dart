@@ -6,6 +6,7 @@ import 'package:find_your_mind/features/auth/presentation/screens/register_scree
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
+import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -105,8 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF0d1117),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -120,20 +123,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Image.asset('assets/images/app_logo.png', width: 150),
                 ),
                 const SizedBox(height: 32),
-                const Text(
+                Text(
                   'Inicia sesión',
-                  style: TextStyle(
-                    color: Color(0xFFc9d1d9),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.h2,
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Ingresa tus credenciales para continuar',
-                  style: TextStyle(
-                    color: Color(0xFF8b949e),
-                    fontSize: 14,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isDark ? const Color(0xFF8b949e) : Colors.black54,
                   ),
                 ),
                 const SizedBox(height: 24),

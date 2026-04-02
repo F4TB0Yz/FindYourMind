@@ -1,5 +1,6 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
+import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -88,14 +89,19 @@ class GestureCardHabitItem extends StatelessWidget {
                 dailyGoal: dailyGoal,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              timeSinceStart,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textMuted,
-                fontWeight: FontWeight.w400,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$counterToday/$dailyGoal',
+                  style: AppTextStyles.counter.copyWith(fontSize: 12),
+                ),
+                Text(
+                  timeSinceStart,
+                  style: AppTextStyles.timerSmall,
+                ),
+              ],
             ),
           ],
         ),
@@ -129,11 +135,7 @@ class _HabitCardContent extends StatelessWidget {
         Text(
           title,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
+          style: AppTextStyles.titleLarge.copyWith(fontSize: 15),
         ),
         const SizedBox(height: 6),
         _ProgressBar(progress: progress, isComplete: isComplete),

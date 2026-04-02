@@ -10,6 +10,7 @@ import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart'
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:find_your_mind/config/theme/app_text_styles.dart';
 
 class HabitsScreen extends StatefulWidget {
   const HabitsScreen({super.key});
@@ -126,14 +127,9 @@ class _HabitsHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
       child: Row(
         children: [
-          const Text(
+          Text(
             'Hábitos',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.3,
-            ),
+            style: AppTextStyles.h3,
           ),
           const SizedBox(width: 8),
           const SyncStatusIndicator(),

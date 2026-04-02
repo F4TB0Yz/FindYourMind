@@ -4,6 +4,7 @@ import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
+import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -58,9 +59,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Mi Perfil'),
-        backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+        title: Text('Mi Perfil', style: AppTextStyles.h3),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -124,9 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(
           _currentUser?.displayName ?? 'Usuario',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+          style: AppTextStyles.achievementTitle.copyWith(
+            fontSize: 28,
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
@@ -163,11 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Información de la cuenta',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+              style: AppTextStyles.titleLarge.copyWith(fontSize: 16),
             ),
           ),
           _buildInfoTile(
