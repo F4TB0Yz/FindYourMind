@@ -1,6 +1,9 @@
+/// Punto de entrada principal de la aplicación FindYourMind.
+/// Configura el entorno, inicializa Supabase y establece el árbol de Providers.
 import 'package:find_your_mind/config/theme/app_theme.dart';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/config/supabase_config.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/features/auth/presentation/screens/auth_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
@@ -84,11 +87,11 @@ Future<void> _loadEnv() async {
   Supabase.instance.client.auth.onAuthStateChange.listen((data) {
     final session = data.session;
     if (session != null) {
-      print('🔐 [MAIN] Sesión detectada: ${session.user.email}');
+      AppLogger.i('🔐 [MAIN] Sesión detectada: ${session.user.email}');
     }
   });
 
-  print('✅ [MAIN] Supabase inicializado con soporte para OAuth/PKCE (Windows)');
+  AppLogger.i('✅ [MAIN] Supabase inicializado con soporte para OAuth/PKCE (Windows)');
 }
 
 class MainApp extends StatefulWidget {

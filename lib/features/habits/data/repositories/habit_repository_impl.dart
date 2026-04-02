@@ -2,13 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/core/network/network_info.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/features/habits/data/datasources/habits_local_datasource.dart';
 import 'package:find_your_mind/features/habits/data/datasources/habits_remote_datasource.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 /// Implementación del repositorio de hábitos con estrategia offline-first
@@ -38,9 +38,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
     // 2. Si hay datos locales, retornarlos inmediatamente y sincronizar en segundo plano
     if (localHabits.isNotEmpty) {
-      print(
-        '✅ [REPO] Retornando ${localHabits.length} hábitos locales inmediatamente',
-      );
+    AppLogger.d('[REPO] Retornando ${localHabits.length} hábitos locales inmediatamente');
 
       // Sincronizar en segundo plano SIN esperar
       _networkInfo.isConnected.then((isConnected) {
@@ -77,9 +75,7 @@ class HabitRepositoryImpl implements HabitRepository {
     int limit = 10,
     int offset = 0,
   }) async {
-    print(
-      '🔍 [REPO] getHabitsByEmailPaginated - email: $email, offset: $offset, limit: $limit',
-    );
+    AppLogger.d('[REPO] getHabitsByEmailPaginated - email: $email, offset: $offset, limit: $limit');
 
     // 1. Cargar desde SQLite primero (SIEMPRE, sin esperar verificación de red)
     final localHabits = await _localDataSource.getHabitsByUserIdPaginated(
@@ -88,15 +84,15 @@ class HabitRepositoryImpl implements HabitRepository {
       offset: offset,
     );
 
-    print('📦 [REPO] SQLite devolvió ${localHabits.length} hábitos');
+    AppLogger.d('[REPO] SQLite devolvió ${localHabits.length} hábitos');
 
     // 2. Si hay datos locales, retornarlos inmediatamente y sincronizar en segundo plano
     if (localHabits.isNotEmpty) {
-      print('✅ [REPO] Retornando datos locales inmediatamente');
+      AppLogger.d('[REPO] Retornando datos locales inmediatamente');
 
       // Solo en la primera página, sincronizar en segundo plano
       if (offset == 0) {
-        print('🔄 [REPO] Iniciando sincronización en segundo plano...');
+        AppLogger.d('[REPO] Iniciando sincronización en segundo plano...');
         // Verificar conectividad y sincronizar SIN esperar (unawaited)
         _networkInfo.isConnected.then((isConnected) {
           if (isConnected) {
@@ -110,30 +106,28 @@ class HabitRepositoryImpl implements HabitRepository {
 
     // 3. Si SQLite está vacío, intentar cargar desde servidor (solo si hay internet)
     if (await _networkInfo.isConnected) {
-      print(
-        '🌐 [REPO] SQLite vacío y hay internet, cargando desde Supabase...',
-      );
+        AppLogger.d('[REPO] SQLite vacío y hay internet, cargando desde Supabase...');
       try {
         // Cargar todos los hábitos del servidor
         final remoteHabits = await _remoteDataSource.getHabitsByUserId(email);
-        print('✅ [REPO] Supabase devolvió ${remoteHabits.length} hábitos');
+        AppLogger.d('[REPO] Supabase devolvió ${remoteHabits.length} hábitos');
 
         if (remoteHabits.isNotEmpty) {
           // Guardar en SQLite
           await _localDataSource.saveHabits(remoteHabits);
-          print('💾 [REPO] Guardados ${remoteHabits.length} hábitos en SQLite');
+          AppLogger.d('[REPO] Guardados ${remoteHabits.length} hábitos en SQLite');
           // Devolver la primera página
           return remoteHabits.take(limit).toList();
         }
       } catch (e) {
-        print('❌ [REPO] Error cargando desde Supabase: $e');
+        AppLogger.e('[REPO] Error cargando desde Supabase', error: e);
         // Si falla, devolver lista vacía
         return [];
       }
     }
 
     // 4. Sin datos locales y sin internet, retornar lista vacía
-    print('📭 [REPO] Sin datos locales y sin conexión');
+    AppLogger.d('[REPO] Sin datos locales y sin conexión');
     return [];
   }
 
@@ -152,9 +146,9 @@ class HabitRepositoryImpl implements HabitRepository {
       if (await _networkInfo.isConnected) {
         try {
           await _remoteDataSource.createHabit(habitWithId);
-          print('✅ Hábito sincronizado con Supabase - ID: $habitId');
+          AppLogger.d('[REPO] Hábito sincronizado con Supabase - ID: $habitId');
         } catch (e) {
-          print('⚠️ Error sincronizando con Supabase: $e');
+          AppLogger.w('[REPO] Error sincronizando con Supabase', error: e);
           // Si falla, marcar como pendiente de sincronización
           await _syncService.markPendingSync(
             entityType: 'habit',
@@ -255,10 +249,10 @@ class HabitRepositoryImpl implements HabitRepository {
                 newCounter: newCounter,
               )
               .then((_) {
-                print('✅ Progreso sincronizado con Supabase');
+                AppLogger.d('[REPO] Progreso sincronizado con Supabase');
               })
               .catchError((e) async {
-                print('⚠️ Error sincronizando progreso: $e');
+                AppLogger.w('[REPO] Error sincronizando progreso', error: e);
                 // Si falla, marcar como pendiente de sincronización con DATOS COMPLETOS
                 await _syncService.markPendingSync(
                   entityType: 'progress',
@@ -315,20 +309,16 @@ class HabitRepositoryImpl implements HabitRepository {
       
       final HabitProgress finalProgress = progressWithId.copyWith(id: finalProgressId);
 
-      if (kDebugMode) {
-        print('✅ Progreso creado/recuperado localmente - ID: $finalProgressId');
-      }
+      AppLogger.d('[REPO] Progreso creado/recuperado localmente - ID: $finalProgressId');
 
       // 2. 🚀 Sincronizar con Supabase en SEGUNDO PLANO (no bloqueante)
       if (await _networkInfo.isConnected) {
         // Usar unawaited para no bloquear la UI
         unawaited(
           _remoteDataSource.createHabitProgress(finalProgress).then((_) {
-            if (kDebugMode) {
-              print('✅ [REMOTE] Progreso sincronizado con Supabase - ID: $finalProgressId');
-            }
+            AppLogger.d('[REPO] Progreso sincronizado con Supabase - ID: $finalProgressId');
           }).catchError((e) async {
-            print('⚠️ Error sincronizando progreso: $e');
+            AppLogger.w('[REPO] Error sincronizando progreso', error: e);
             // Si falla, marcar como pendiente de sincronización
             await _syncService.markPendingSync(
               entityType: 'progress',

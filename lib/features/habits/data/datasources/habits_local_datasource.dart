@@ -1,12 +1,14 @@
+/// Capa: Feature → Habits → Data → Datasources
+/// Datasource local que gestiona la base de datos SQLite para hábitos y progresos.
+/// Implementa persistencia offline-first con soporte para sincronización diferida.
 import 'package:find_your_mind/core/config/database_helper.dart';
 import 'package:find_your_mind/core/error/exceptions.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/features/habits/data/models/item_habit_model.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:developer' as developer;
 
 abstract class HabitsLocalDatasource {
   // Users Habits
@@ -55,11 +57,11 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   @override
   Future<List<HabitEntity>> getHabitsByUserId(String userId) async {
     try {
-      print('🔍 [LOCAL_DS] getHabitsByUserId - Obteniendo base de datos...');
+      AppLogger.d('[LOCAL_DS] getHabitsByUserId - Obteniendo base de datos...');
       final db = await databaseHelper.database;
 
-      print(
-        '🔍 [LOCAL_DS] getHabitsByUserId - Ejecutando query para userId: $userId',
+      AppLogger.d(
+        '[LOCAL_DS] getHabitsByUserId - Ejecutando query para userId: $userId',
       );
       final List<Map<String, dynamic>> habitMaps = await db.query(
         'habits',
@@ -68,8 +70,8 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         orderBy: 'initial_date DESC',
       );
 
-      print(
-        '✅ [LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos',
+      AppLogger.d(
+        '[LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos',
       );
 
       List<Map<String, dynamic>> habitsWithProgress = [];
@@ -94,13 +96,17 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         return ItemHabitModel.fromJson(habitJson).toEntity();
       }).toList();
     } on DatabaseException catch (e) {
-      print(
-        '❌ [LOCAL_DS] getHabitsByUserId - DatabaseException: ${e.toString()}',
+      AppLogger.e(
+        '[LOCAL_DS] getHabitsByUserId - DatabaseException',
+        error: e,
       );
       throw CacheException('Error al obtener hábitos: ${e.toString()}');
-    } catch (e) {
-      print('❌ [LOCAL_DS] getHabitsByUserId - Error: ${e.toString()}');
-      print('❌ [LOCAL_DS] getHabitsByUserId - Tipo: ${e.runtimeType}');
+    } catch (e, st) {
+      AppLogger.e(
+        '[LOCAL_DS] getHabitsByUserId - Error: ${e.runtimeType}',
+        error: e,
+        stackTrace: st,
+      );
       throw CacheException('Error al obtener hábitos: ${e.toString()}');
     }
   }
@@ -112,11 +118,11 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     int offset = 0,
   }) async {
     try {
-      print('🔍 [LOCAL_DS] Obteniendo base de datos...');
+      AppLogger.d('[LOCAL_DS] Obteniendo base de datos...');
       final db = await databaseHelper.database;
 
-      print(
-        '🔍 [LOCAL_DS] Ejecutando query - userId: $userId, limit: $limit, offset: $offset',
+      AppLogger.d(
+        '[LOCAL_DS] Ejecutando query - userId: $userId, limit: $limit, offset: $offset',
       );
       final List<Map<String, dynamic>> habitMaps = await db.query(
         'habits',
@@ -127,20 +133,20 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         offset: offset,
       );
 
-      print(
-        '✅ [LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados',
+      AppLogger.d(
+        '[LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados',
       );
 
       List<Map<String, dynamic>> habitsWithProgress = [];
 
-      print(
-        '🔄 [LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...',
+      AppLogger.d(
+        '[LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...',
       );
       for (var habitMap in habitMaps) {
         // Crear una copia mutable del map
         final mutableHabitMap = Map<String, dynamic>.from(habitMap);
         final habitId = mutableHabitMap['id'] as String;
-        print('🔍 [LOCAL_DS] Obteniendo progreso para hábito: $habitId');
+        AppLogger.d('[LOCAL_DS] Obteniendo progreso para hábito: $habitId');
 
         try {
           // Obtener solo los últimos 30 días de progreso para optimizar
@@ -152,32 +158,35 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             limit: 30,
           );
 
-          print(
-            '✅ [LOCAL_DS] Progreso obtenido: ${progressResponse.length} registros',
+          AppLogger.d(
+            '[LOCAL_DS] Progreso obtenido: ${progressResponse.length} registros',
           );
           mutableHabitMap['progress'] = progressResponse;
           habitsWithProgress.add(mutableHabitMap);
         } catch (e) {
-          print('❌ [LOCAL_DS] Error obteniendo progreso para $habitId: $e');
+          AppLogger.w('[LOCAL_DS] Error obteniendo progreso para $habitId', error: e);
           // Si falla obtener el progreso, agregar el hábito sin progreso
           mutableHabitMap['progress'] = [];
           habitsWithProgress.add(mutableHabitMap);
         }
       }
 
-      print(
-        '✅ [LOCAL_DS] Procesados ${habitsWithProgress.length} hábitos con progreso',
+      AppLogger.d(
+        '[LOCAL_DS] Procesados ${habitsWithProgress.length} hábitos con progreso',
       );
 
       return habitsWithProgress.map((habitJson) {
         return ItemHabitModel.fromJson(habitJson).toEntity();
       }).toList();
     } on DatabaseException catch (e) {
-      print('❌ [LOCAL_DS] DatabaseException: ${e.toString()}');
+      AppLogger.e('[LOCAL_DS] DatabaseException', error: e);
       throw CacheException('Error al obtener hábitos: ${e.toString()}');
-    } catch (e) {
-      print('❌ [LOCAL_DS] Error genérico: ${e.toString()}');
-      print('❌ [LOCAL_DS] Tipo de error: ${e.runtimeType}');
+    } catch (e, st) {
+      AppLogger.e(
+        '[LOCAL_DS] Error genérico: ${e.runtimeType}',
+        error: e,
+        stackTrace: st,
+      );
       throw CacheException('Error al obtener hábitos: ${e.toString()}');
     }
   }
@@ -207,18 +216,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
 
       return habitId;
     } on DatabaseException catch (e) {
-      developer.log(
-        'Error al crear hábito',
-        name: 'HabitsLocalDatasourceImpl.createHabit',
-        error: e,
-      );
+      AppLogger.e('[LOCAL_DS] Error al crear hábito', error: e);
       throw CacheException('Error al crear hábito: ${e.toString()}');
-    } catch (e) {
-      developer.log(
-        'Error al crear hábito',
-        name: 'HabitsLocalDatasourceImpl.createHabit',
-        error: e,
-      );
+    } catch (e, st) {
+      AppLogger.e('[LOCAL_DS] Error al crear hábito', error: e, stackTrace: st);
       throw CacheException('Error al crear hábito: ${e.toString()}');
     }
   }
@@ -261,10 +262,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
           whereArgs: [habit.id, todayString],
         );
 
-        if (kDebugMode) {
-          print('✅ Hábito actualizado: ${habit.id}');
-          print('✅ daily_goal sincronizado en $updatedProgressCount registros de progreso desde $todayString');
-        }
+        AppLogger.d(
+          '[LOCAL_DS] Hábito actualizado: ${habit.id} — '
+          'daily_goal sincronizado en $updatedProgressCount registros desde $todayString',
+        );
       });
     } on DatabaseException catch (e) {
       throw CacheException('Error al actualizar hábito: ${e.toString()}');
@@ -303,10 +304,10 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
       if (existing.isNotEmpty) {
         // ⚠️ Ya existe un progreso para este día - retornar el ID existente
         final existingId = existing.first['id'] as String;
-        if (kDebugMode) {
-          print('⚠️ Ya existe un progreso para ${habitProgress.habitId} en ${habitProgress.date}');
-          print('   Retornando ID existente: $existingId');
-        }
+        AppLogger.w(
+          '[LOCAL_DS] Ya existe un progreso para ${habitProgress.habitId} '
+          'en ${habitProgress.date} — Retornando ID: $existingId',
+        );
         return existingId;
       }
 
@@ -325,9 +326,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         'synced': 0, // Marcar como no sincronizado
       });
 
-      if (kDebugMode) {
-        print('✅ Nuevo progreso creado: $progressId para ${habitProgress.date}');
-      }
+      AppLogger.d('[LOCAL_DS] Nuevo progreso creado: $progressId para ${habitProgress.date}');
 
       return progressId;
     } on DatabaseException catch (e) {

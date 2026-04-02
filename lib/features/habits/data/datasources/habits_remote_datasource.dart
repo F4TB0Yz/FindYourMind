@@ -1,11 +1,13 @@
+/// Capa: Feature → Habits → Data → Datasources
+/// Datasource remoto que conecta con Supabase (PostgreSQL) para la persistencia en la nube.
 import 'dart:io';
 
 import 'package:find_your_mind/core/error/exceptions.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/features/habits/data/models/item_habit_model.dart';
 import 'package:find_your_mind/features/habits/data/models/type_habit_model.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class HabitsRemoteDataSource {
@@ -101,9 +103,7 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
         .eq('habit_id', habit.id)
         .gte('date', todayString); // gte = greater than or equal (>=)
 
-      if (kDebugMode) {
-        print('✅ [REMOTE] Hábito y progresos actualizados desde $todayString');
-      }
+      AppLogger.d('[REMOTE] Hábito y progresos actualizados desde $todayString');
           
     } on PostgrestException catch (e) {
       throw ServerException('Error al actualizar: ${e.message}');
@@ -222,10 +222,10 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
       if (existing != null) {
         // ⚠️ Ya existe un progreso para este día - retornar el ID existente
         final existingId = existing['id'] as String;
-        if (kDebugMode) {
-          print('⚠️ [REMOTE] Ya existe un progreso para ${habitProgress.habitId} en ${habitProgress.date}');
-          print('   Retornando ID existente: $existingId');
-        }
+        AppLogger.w(
+          '[REMOTE] Ya existe un progreso para ${habitProgress.habitId} '
+          'en ${habitProgress.date} — Retornando ID: $existingId',
+        );
         return existingId;
       }
 
@@ -242,10 +242,8 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
         .select('id')
         .single();
       
-      if (kDebugMode) {
-        print('✅ [REMOTE] Nuevo progreso creado: ${response['id']} para ${habitProgress.date}');
-      }
-      
+      AppLogger.d('[REMOTE] Nuevo progreso creado: ${response['id']} para ${habitProgress.date}');
+
       return response['id'] as String?;
       
     } on PostgrestException catch (e) {

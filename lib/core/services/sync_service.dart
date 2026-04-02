@@ -1,6 +1,10 @@
+/// Capa: Core → Services
+/// Servicio dedicado a la sincronización bidireccional entre SQLite y Supabase.
+/// Implementa lógica de reintentos y cola de operaciones pendientes.
 import 'dart:convert';
 import 'package:find_your_mind/core/config/database_helper.dart';
 import 'package:find_your_mind/core/error/exceptions.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/utils/map_utils.dart';
 import 'package:find_your_mind/features/habits/data/datasources/habits_remote_datasource.dart';
 import 'package:find_your_mind/features/habits/data/models/item_habit_model.dart';
@@ -187,7 +191,7 @@ class SyncService {
     } on NetworkException {
       return false;
     } catch (e) {
-      print("error al sincronizar hábito: $e");
+      AppLogger.e('[SYNC] Error inesperado al sincronizar hábito', error: e);
       return false;
     }
   }
