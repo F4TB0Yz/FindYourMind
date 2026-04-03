@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 /// Card visual de un hábito en la lista principal con Glassmorfismo y efectos.
+import 'package:find_your_mind/shared/presentation/widgets/animations/particle_explosion.dart';
+
 class GestureCardHabitItem extends StatelessWidget {
   final HabitEntity habit;
   final String timeSinceStart;
@@ -14,6 +16,7 @@ class GestureCardHabitItem extends StatelessWidget {
   final int dailyGoal;
   final bool isFlashingRed;
   final bool isFlashingGreen;
+  final bool triggerCompletion;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -25,6 +28,7 @@ class GestureCardHabitItem extends StatelessWidget {
     required this.dailyGoal,
     required this.isFlashingRed,
     required this.isFlashingGreen,
+    required this.triggerCompletion,
     required this.onTap,
     required this.onLongPress,
   });
@@ -51,93 +55,101 @@ class GestureCardHabitItem extends StatelessWidget {
     final bool isComplete = progress >= 1.0;
     final bool atRisk = _isAtRisk;
 
-    return _ShakeWidget(
-      active: atRisk && !isComplete,
-      child: GestureDetector(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: isFlashingGreen
-                    ? AppColors.successMuted.withValues(alpha: 0.3)
-                    : isFlashingRed
-                        ? AppColors.dangerMuted.withValues(alpha: 0.3)
-                        : atRisk && !isComplete
-                            ? Colors.black.withValues(alpha: 0.4) // Desaturado/Oscuro
-                            : AppColors.darkBackground.withValues(alpha: 0.7),
-                border: Border.all(
-                  color: isFlashingGreen
-                      ? AppColors.successMuted.withValues(alpha: 0.6)
-                      : isFlashingRed
-                          ? AppColors.dangerMuted.withValues(alpha: 0.6)
-                          : isComplete
-                              ? AppColors.successMuted.withValues(alpha: 0.5)
-                              : AppColors.borderSubtle.withValues(alpha: 0.5),
-                  width: isComplete ? 1.5 : 1,
-                ),
-                boxShadow: [
-                  if (isComplete)
-                    BoxShadow(
-                      color: AppColors.successMuted.withValues(alpha: 0.15),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    ),
-                  if (isFlashing)
-                    BoxShadow(
+    return ParticleExplosion(
+      trigger: triggerCompletion,
+      child: AnimatedScale(
+        scale: triggerCompletion ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutBack,
+        child: _ShakeWidget(
+          active: atRisk && !isComplete,
+          child: GestureDetector(
+            onTap: onTap,
+            onLongPress: onLongPress,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: isFlashingGreen
+                        ? AppColors.successMuted.withValues(alpha: 0.3)
+                        : isFlashingRed
+                            ? AppColors.dangerMuted.withValues(alpha: 0.3)
+                            : atRisk && !isComplete
+                                ? Colors.black.withValues(alpha: 0.4) // Desaturado/Oscuro
+                                : AppColors.darkBackground.withValues(alpha: 0.7),
+                    border: Border.all(
                       color: isFlashingGreen
-                          ? AppColors.successMuted.withValues(alpha: 0.2)
-                          : AppColors.dangerMuted.withValues(alpha: 0.2),
-                      blurRadius: 8,
+                          ? AppColors.successMuted.withValues(alpha: 0.6)
+                          : isFlashingRed
+                              ? AppColors.dangerMuted.withValues(alpha: 0.6)
+                              : isComplete
+                                  ? AppColors.successMuted.withValues(alpha: 0.5)
+                                  : AppColors.borderSubtle.withValues(alpha: 0.5),
+                      width: isComplete ? 1.5 : 1,
                     ),
-                ],
-              ),
-              child: Opacity(
-                opacity: atRisk && !isComplete ? 0.7 : 1.0,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      habit.icon,
-                      width: 38,
-                      height: 38,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: _HabitCardContent(
-                        title: habit.title,
-                        progress: progress,
-                        counterToday: counterToday,
-                        dailyGoal: dailyGoal,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
+                    boxShadow: [
+                      if (isComplete)
+                        BoxShadow(
+                          color: AppColors.successMuted.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      if (isFlashing)
+                        BoxShadow(
+                          color: isFlashingGreen
+                              ? AppColors.successMuted.withValues(alpha: 0.2)
+                              : AppColors.dangerMuted.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                        ),
+                    ],
+                  ),
+                  child: Opacity(
+                    opacity: atRisk && !isComplete ? 0.7 : 1.0,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          '$counterToday/$dailyGoal',
-                          style: AppTextStyles.counter.copyWith(
-                            fontSize: 13,
-                            color: isComplete ? AppColors.successMuted : AppColors.accentText,
+                        SvgPicture.asset(
+                          habit.icon,
+                          width: 38,
+                          height: 38,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _HabitCardContent(
+                            title: habit.title,
+                            progress: progress,
+                            counterToday: counterToday,
+                            dailyGoal: dailyGoal,
                           ),
                         ),
-                        Text(
-                          timeSinceStart,
-                          style: AppTextStyles.timerSmall.copyWith(fontSize: 11),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$counterToday/$dailyGoal',
+                              style: AppTextStyles.counter.copyWith(
+                                fontSize: 13,
+                                color: isComplete ? AppColors.successMuted : AppColors.accentText,
+                              ),
+                            ),
+                            Text(
+                              timeSinceStart,
+                              style: AppTextStyles.timerSmall.copyWith(fontSize: 11),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),

@@ -20,6 +20,7 @@ class SlidableItem extends StatefulWidget {
   final int dailyGoal;
   final bool isFlashingRed;
   final bool isFlashingGreen;
+  final bool triggerCompletion;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -32,6 +33,7 @@ class SlidableItem extends StatefulWidget {
     required this.dailyGoal,
     required this.isFlashingRed,
     required this.isFlashingGreen,
+    required this.triggerCompletion,
     required this.onTap,
     required this.onLongPress,
   });
@@ -135,6 +137,7 @@ class _SlidableItemState extends State<SlidableItem> {
         dailyGoal: widget.dailyGoal,
         isFlashingRed: widget.isFlashingRed,
         isFlashingGreen: widget.isFlashingGreen,
+        triggerCompletion: widget.triggerCompletion,
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
       ),

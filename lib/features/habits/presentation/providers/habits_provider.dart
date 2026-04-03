@@ -115,6 +115,22 @@ class HabitsProvider extends ChangeNotifier {
     return todayProgress.dailyCounter;
   }
 
+  /// Calcula el progreso global de hoy (porcentaje de todos los objetivos)
+  double get globalTodayProgress {
+    if (_habits.isEmpty) return 0.0;
+    
+    int totalGoal = 0;
+    int totalCount = 0;
+    
+    for (final habit in _habits) {
+      totalGoal += habit.dailyGoal;
+      totalCount += getTodayCount(habit.id);
+    }
+    
+    if (totalGoal == 0) return 0.0;
+    return (totalCount / totalGoal).clamp(0.0, 1.0);
+  }
+
   /// Verifica si un hábito puede ser incrementado (no ha alcanzado la meta diaria)
   bool canIncrement(String habitId) {
     final habitIndex = _habits.indexWhere((h) => h.id == habitId);

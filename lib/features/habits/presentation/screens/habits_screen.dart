@@ -1,5 +1,6 @@
 import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/global_progress_bar.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
@@ -46,15 +47,22 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final habitsProvider = Provider.of<HabitsProvider>(context);
-
     return Column(
       children: [
-        // Header nativo: título + sync + botón +
+        // Header nativo: título + sync
         const _HabitsHeader(),
 
         // Divisor
         const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
+
+        // Barra de Progreso Global (Dopamina persistente)
+        Selector<HabitsProvider, double>(
+          selector: (_, provider) => provider.globalTodayProgress,
+          builder: (context, progress, _) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: GlobalProgressBar(progress: progress),
+          ),
+        ),
 
         // Filtros
         const _HabitsTabBar(),
@@ -69,44 +77,49 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
         // Lista
         Expanded(
-          child: habitsProvider.isLoading && habitsProvider.habits.isEmpty
-              ? const Center(
+          child: Consumer<HabitsProvider>(
+            builder: (context, habitsProvider, _) {
+              if (habitsProvider.isLoading && habitsProvider.habits.isEmpty) {
+                return const Center(
                   child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
-                )
-              : ListView.builder(
-                  controller: _scrollController,
-                  clipBehavior: Clip.none,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  itemCount: habitsProvider.habits.length +
-                      (habitsProvider.isLoading &&
-                              habitsProvider.hasMore &&
-                              habitsProvider.habits.isNotEmpty
-                          ? 1
-                          : 0),
-                  itemBuilder: (context, index) {
-                    if (index >= habitsProvider.habits.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: CustomLoadingDots(),
-                      );
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: ItemHabit(
-                        itemHabit: habitsProvider.habits[index],
-                        habitsProvider: habitsProvider,
-                      ),
+                );
+              }
+              
+              return ListView.builder(
+                controller: _scrollController,
+                clipBehavior: Clip.none,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                itemCount: habitsProvider.habits.length +
+                    (habitsProvider.isLoading &&
+                            habitsProvider.hasMore &&
+                            habitsProvider.habits.isNotEmpty
+                        ? 1
+                        : 0),
+                itemBuilder: (context, index) {
+                  if (index >= habitsProvider.habits.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: CustomLoadingDots(),
                     );
-                  },
-                ),
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ItemHabit(
+                      itemHabit: habitsProvider.habits[index],
+                      habitsProvider: habitsProvider,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ],
     );
   }
 }
 
-/// Header de la pantalla: "Hábitos" con sync y botón de agregar.
 class _HabitsHeader extends StatelessWidget {
   const _HabitsHeader();
 
@@ -120,17 +133,14 @@ class _HabitsHeader extends StatelessWidget {
             'Hábitos',
             style: AppTextStyles.h3,
           ),
-          SizedBox(width: 8),
-          SyncStatusIndicator(),
+          const SizedBox(width: 8),
+          const SyncStatusIndicator(),
         ],
       ),
     );
   }
 }
 
-/// Tabs de filtro: Todos / Recomendados.
-///
-/// El tab activo tiene un underline de color primario.
 class _HabitsTabBar extends StatelessWidget {
   const _HabitsTabBar();
 
@@ -140,9 +150,9 @@ class _HabitsTabBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _Tab(label: 'Todos', isActive: true),
+          const _Tab(label: 'Todos', isActive: true),
           const SizedBox(width: 20),
-          _Tab(label: 'Recomendados', isActive: false),
+          const _Tab(label: 'Recomendados', isActive: false),
         ],
       ),
     );

@@ -75,11 +75,14 @@ class _ItemHabitState extends State<ItemHabit> {
         dailyGoal: dailyGoal,
         isFlashingRed: _isFlashingRed,
         isFlashingGreen: _isFlashingGreen,
+        triggerCompletion: _triggerCompletion,
         onTap: _onTapCompleteHabit,
         onLongPress: _onLongPress,
       ),
     );
   }
+
+  bool _triggerCompletion = false;
 
   Future<void> _onTapCompleteHabit() async {
     // ✅ Validar ANTES de incrementar usando el provider
@@ -88,17 +91,32 @@ class _ItemHabitState extends State<ItemHabit> {
       return;
     }
 
+    final int counterBefore = widget.habitsProvider.getTodayCount(widget.itemHabit.id);
+    
     // 🚀 Incrementar y obtener resultado
     final bool success = await widget.habitsProvider.updateHabitCounter(widget.itemHabit.id);
 
     // Mostrar animación SOLO si fue exitoso
     if (success && mounted) {
-      setState(() => _isFlashingGreen = true);
+      final int counterAfter = widget.habitsProvider.getTodayCount(widget.itemHabit.id);
+      
+      // Dopamina: Disparar partículas si se completó el 100%
+      final bool justCompleted = counterAfter >= widget.itemHabit.dailyGoal && counterBefore < widget.itemHabit.dailyGoal;
+
+      setState(() {
+        _isFlashingGreen = true;
+        if (justCompleted) {
+          _triggerCompletion = true;
+        }
+      });
 
       await Future.delayed(AnimationConstants.fastAnimation);
 
       if (mounted) {
-        setState(() => _isFlashingGreen = false);
+        setState(() {
+          _isFlashingGreen = false;
+          _triggerCompletion = false;
+        });
       }
     }
   }
