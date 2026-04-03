@@ -4,6 +4,8 @@ Aplicación de seguimiento de hábitos personales construida con Flutter y Supab
 
 ---
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/F4TB0Yz/FindYourMind)
+
 ## ✨ Características
 
 - 📋 **Gestión de hábitos** — Crea, edita y elimina hábitos personalizados
