@@ -1,31 +1,32 @@
 import 'package:dartz/dartz.dart';
 import 'package:find_your_mind/core/error/failures.dart';
-import 'package:find_your_mind/core/utils/date_utils.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
-import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
-import 'package:uuid/uuid.dart';
 
-/// Caso de uso para crear un hábito y su progreso inicial
-/// 
-/// Encapsula la lógica de negocio para:
-/// - Validar los datos del hábito antes de crearlo
-/// - Generar identidades únicas (UUID) en el dominio
-/// - Orquestar la creación del hábito y su progreso diario inicial
+/// Caso de uso para crear un hábito y su progreso inicial.
+///
+/// Implementa el patrón **Client-Side Identity Generation**: asume que el
+/// [HabitEntity] recibido ya contiene un `id` válido (UUID v4) y que su
+/// lista `progress` contiene exactamente un registro inicial (día 0),
+/// ambos generados por la capa de Presentación.
+///
+/// Responsabilidades:
+/// - Validar los datos del hábito antes de persistirlos.
+/// - Persistir el hábito en el repositorio.
+/// - Extraer el progreso inicial de la entidad y persistirlo.
 class CreateHabitUseCase {
   final HabitRepository _repository;
-  final Uuid _uuid;
 
-  CreateHabitUseCase(this._repository, {Uuid? uuid}) : _uuid = uuid ?? const Uuid();
+  const CreateHabitUseCase(this._repository);
 
-  /// Ejecuta la creación del hábito y su primer registro de progreso
-  /// 
+  /// Valida y persiste el hábito junto a su progreso inicial pre-generado.
+  ///
   /// Parámetros:
-  /// - [habit]: El hábito a crear (sin ID necesario)
-  /// 
+  /// - [habit]: Entidad con `id` y `progress[0]` ya construidos por el Provider.
+  ///
   /// Retorna:
-  /// - [Right(String)]: El ID final del hábito creado
-  /// - [Left(Failure)]: Si ocurre un error en cualquiera de los pasos
+  /// - [Right(String)]: El ID del hábito persistido (igual al recibido).
+  /// - [Left(Failure)]: Si la validación o la persistencia fallan.
   Future<Either<Failure, String>> execute({
     required HabitEntity habit,
   }) async {
@@ -42,40 +43,25 @@ class CreateHabitUseCase {
       return Left(ValidationFailure('El icono del hábito no puede estar vacío'));
     }
 
-    // 2. Generación de Identidad en el Dominio
-    final String habitId = _uuid.v4();
-    final String progressId = _uuid.v4();
-    final String today = DateInfoUtils.todayString();
+    // 2. Orquestación: Persistir el Hábito (ya trae su ID del Provider)
+    final habitResult = await _repository.createHabit(habit);
 
-    // 3. Preparación de Entidades
-    final habitWithId = habit.copyWith(id: habitId, progress: []);
-    
-    final initialProgress = HabitProgress(
-      id: progressId,
-      habitId: habitId,
-      date: today,
-      dailyGoal: habit.dailyGoal,
-      dailyCounter: 0,
-    );
+    return habitResult.fold(
+      (failure) => Left(failure),
+      (_) async {
+        // 3. Extraer el progreso inicial pre-construido y persistirlo
+        if (habit.progress.isEmpty) {
+          return Right(habit.id);
+        }
 
-    // 4. Orquestación: Persistir Hábito
-    final habitResult = await _repository.createHabit(habitWithId);
-    
-    return await habitResult.fold(
-      (failure) async => Left(failure),
-      (returnedId) async {
-        // En un sistema offline-first, el ID retornado debería coincidir con el enviado,
-        // pero usamos el retornado por robustez si el repo decide cambiarlo.
-        final String finalHabitId = returnedId ?? habitId;
-
-        // 5. Orquestación: Persistir Progreso Inicial (Invisible para la UI al crear)
+        final initialProgress = habit.progress.first;
         final progressResult = await _repository.createHabitProgress(
-          habitProgress: initialProgress.copyWith(habitId: finalHabitId),
+          habitProgress: initialProgress,
         );
 
         return progressResult.fold(
           (failure) => Left(failure),
-          (_) => Right(finalHabitId),
+          (_) => Right(habit.id),
         );
       },
     );

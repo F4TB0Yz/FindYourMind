@@ -208,8 +208,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
 
     newHabitProvider.clear();
     
-    // 🎯 1. Crear el hábito. El orquestador (UseCase) se encarga del progreso inicial.
-    await habitsProvider.createHabit(habit);
+    // 🚀 Fire-and-Forget: createHabit es síncrono para la UI (optimistic insert).
+    // La persistencia ocurre en background. No bloqueamos aquí.
+    habitsProvider.createHabit(habit);
   }
 
   bool _verifyFields(HabitEntity habit) {

@@ -627,50 +627,64 @@ class HabitsProvider extends ChangeNotifier {
     }
   }
 
-  /// Crea un nuevo hábito (funciona offline)
-  /// El dominio se encarga de generar la identidad y orquestar el progreso inicial.
-  Future<String?> createHabit(HabitEntity habit) async {
-    try {
-      // 🚀 1. Ejecutar caso de uso (Orquestación en Dominio)
-      final result = await _createHabitUseCase.execute(habit: habit);
-      
-      return result.fold(
+  /// Crea un nuevo hábito con **Optimistic UI** y **Fire-and-Forget**.
+  ///
+  /// Implementa **Client-Side Identity Generation**: los UUIDs se generan aquí,
+  /// en la Presentación, permitiendo insertar el hábito en la UI de forma
+  /// INMEDIATA antes de que el UseCase termine de persistir en SQLite/red.
+  ///
+  /// Flujo:
+  /// 1. Genera `habitId` y `progressId` con UUID v4.
+  /// 2. Construye la entidad completa con su progreso inicial (día 0).
+  /// 3. Inserta optimistamente en `_habits[0]` y notifica listeners → UI reacciona.
+  /// 4. Dispara `_createHabitUseCase.execute` con `.then()` (no bloqueante).
+  /// 5. En caso de error (Left), hace rollback y muestra el error.
+  ///
+  /// Retorna el `habitId` generado (sin esperar la persistencia).
+  String? createHabit(HabitEntity habit) {
+    // 1. Generación de Identidad en el cliente (Client-Side Identity Generation)
+    final String habitId = const Uuid().v4();
+    final String progressId = const Uuid().v4();
+    final String today = DateInfoUtils.todayString();
+
+    // 2. Construir el progreso inicial (día 0)
+    final initialProgress = HabitProgress(
+      id: progressId,
+      habitId: habitId,
+      date: today,
+      dailyGoal: habit.dailyGoal,
+      dailyCounter: 0,
+    );
+
+    // 3. Construir la entidad completa con ID y progreso ya asignados
+    final HabitEntity habitWithId = habit.copyWith(
+      id: habitId,
+      progress: [initialProgress],
+    );
+
+    // 🚀 4. OPTIMISTIC UI: Insertar en posición 0 y notificar INMEDIATAMENTE
+    _habits.insert(0, habitWithId);
+    notifyListeners();
+    AppLogger.d('🚀 [OPTIMISTIC] Hábito insertado en UI: $habitId');
+
+    // 💾 5. FIRE-AND-FORGET: Persistir en background sin bloquear la UI
+    _createHabitUseCase.execute(habit: habitWithId).then((result) {
+      result.fold(
         (failure) {
-          AppLogger.e('Error al crear hábito: ${failure.message}');
-          _setError('Error al crear hábito: ${failure.message}');
-          return null;
-        },
-        (habitId) {
-          // 🚀 2. ACTUALIZACIÓN DE UI: Reflejar el hábito con su progreso inicial
-          // La UI no conoce los detalles del progreso, pero el Provider asegura
-          // que el estado local sea íntegro para reflejar el progreso de hoy.
-          final HabitEntity habitWithProgress = habit.copyWith(
-            id: habitId,
-            progress: [
-              HabitProgress(
-                id: '', // ID temporal, se sincronizará en la siguiente carga
-                habitId: habitId,
-                date: DateInfoUtils.todayString(),
-                dailyGoal: habit.dailyGoal,
-                dailyCounter: 0,
-              )
-            ],
-          );
-          
-          _habits.insert(0, habitWithProgress);
+          // ⚠️ ROLLBACK: Si falla la persistencia, eliminar de la UI
+          AppLogger.e('Error al crear hábito (rollback): ${failure.message}');
+          _habits.removeWhere((h) => h.id == habitId);
           notifyListeners();
-          
-          AppLogger.d('✅ Hábito y progreso inicial reflejados en UI: $habitId');
+          _setError('Error al crear hábito: ${failure.message}');
+        },
+        (_) {
+          AppLogger.d('✅ Hábito persistido exitosamente: $habitId');
           _notifyPendingChanges();
-          
-          return habitId;
         },
       );
-    } catch (e) {
-      AppLogger.e('Error inesperado en createHabit', error: e);
-      _setError('Error inesperado al crear hábito: ${e.toString()}');
-      return null;
-    }
+    });
+
+    return habitId;
   }
 
 
