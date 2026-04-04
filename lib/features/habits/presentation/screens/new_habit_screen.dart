@@ -207,25 +207,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     CustomToast.showToast(context: context, message: 'Hábito Creado');
 
     newHabitProvider.clear();
-
-    final String? habitId = await habitsProvider.createHabit(habit);
-
-    if (habitId == null) {
-      if (context.mounted) {
-        CustomToast.showToast(
-          context: context,
-          message: 'Error al sincronizar, se guardó localmente',
-        );
-      }
-      return;
-    }
-
-    final String? progressId = await habitsProvider.createHabitProgress(
-      habitId,
-      habit.dailyGoal,
-    );
-
-    if (progressId == null) return;
+    
+    // 🎯 1. Crear el hábito. El orquestador (UseCase) se encarga del progreso inicial.
+    await habitsProvider.createHabit(habit);
   }
 
   bool _verifyFields(HabitEntity habit) {

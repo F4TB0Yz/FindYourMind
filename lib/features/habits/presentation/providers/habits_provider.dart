@@ -628,51 +628,44 @@ class HabitsProvider extends ChangeNotifier {
   }
 
   /// Crea un nuevo hábito (funciona offline)
-  /// 🚀 ACTUALIZACIÓN OPTIMISTA: Genera UUID aquí y lo usa en SQLite y Supabase
+  /// El dominio se encarga de generar la identidad y orquestar el progreso inicial.
   Future<String?> createHabit(HabitEntity habit) async {
     try {
-      // 🎯 1. Generar UUID único que se usará en TODAS partes (SQLite + Supabase)
-      final String habitId = const Uuid().v4();
-      final HabitEntity habitWithId = habit.copyWith(id: habitId);
+      // 🚀 1. Ejecutar caso de uso (Orquestación en Dominio)
+      final result = await _createHabitUseCase.execute(habit: habit);
       
-      // 🚀 2. ACTUALIZACIÓN OPTIMISTA: Agregar a la UI inmediatamente
-      _habits.insert(0, habitWithId);
-      notifyListeners();
-      
-      AppLogger.d('✅ Hábito agregado a la UI con UUID: $habitId');
-
-      // 💾 3. Ejecutar caso de uso en segundo plano (NO bloqueante)
-      _createHabitUseCase.execute(habit: habitWithId).then((result) {
-        result.fold(
-          (failure) {
-            AppLogger.e('Error al crear hábito: ${failure.message}');
-            
-            // Revertir cambio optimista si falla
-            _habits.removeWhere((h) => h.id == habitId);
-            notifyListeners();
-            _setError('Error al crear hábito: ${failure.message}');
-          },
-          (returnedId) {
-            // ✅ Si el repositorio retorna un ID diferente (ej. generado por el server),
-            // actualizamos la referencia en nuestra lista para mantener integridad.
-            if (returnedId != null && returnedId != habitId) {
-              final index = _habits.indexWhere((h) => h.id == habitId);
-              if (index != -1) {
-                _habits[index] = _habits[index].copyWith(id: returnedId);
-                notifyListeners();
-                AppLogger.d('🔄 ID de hábito actualizado en UI de $habitId a $returnedId');
-              }
-            }
-            
-            AppLogger.d('✅ Hábito guardado exitosamente: $habitId');
-            
-            // Notificar cambios pendientes al SyncProvider
-            _notifyPendingChanges();
-          },
-        );
-      });
-
-      return habitId; // Retornar inmediatamente el UUID generado
+      return result.fold(
+        (failure) {
+          AppLogger.e('Error al crear hábito: ${failure.message}');
+          _setError('Error al crear hábito: ${failure.message}');
+          return null;
+        },
+        (habitId) {
+          // 🚀 2. ACTUALIZACIÓN DE UI: Reflejar el hábito con su progreso inicial
+          // La UI no conoce los detalles del progreso, pero el Provider asegura
+          // que el estado local sea íntegro para reflejar el progreso de hoy.
+          final HabitEntity habitWithProgress = habit.copyWith(
+            id: habitId,
+            progress: [
+              HabitProgress(
+                id: '', // ID temporal, se sincronizará en la siguiente carga
+                habitId: habitId,
+                date: DateInfoUtils.todayString(),
+                dailyGoal: habit.dailyGoal,
+                dailyCounter: 0,
+              )
+            ],
+          );
+          
+          _habits.insert(0, habitWithProgress);
+          notifyListeners();
+          
+          AppLogger.d('✅ Hábito y progreso inicial reflejados en UI: $habitId');
+          _notifyPendingChanges();
+          
+          return habitId;
+        },
+      );
     } catch (e) {
       AppLogger.e('Error inesperado en createHabit', error: e);
       _setError('Error inesperado al crear hábito: ${e.toString()}');
@@ -680,77 +673,6 @@ class HabitsProvider extends ChangeNotifier {
     }
   }
 
-  /// Crea un nuevo registro de progreso para un hábito
-  /// 🚀 ACTUALIZACIÓN OPTIMISTA: Genera UUID aquí y lo usa en SQLite y Supabase
-  Future<String?> createHabitProgress(
-    String habitId,
-    int dailyGoal,
-  ) async {
-    try {
-      final String todayString = DateInfoUtils.todayString();
-
-      // 🔍 Buscar el hábito
-      final habitIndex = _habits.indexWhere((h) => h.id == habitId);
-      
-      if (habitIndex == -1) {
-        AppLogger.w('Hábito con ID $habitId no encontrado');
-        return null;
-      }
-
-      // 🎯 1. Generar UUID único que se usará en TODAS partes
-      final String progressId = const Uuid().v4();
-      
-      // 🚀 2. ACTUALIZACIÓN OPTIMISTA: Agregar a la UI inmediatamente
-      final HabitProgress newProgress = HabitProgress(
-        id: progressId,
-        habitId: habitId,
-        date: todayString,
-        dailyGoal: dailyGoal,
-        dailyCounter: 0,
-      );
-      
-      final updatedHabit = _habits[habitIndex].copyWith(
-        progress: [..._habits[habitIndex].progress, newProgress],
-      );
-      _habits[habitIndex] = updatedHabit;
-      notifyListeners();
-      
-      AppLogger.d('✅ Progreso agregado a la UI con UUID: $progressId');
-
-      // 💾 3. Guardar en el repositorio (SQLite + Supabase con el MISMO UUID)
-      final result = await _repository.createHabitProgress(
-        habitProgress: newProgress,
-      );
-
-      return result.fold(
-        (failure) {
-          AppLogger.e('Error al crear progreso: ${failure.message}');
-          
-          // Revertir cambio optimista si falla
-          _habits[habitIndex].progress.removeWhere((p) => p.id == progressId);
-          notifyListeners();
-          
-          return null;
-        },
-        (returnedId) {
-          // ✅ El ID retornado DEBE ser el mismo que generamos
-          if (returnedId != progressId) {
-            AppLogger.w('ADVERTENCIA: El repositorio retornó un ID diferente. Esperado: $progressId, Recibido: $returnedId');
-          }
-          
-          AppLogger.d('✅ Progreso guardado exitosamente: $progressId');
-          
-          // Notificar cambios pendientes al SyncProvider
-          _notifyPendingChanges();
-          
-          return progressId; // Retornar el UUID que generamos aquí
-        },
-      );
-    } catch (e) {
-      AppLogger.e('Error createHabitProgress', error: e);
-      return null;
-    }
-  }
 
   /// Elimina un hábito (funciona offline)
   /// 🚀 ACTUALIZACIÓN OPTIMISTA: Elimina de la UI inmediatamente

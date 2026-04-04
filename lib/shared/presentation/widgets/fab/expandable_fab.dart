@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 /// Un Floating Action Button expandible para "Quick Actions".
 /// Implementa la Ley de Fitts al estar centrado y ser fácilmente accesible.
-/// Corregido: Expande HACIA ARRIBA en un arco de 210 a 330 grados.
+/// Utiliza un [Overlay] para que los botones expandidos no afecten el layout
+/// del Scaffold y mantengan su capacidad de recibir toques (hit-testing).
 class ExpandableFab extends StatefulWidget {
   const ExpandableFab({
     super.key,
@@ -27,24 +28,33 @@ class _ExpandableFabState extends State<ExpandableFab>
   late final Animation<double> _expandAnimation;
   bool _open = false;
 
+  // Para posicionar los botones del overlay relativos al FAB
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+
   @override
   void initState() {
     super.initState();
     _open = widget.initialOpen ?? false;
     _controller = AnimationController(
-      value: _open ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
+        value: _open ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 300),
+        vsync: this);
+
     _expandAnimation = CurvedAnimation(
       curve: Curves.fastOutSlowIn,
       reverseCurve: Curves.easeOutQuad,
       parent: _controller,
     );
+
+    if (_open) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _toggle());
+    }
   }
 
   @override
   void dispose() {
+    _hideOverlay();
     _controller.dispose();
     super.dispose();
   }
@@ -53,28 +63,73 @@ class _ExpandableFabState extends State<ExpandableFab>
     setState(() {
       _open = !_open;
       if (_open) {
+        _showOverlay();
         _controller.forward();
       } else {
-        _controller.reverse();
+        _controller.reverse().then((_) {
+          if (!mounted) return;
+          _hideOverlay();
+        });
       }
     });
   }
 
+  void _showOverlay() {
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _hideOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    return OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Fondo para cerrar al tocar fuera (Scrim)
+          GestureDetector(
+            onTap: _toggle,
+            child: Container(color: Colors.transparent),
+          ),
+          // Botones de acción vinculados al FAB
+          CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, 0),
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                clipBehavior: Clip.none,
+                children: _buildExpandingActionButtons(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // IMPORTANTE: Eliminamos SizedBox.expand para evitar "bugs de fondo"
-    // El FAB solo debe ocupar el espacio necesario para el botón central cuando está cerrado.
-    return SizedBox(
-      width: 56,
-      height: 56,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        clipBehavior: Clip.none,
-        children: [
-          _buildTapToCloseFab(),
-          ..._buildExpandingActionButtons(),
-          _buildTapToOpenFab(),
-        ],
+    // IMPORTANTE: El tamaño reportado al Scaffold es de 56x56.
+    // Esto asegura que el botón se posicione correctamente en el notch.
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          clipBehavior: Clip.none,
+          children: [
+            _buildTapToCloseFab(),
+            _buildTapToOpenFab(),
+          ],
+        ),
       ),
     );
   }
@@ -110,12 +165,10 @@ class _ExpandableFabState extends State<ExpandableFab>
   List<Widget> _buildExpandingActionButtons() {
     final children = <Widget>[];
     final count = widget.children.length;
-    // Arco superior en radianes (de ~40 grados a ~140 grados)
-    // En matemáticas: 0 = Derecha, PI/2 (1.57) = ARRIBA, PI = Izquierda.
     final startAngle = 0.7; // ~40 grados
-    final endAngle = 2.4;   // ~140 grados
+    final endAngle = 2.4; // ~140 grados
     final step = count > 1 ? (endAngle - startAngle) / (count - 1) : 0.0;
-    
+
     for (var i = 0; i < count; i++) {
       final angle = startAngle + (i * step);
       children.add(
@@ -193,16 +246,10 @@ class _ExpandingActionButton extends StatelessWidget {
     return AnimatedBuilder(
       animation: progress,
       builder: (context, child) {
-        // En matemáticas estándar: 
-        // dx = cos(angle), dy = sin(angle)
-        // dx positivo es Derecha, dy positivo es ARRIBA.
         final dx = math.cos(directionInRadians) * progress.value * maxDistance;
         final dy = math.sin(directionInRadians) * progress.value * maxDistance;
-        
+
         return Positioned(
-          // Centrado horizontal (28 es la mitad de 56)
-          // El child tiene un tamaño intrínseco, pero el ActionButton suele ser 40-48px.
-          // Si el child es ~48px, restamos 24 para centrarlo en el punto exacto.
           left: 28 - 24 + dx,
           bottom: dy,
           child: Transform.rotate(

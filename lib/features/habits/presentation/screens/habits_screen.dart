@@ -8,6 +8,10 @@ import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart'
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
+import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
+import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 
 class HabitsScreen extends StatefulWidget {
@@ -85,6 +89,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
                 );
               }
               
+              if (habitsProvider.habits.isEmpty) {
+                return const _EmptyHabitsState();
+              }
+              
               return ListView.builder(
                 controller: _scrollController,
                 clipBehavior: Clip.none,
@@ -135,6 +143,17 @@ class _HabitsHeader extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const SyncStatusIndicator(),
+          const Spacer(),
+          IconButton(
+            onPressed: () {
+              final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
+              screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
+            },
+            icon: const Icon(LucideIcons.plusCircle, size: 22),
+            color: AppColors.accentText,
+            splashRadius: 24,
+            tooltip: 'Crear nuevo hábito',
+          ),
         ],
       ),
     );
@@ -190,6 +209,68 @@ class _Tab extends StatelessWidget {
               borderRadius: BorderRadius.circular(1),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+class _EmptyHabitsState extends StatelessWidget {
+  const _EmptyHabitsState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            LucideIcons.sparkles,
+            size: 80,
+            color: AppColors.textMuted.withOpacity(0.5),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Comienza tu viaje',
+            style: AppTextStyles.h2.copyWith(
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: Text(
+              'Aún no tienes hábitos registrados. Elige uno y empieza a construir tu mejor versión hoy.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton.icon(
+            onPressed: () {
+              final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
+              screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
+            },
+            icon: const Icon(LucideIcons.plus, size: 18),
+            label: const Text('Crear mi primer hábito'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentText.withOpacity(0.1),
+              foregroundColor: AppColors.accentText,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: AppColors.accentText.withOpacity(0.4),
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 60), // Espacio para el FAB central
         ],
       ),
     );

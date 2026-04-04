@@ -5,13 +5,15 @@
 - Rediseño de Dashboard bajo la **Ley de Fitts** (FAB centrado y accesible).
 - Sistema de **Visualización Avanzada de Hábitos** con Glassmorfismo, efectos de Dopamina (Glow).
 - **Feedback Instantáneo (Dopamine Engineering)**: Micro-explosión de partículas, contracción de tarjetas y barra de progreso global animada.
+- **Arquitectura Limpia**: Refactorización del flujo de creación de hábitos para centralizar orquestación en el dominio.
+- **UX Onboarding**: Implementación de Empty States y persistencia del FAB para mejorar el flujo de creación.
 
 ## 🎯 ÚLTIMA ACCIÓN REALIZADA
-- **Implementación de Retroalimentación de Dopamina**:
-  1. **Particle System**: Creación de `ParticleExplosion` utilizando `CustomPainter` para bursts de alta eficiencia en la completación de hábitos.
-  2. **Contracción Mecánica**: Las tarjetas se encogen un 3% (`AnimatedScale`) al alcanzar el 100%, dando una sensación táctil a la UI.
-  3. **Global Progress Bar**: Barra superior persistente con un gradiente animado en bucle que refleja el progreso acumulado de todos los hábitos del día.
-  4. **Refactorización de Listeners**: Uso de `Selector` en `HabitsScreen` para optimizar reconstrucciones de la barra de progreso.
+- **Corrección de Posicionamiento y Hit-Testing del FAB**:
+  1. **Reversión de Tamaño**: El `ExpandableFab` ha vuelto a su tamaño estándar de 56x56 para asegurar un anclaje perfecto en el notch de la `BottomAppBar`.
+  2. **Implementación de Overlay**: Las acciones rápidas expandidas ahora se renderizan en una `OverlayEntry`. Esto elimina las restricciones de hit-testing del contenedor padre, permitiendo que los botones sean clickeables en su posición correcta.
+  3. **Sincronización con CompositedTransformTarget**: Se utilizaron `CompositedTransformTarget` y `Follower` para vincular milimétricamente la posición del menú desplegable al botón físico degradado.
+  4. **Cierre Automático**: Se integró una capa de "scrim" que garantiza el cierre de la acción al pulsar fuera.
 
 ## 🚀 TAREAS PENDIENTES (BACKLOG INMEDIATO)
 1. Pulir la pantalla de Perfil (`ProfileScreen`) con indicadores de racha (streaks) y logros usando los nuevos estilos de Glassmorfismo.
