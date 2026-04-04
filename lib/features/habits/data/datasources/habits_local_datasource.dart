@@ -417,10 +417,22 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
     try {
       final db = await databaseHelper.database;
 
+      // Elimina TODAS las tareas pendientes relacionadas con este hábito:
+      // 1. La tarea del hábito en sí       → entity_type='habit' AND entity_id=habitId
+      // 2. Las tareas de sus progresos      → entity_type='progress' AND data contiene habit_id
+      //
+      // Se usa LIKE sobre el JSON de 'data' para no requerir migración de BD.
       await db.delete(
         'pending_sync',
-        where: 'entity_id = ? AND entity_type = ?',
-        whereArgs: [habitId, 'habit'],
+        where:
+            "(entity_type = 'habit' AND entity_id = ?) "
+            "OR (entity_type = 'progress' AND data LIKE ?)",
+        whereArgs: [habitId, '%"habit_id":"$habitId"%'],
+      );
+
+      AppLogger.d(
+        '[LOCAL_DS] Tareas pendientes eliminadas para hábito: $habitId '
+        '(hábito + progresos asociados)',
       );
     } on DatabaseException catch (e) {
       throw CacheException(

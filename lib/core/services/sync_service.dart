@@ -49,69 +49,54 @@ class SyncService {
     }
   }
 
-  /// Sincroniza todos los cambios pendientes con el servidor
+  /// Sincroniza todos los cambios pendientes con el servidor.
+  ///
+  /// Implementa **FIFO estricto con Bloqueo en Cascada** (Dependency Awareness):
+  /// - Procesa los ítems en el orden exacto de `created_at ASC` (una sola cola).
+  /// - Si la sincronización de un `habit` falla, todos sus `progress` dependientes
+  ///   se marcan automáticamente para reintento sin hacer llamadas a la red,
+  ///   previniendo violaciones de FK en Supabase (progreso sin padre).
   Future<SyncResult> syncPendingChanges() async {
     try {
       final db = await _dbHelper.database;
-      
+
       final pendingItemsRaw = await db.query(
         'pending_sync',
         orderBy: 'created_at ASC',
       );
 
-      // Convertir explícitamente a List<Map<String, dynamic>>
+      // Cola FIFO única — sin separación de tipos
       final pendingItems = pendingItemsRaw
           .map((item) => Map<String, dynamic>.from(item))
           .toList();
 
-      // Separar hábitos y progresos para sincronizar en orden
-      final habitItems = pendingItems.where((item) => item['entity_type'] == 'habit').toList();
-      final progressItems = pendingItems.where((item) => item['entity_type'] == 'progress').toList();
-      
-      // Primero sincronizar todos los hábitos
-      final habitResults = await _syncItems(db, habitItems);
-      
-      // Luego sincronizar los progresos
-      final progressResults = await _syncItems(db, progressItems);
+      // 🔒 Registro de hábitos que fallaron en este ciclo.
+      // Cualquier progreso que dependa de uno de estos IDs será bloqueado en cascada.
+      final Set<String> failedHabitIds = {};
 
-  
-      return SyncResult(
-        success: habitResults.success + progressResults.success,
-        failed: habitResults.failed + progressResults.failed,
-        errors: [...habitResults.errors, ...progressResults.errors],
-      );
-    } on DatabaseException catch (e) {
-      throw CacheException('Error al sincronizar: ${e.toString()}');
-    }
-  }
+      int successCount = 0;
+      int failureCount = 0;
+      final List<String> errors = [];
 
-  Future<SyncResult> _syncItems(Database db, List<Map<String, dynamic>> items) async {
-    int successCount = 0;
-    int failureCount = 0;
-    List<String> errors = [];
+      for (final item in pendingItems) {
+        final entityType = item['entity_type'] as String;
+        final entityId = item['entity_id'] as String;
 
-    for (var item in items) {
-      try {
-        final bool success = await _processSyncItem(item);
-      
-        if (success) {
-          // Eliminar de la cola si tuvo éxito
-          await db.delete(
-            'pending_sync',
-            where: 'id = ?',
-            whereArgs: [item['id']],
+        // 1. Resolver el habit_id asociado a este ítem para el bloqueo en cascada
+        // Usamos un helper privado para mantener la declaración como final
+        final String associatedHabitId = _resolveHabitId(
+          entityType: entityType,
+          entityId: entityId,
+          rawData: item['data'] as String? ?? '',
+        );
+
+        // 2. Bloqueo en Cascada: si el hábito padre ya falló, bloquear este ítem
+        if (associatedHabitId.isNotEmpty &&
+            failedHabitIds.contains(associatedHabitId)) {
+          AppLogger.w(
+            '[SYNC] Bloqueando $entityType:$entityId — '
+            'su hábito padre ($associatedHabitId) falló en este ciclo',
           );
-          
-          // Marcar como sincronizado en la tabla correspondiente
-          await _markAsSynced(
-            db,
-            item['entity_type'] as String,
-            item['entity_id'] as String,
-          );
-          
-          successCount++;
-        } else {
-          // Incrementar contador de reintentos
           await db.update(
             'pending_sync',
             {'retry_count': (item['retry_count'] as int) + 1},
@@ -119,18 +104,79 @@ class SyncService {
             whereArgs: [item['id']],
           );
           failureCount++;
-        } 
-      } catch (e) {
-        errors.add('${item['entity_type']}: ${e.toString()}');
-        failureCount++;
-      }
-    }
+          continue;
+        }
 
-    return SyncResult(
-      success: successCount,
-      failed: failureCount,
-      errors: errors,
-    );
+        // 3. Intentar sincronizar con el servidor
+        try {
+          final bool success = await _processSyncItem(item);
+
+          if (success) {
+            await db.delete(
+              'pending_sync',
+              where: 'id = ?',
+              whereArgs: [item['id']],
+            );
+            await _markAsSynced(db, entityType, entityId);
+            successCount++;
+            AppLogger.d('[SYNC] ✅ $entityType:$entityId sincronizado');
+          } else {
+            // Fallo de red/servidor → registrar para bloqueo en cascada
+            if (entityType == 'habit') {
+              failedHabitIds.add(associatedHabitId);
+              AppLogger.w('[SYNC] ❌ Hábito $entityId falló — bloqueando dependientes');
+            }
+            await db.update(
+              'pending_sync',
+              {'retry_count': (item['retry_count'] as int) + 1},
+              where: 'id = ?',
+              whereArgs: [item['id']],
+            );
+            failureCount++;
+          }
+        } catch (e) {
+          errors.add('$entityType:$entityId — ${e.toString()}');
+          if (entityType == 'habit') {
+            failedHabitIds.add(associatedHabitId);
+          }
+          failureCount++;
+        }
+      }
+
+      AppLogger.d(
+        '[SYNC] Ciclo completado — '
+        'OK: $successCount | FAIL: $failureCount | CASCADE-BLOCKED: ${failedHabitIds.length} hábitos',
+      );
+
+      return SyncResult(
+        success: successCount,
+        failed: failureCount,
+        errors: errors,
+      );
+    } on DatabaseException catch (e) {
+      throw CacheException('Error al sincronizar: ${e.toString()}');
+    }
+  }
+
+  /// Resuelve el `habit_id` asociado a un ítem de la cola de sincronización.
+  ///
+  /// - Para ítems de tipo `habit`, el `habit_id` ES el propio `entity_id`.
+  /// - Para ítems de tipo `progress`, el `habit_id` se extrae del JSON en `data`.
+  ///
+  /// Retorna una cadena vacía si no puede resolver el ID (ej. JSON inválido).
+  String _resolveHabitId({
+    required String entityType,
+    required String entityId,
+    required String rawData,
+  }) {
+    if (entityType == 'habit') return entityId;
+    try {
+      final Map<String, dynamic> decoded =
+          MapUtils.convertToMap(jsonDecode(rawData));
+      return (decoded['habit_id'] as String?) ?? '';
+    } catch (_) {
+      return '';
+    }
   }
 
   /// Procesa un item individual de la cola de sincronización

@@ -9,10 +9,11 @@
 - **UX Onboarding**: Implementación de Empty States y persistencia del FAB para mejorar el flujo de creación.
 
 ## 🎯 ÚLTIMA ACCIÓN REALIZADA
-- **Implementación de Client-Side Identity Generation y Optimistic UI en Creación de Hábitos**:
-  1. **`CreateHabitUseCase` refactorizado**: Ya no genera UUIDs. Asume que `habit.id` y `habit.progress[0]` vienen pre-construidos desde la Presentación. Solo valida y orquesta la persistencia (hábito + progreso inicial extraído de `habit.progress.first`). Constructor ahora es `const`. Eliminadas dependencias de `uuid` y `date_utils` de la capa Domain.
-  2. **`HabitsProvider.createHabit` refactorizado a síncrono**: Genera `habitId` y `progressId` con `const Uuid().v4()` en el Provider. Construye la entidad completa con su `HabitProgress` inicial (día 0). Inserta en `_habits[0]` y llama a `notifyListeners()` INMEDIATAMENTE (cero bloques de UI). Dispara `_createHabitUseCase.execute` con `.then()` (Fire-and-Forget). En caso de `Left`, hace rollback removiendo el hábito de `_habits` con `removeWhere`, llama a `notifyListeners()` y muestra el error. Retorna `String?` directamente (ya no es `Future`).
-  3. **`NewHabitScreen._onTapSaveHabit` actualizado**: Eliminado el `await` ante `createHabit` (que ya es síncrono). Comentario actualizado para reflejar el patrón Fire-and-Forget.
+- **Refactorización de `SyncService`: FIFO estricto + Bloqueo en Cascada (Dependency Awareness)**:
+  1. **`syncPendingChanges` unificado**: Eliminada la separación en `habitItems`/`progressItems` y el método auxiliar `_syncItems`. La cola se procesa como una sola lista ordenada por `created_at ASC`.
+  2. **Bloqueo en Cascada**: Se introdujo `Set<String> failedHabitIds`. En cada iteración se resuelve el `associatedHabitId` (para `habit`, es `entity_id`; para `progress`, se extrae del JSON con `_resolveHabitId`). Si el hábito padre falló, el progreso dependiente se incrementa en `retry_count` y se salta con `continue` sin hacer llamadas a red, previniendo violaciones de FK en Supabase.
+  3. **Helper `_resolveHabitId` extraído**: Encapsula la extracción del `habit_id` desde el JSON del campo `data`, permitiendo declaración `final` limpia en el bucle principal.
+  4. **`deleteHabitPendingSync` expandido en `HabitsLocalDatasourceImpl`**: El DELETE ahora usa una condición compuesta: elimina la tarea del hábito (`entity_type='habit' AND entity_id=?`) Y todas las tareas de sus progresos (`entity_type='progress' AND data LIKE '%"habit_id":"<id>"%'`). Previene tareas huérfanas sin requerir migración de BD.
 
 ## 🚀 TAREAS PENDIENTES (BACKLOG INMEDIATO)
 1. Pulir la pantalla de Perfil (`ProfileScreen`) con indicadores de racha (streaks) y logros usando los nuevos estilos de Glassmorfismo.
