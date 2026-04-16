@@ -8,20 +8,22 @@ class HabitsFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF6366F1),
-            Color(0xFF4F46E5),
+            colorScheme.primary,
+            colorScheme.primary.withOpacity(0.8),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.35),
+            color: colorScheme.primary.withOpacity(0.35),
             blurRadius: 16,
             spreadRadius: 2,
           ),
@@ -32,7 +34,7 @@ class HabitsFab extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        child: Icon(Icons.add, color: colorScheme.onPrimary, size: 30),
       ),
     );
   }

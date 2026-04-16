@@ -17,8 +17,7 @@ class CustomBorderContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    // ThemeProvider still needed for ThemeMode check (light vs dark)
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isLight = Theme.of(context).brightness == Brightness.light;
 
     return Container(
       margin: margin,
@@ -26,9 +25,7 @@ class CustomBorderContainer extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
         border: Border.all(
-          color: themeProvider.themeMode == ThemeMode.light
-              ? cs.outlineVariant
-              : cs.outline,
+          color: isLight ? cs.outlineVariant : cs.outline,
           width: 0.4,
         )
       ),

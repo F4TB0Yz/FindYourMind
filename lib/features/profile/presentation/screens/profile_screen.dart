@@ -5,6 +5,7 @@ import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart'
 import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
+import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -63,6 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : _currentUser == null
               ? const Center(child: Text('No hay usuario autenticado'))
               : SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
@@ -142,13 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: cs.outlineVariant.withOpacity(0.5), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,13 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: cs.outlineVariant.withOpacity(0.5), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,6 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
+          _buildThemeTile(cs),
           _buildSettingsTile(
             icon: Icons.notifications_outlined,
             title: 'Notificaciones',
@@ -278,6 +269,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       trailing: Icon(Icons.chevron_right, color: cs.outline),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildThemeTile(ColorScheme cs) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
+
+    return ListTile(
+      leading: Icon(
+        isDark ? Icons.mode_night_outlined : Icons.wb_sunny_outlined,
+        color: cs.onSurfaceVariant,
+      ),
+      title: Text(
+        'Tema Oscuro',
+        style: TextStyle(fontSize: 16, color: cs.onSurface),
+      ),
+      trailing: Switch(
+        value: isDark,
+        activeColor: cs.primary,
+        onChanged: (value) {
+          themeProvider.toggleTheme();
+        },
+      ),
     );
   }
 

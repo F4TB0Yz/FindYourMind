@@ -112,8 +112,9 @@ class _MainAppState extends State<MainApp> {
       routerConfig: AppRouter.router,
       theme: AppTheme.getAppTheme(isDark: false),
       darkTheme: AppTheme.getAppTheme(isDark: true),
-      debugShowCheckedModeBanner: false,
       themeMode: themeProvider.themeMode,
+      themeAnimationDuration: Duration.zero,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

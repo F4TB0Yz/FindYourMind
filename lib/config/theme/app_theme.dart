@@ -11,7 +11,7 @@ const _darkOnSurface = Color(0xFFE6EDF3); // textPrimary
 const _darkOnSurfaceVariant = Color(0xFF8B949E); // textSecondary
 const _darkOutline = Color(0xFF484F58); // textMuted
 const _darkOutlineVariant = Color(0xFF30363D); // borderSubtle
-const _darkPrimary = Color(0xFF58A6FF); // accentText
+const _darkPrimary = Color(0xFF4DD0E1); // accentText
 const _darkTertiary = Color(0xFF3FB950); // successMuted
 const _darkError = Color(0xFFF85149); // dangerMuted
 
@@ -22,7 +22,7 @@ const _lightOnSurface = Color(0xFF1F2328);
 const _lightOnSurfaceVariant = Color(0xFF636C76);
 const _lightOutline = Color(0xFF8C959F);
 const _lightOutlineVariant = Color(0xFFD0D7DE);
-const _lightPrimary = Color(0xFF0969DA);
+const _lightPrimary = Color(0xFF0097A7);
 const _lightTertiary = Color(0xFF1A7F37);
 const _lightError = Color(0xFFCF222E);
 

@@ -16,8 +16,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
-    final bool isDarkTheme = themeProvider.themeMode == ThemeMode.dark;
 
     final cs = Theme.of(context).colorScheme;
 
@@ -43,7 +41,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
 
-            Profile(isDarkTheme: isDarkTheme),
+            Profile(),
           ],
         ),
       ),

@@ -10,10 +10,7 @@ import 'package:provider/provider.dart';
 class Profile extends StatefulWidget {
   const Profile({
     super.key, 
-    required this.isDarkTheme,
   });
-
-  final bool isDarkTheme;
 
   @override
   State<Profile> createState() => _ProfileWidgetState();
@@ -136,8 +133,7 @@ class _ProfileWidgetState extends State<Profile> {
           ),
         ),
         const PopupMenuDivider(),
-        const _ThemeToggleMenuItem(),
-        const PopupMenuDivider(),
+
         PopupMenuItem(
           onTap: () => Future.microtask(() => _handleSignOut()),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -220,78 +216,3 @@ class _ProfileWidgetState extends State<Profile> {
   }
 }
 
-class _ThemeToggleMenuItem extends PopupMenuEntry<dynamic> {
-  const _ThemeToggleMenuItem({Key? key}) : super(key: key);
-
-  @override
-  double get height => 48.0;
-
-  @override
-  bool represents(dynamic value) => false;
-
-  @override
-  State<_ThemeToggleMenuItem> createState() => _ThemeToggleMenuItemState();
-}
-
-class _ThemeToggleMenuItemState extends State<_ThemeToggleMenuItem> {
-  bool? _localIsDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: true);
-    
-    // Sincronizar estado local si es null o la animación ya terminó.
-    _localIsDark ??= themeProvider.themeMode == ThemeMode.dark;
-
-    final isDark = _localIsDark!;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _localIsDark = !isDark;
-        });
-        
-        // Pequeño delay para que inicie la animación antes del bloqueo por reconstrucción de tema
-        Future.delayed(const Duration(milliseconds: 50), () {
-          if (mounted) {
-            themeProvider.toggleTheme();
-          }
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: cs.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchInCurve: Curves.easeOutBack,
-                switchOutCurve: Curves.easeInBack,
-                transitionBuilder: (child, animation) {
-                  return RotationTransition(
-                    turns: Tween<double>(begin: 0.5, end: 1.0).animate(animation),
-                    child: ScaleTransition(scale: animation, child: child),
-                  );
-                },
-                child: isDark
-                    ? Icon(Icons.mode_night_rounded, key: const ValueKey('dark'), size: 20, color: cs.primary)
-                    : Icon(Icons.wb_sunny_rounded, key: const ValueKey('light'), size: 20, color: cs.primary),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              isDark ? 'Tema Claro' : 'Tema Oscuro',
-              style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
