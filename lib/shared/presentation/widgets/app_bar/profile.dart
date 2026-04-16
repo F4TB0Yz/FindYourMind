@@ -20,6 +20,37 @@ class Profile extends StatefulWidget {
 
 class _ProfileWidgetState extends State<Profile> {
   final GlobalKey _widgetKey = GlobalKey();
+  String _initials = 'US';
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitials();
+  }
+
+  Future<void> _loadInitials() async {
+    try {
+      final user = await AuthServiceLocator().getCurrentUserUseCase();
+      if (user != null && mounted) {
+        final name = user.displayName ?? user.email;
+        if (name.isNotEmpty) {
+          String init = name[0].toUpperCase();
+          final parts = name.split(' ');
+          if (parts.length > 1 && parts[1].isNotEmpty) {
+            init += parts[1][0].toUpperCase();
+          } else if (name.length > 1 && user.displayName == null) {
+            init += name[1].toUpperCase();
+          }
+          setState(() {
+            _initials = init;
+          });
+        }
+      }
+    } catch (_) {
+      // Ignorar error, usa por defecto 'US'
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,34 +58,31 @@ class _ProfileWidgetState extends State<Profile> {
 
     return GestureDetector(
       key: _widgetKey,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
       onTap: () => _showDropdownMenu(context),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: cs.surface,
-        ),
-        padding: const EdgeInsets.all(5),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundColor: cs.primary.withOpacity(0.15),
-              child: Text(
-                'JF',
-                style: TextStyle(
-                  color: cs.primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.85 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeInOutBack,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.transparent,
+          ),
+          padding: const EdgeInsets.all(4),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: cs.primary.withOpacity(0.15),
+            child: Text(
+              _initials,
+              style: TextStyle(
+                color: cs.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: cs.onSurfaceVariant,
-              size: 20,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -65,146 +93,95 @@ class _ProfileWidgetState extends State<Profile> {
         _widgetKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
-    final Offset position = renderBox.localToGlobal(Offset.zero);
+    final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
+    final cs = Theme.of(context).colorScheme;
 
-    final double screenWidth = MediaQuery.of(context).size.width;
-
-    const double dropdownWidth = 150;
-    const double horizontalPadding = 15;
-    double adjustedDx = position.dx;
-    if (adjustedDx + dropdownWidth > screenWidth - horizontalPadding) {
-      adjustedDx = screenWidth - dropdownWidth - horizontalPadding;
-    }
-    if (adjustedDx < horizontalPadding) adjustedDx = horizontalPadding;
-    final Offset adjustedPosition = Offset(adjustedDx, position.dy);
-
-    showDialog(
+    showMenu(
       context: context,
-      builder: (context) {
-        final cs = Theme.of(context).colorScheme;
-        return BlurShowDialogs(
-          position: adjustedPosition,
-          size: size,
-          child: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(10),
-            color: cs.surface,
-            child: Container(
-              width: 160,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Botón de cerrar
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Icon(
-                        Icons.close,
-                        size: 18,
-                        color: cs.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Opción Ver perfil
-                  _buildMenuOption(
-                    context: context,
-                    icon: Icons.person_outline,
-                    label: 'Ver perfil',
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      context.push('/profile');
-                    },
-                    cs: cs,
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  Divider(
-                    color: cs.outlineVariant,
-                    height: 1,
-                  ),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Opción Cerrar sesión
-                  _buildMenuOption(
-                    context: context,
-                    icon: Icons.logout,
-                    label: 'Cerrar sesión',
-                    onTap: () => _handleSignOut(context),
-                    isDestructive: true,
-                    cs: cs,
-                  ),
-                  
-                  const SizedBox(height: 4),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMenuOption({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required ColorScheme cs,
-    bool isDestructive = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isDestructive ? cs.error : cs.onSurfaceVariant,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: TextStyle(
-                color: isDestructive ? cs.error : cs.onSurfaceVariant,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+      color: cs.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: cs.outlineVariant.withOpacity(0.3), width: 1),
       ),
+      position: RelativeRect.fromLTRB(
+        offset.dx,
+        offset.dy + size.height + 8,
+        MediaQuery.of(context).size.width - offset.dx - size.width,
+        0,
+      ),
+      items: <PopupMenuEntry<dynamic>>[
+        PopupMenuItem(
+          onTap: () => Future.microtask(() => context.push('/profile')),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.person_outline, size: 20, color: cs.primary),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Mi Perfil',
+                style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          onTap: () => Future.microtask(() => _handleSignOut()),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: cs.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.logout_rounded, size: 20, color: cs.error),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Cerrar sesión',
+                style: TextStyle(color: cs.error, fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Future<void> _handleSignOut(BuildContext dropdownContext) async {
+  Future<void> _handleSignOut() async {
     final rootContext = context;
-    
-    Navigator.of(dropdownContext).pop();
     
     final shouldLogout = await showDialog<bool>(
       context: rootContext,
       builder: (context) => AlertDialog(
-        title: const Text('Cerrar sesión'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Cerrar sesión', style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Cancelar'),
           ),
-          TextButton(
+          FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cerrar sesión'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Salir'),
           ),
         ],
       ),
