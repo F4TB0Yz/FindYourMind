@@ -107,7 +107,7 @@ class _ProfileWidgetState extends State<Profile> {
       ),
       items: <PopupMenuEntry<dynamic>>[
         PopupMenuItem(
-          onTap: () => Future.microtask(() => context.push('/profile')),
+          onTap: () => Future.microtask(() => context.goNamed('perfil')),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Builder(
             builder: (innerContext) {

@@ -16,8 +16,8 @@ const _darkTertiary = Color(0xFF3FB950); // successMuted
 const _darkError = Color(0xFFF85149); // dangerMuted
 
 // ── Paleta Light ─────────────────────────────────────────────────────────────
-const _lightSurface = Colors.white;
-const _lightSurfaceLowest = Color(0xFFF0F6FF);
+const _lightSurface = Color(0xFFFCFEFE);
+const _lightSurfaceLowest = Color(0xFFF0F9FA);
 const _lightOnSurface = Color(0xFF1F2328);
 const _lightOnSurfaceVariant = Color(0xFF636C76);
 const _lightOutline = Color(0xFF8C959F);
@@ -67,7 +67,7 @@ final ThemeData lightTheme = ThemeData(
     inversePrimary: Color(0xFF79C0FF),
     onSurfaceVariant: _lightOnSurfaceVariant,
   ),
-  scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+  scaffoldBackgroundColor: const Color(0xFFF5FBFB),
   cardTheme: CardThemeData(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(_borderRadius),
