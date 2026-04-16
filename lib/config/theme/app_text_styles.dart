@@ -57,13 +57,13 @@ class AppTextStyles {
 
   // --- Monospaced (Counters / Real-time) ---
 
-  static TextStyle counter(BuildContext ctx) => GoogleFonts.jetBrainsMono(
+  static TextStyle counter(BuildContext ctx) => GoogleFonts.plusJakartaSans(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: Theme.of(ctx).colorScheme.primary,
       );
 
-  static TextStyle timerSmall(BuildContext ctx) => GoogleFonts.jetBrainsMono(
+  static TextStyle timerSmall(BuildContext ctx) => GoogleFonts.plusJakartaSans(
         fontSize: 10,
         fontWeight: FontWeight.w500,
         color: Theme.of(ctx).colorScheme.outline,

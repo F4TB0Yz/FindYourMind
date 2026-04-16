@@ -39,7 +39,6 @@ class CustomLoadingIndicator extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   color: cs.onSurfaceVariant,
-                  fontFamily: 'JosefinSans',
                 ),
               ),
             ],
@@ -167,7 +166,6 @@ class CustomLoadingBar extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 color: cs.onSurfaceVariant,
-                fontFamily: 'JosefinSans',
               ),
             ),
           ],
