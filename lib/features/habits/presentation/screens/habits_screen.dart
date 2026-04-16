@@ -6,10 +6,8 @@ import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/new_habit_screen.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 
@@ -149,8 +147,7 @@ class _HabitsHeader extends StatelessWidget {
           const Spacer(),
           IconButton(
             onPressed: () {
-              final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
-              screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
+              context.push('/habits/new');
             },
             icon: const Icon(LucideIcons.plusCircle, size: 22),
             color: cs.primary,
@@ -258,8 +255,7 @@ class _EmptyHabitsState extends StatelessWidget {
           const SizedBox(height: 40),
           ElevatedButton.icon(
             onPressed: () {
-              final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
-              screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
+              context.push('/habits/new');
             },
             icon: const Icon(LucideIcons.plus, size: 18),
             label: const Text('Crear mi primer hábito'),

@@ -1,9 +1,8 @@
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
 import 'package:flutter/material.dart';
 
 class ContainerBorderScreens extends StatelessWidget {
-  final ScreenType screenType;
+  final String title;
   final Widget child;
   final Widget? endWidget;
   final double rightSpacing = 10;
@@ -13,7 +12,7 @@ class ContainerBorderScreens extends StatelessWidget {
 
   const ContainerBorderScreens({
     super.key,
-    required this.screenType,
+    required this.title,
     required this.child,
     this.endWidget,
     this.crossAxisAlignment = CrossAxisAlignment.center,
@@ -46,7 +45,7 @@ class ContainerBorderScreens extends StatelessWidget {
                 // Texto centrado
                 Center(
                   child: Text(
-                    screenType.name,
+                    title,
                     style: TextStyle(
                       fontSize: 14,
                       color: cs.onSurface,

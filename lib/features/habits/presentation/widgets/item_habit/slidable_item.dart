@@ -3,11 +3,10 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/habit_detail_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/delete_habit_dialog.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/gesture_card.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -47,7 +46,6 @@ class _SlidableItemState extends State<SlidableItem> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
     return Slidable(
       key: ValueKey(widget.habit.id),
@@ -59,10 +57,7 @@ class _SlidableItemState extends State<SlidableItem> {
             onPressed: (context) {
               // Acción de editar
               widget.habitsProvider.changeTitle(widget.habit.title);
-              screensProvider.setScreenWidget(
-                HabitDetailScreen(habit: widget.habit), 
-                ScreenType.habits
-              );
+              context.push('/habits/${widget.habit.id}', extra: widget.habit);
             },
             backgroundColor: Colors.transparent,
             foregroundColor: cs.primary,

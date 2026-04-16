@@ -1,12 +1,10 @@
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class EditingView extends StatefulWidget {
@@ -44,7 +42,6 @@ class _EditingViewState extends State<EditingView> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
-    final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +153,7 @@ class _EditingViewState extends State<EditingView> {
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            onPressed: () => _saveHabit(habitsProvider, screensProvider),
+            onPressed: () => _saveHabit(habitsProvider),
             style: ElevatedButton.styleFrom(
               backgroundColor: cs.tertiary.withValues(alpha: 0.15),
               foregroundColor: cs.tertiary,
@@ -184,7 +181,7 @@ class _EditingViewState extends State<EditingView> {
     );
   }
 
-  Future<void> _saveHabit(HabitsProvider habitsProvider, ScreensProvider screensProvider) async {
+  Future<void> _saveHabit(HabitsProvider habitsProvider) async {
     if (_titleController.text.trim().isEmpty) {
       CustomToast.showToast(
         context: context,
@@ -221,7 +218,7 @@ class _EditingViewState extends State<EditingView> {
         message: 'Hábito guardado',
       );
 
-      screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+      context.pop();
     } catch (e) {
       if (!mounted) return;
       CustomToast.showToast(

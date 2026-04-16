@@ -1,37 +1,29 @@
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-/// Capa: Presentation → Widgets (Shared)
 /// Ítem individual del bottom navigation bar.
-/// Estado activo indicado por el color del ícono y un punto azul debajo.
+/// Estado activo indicado por color del ícono y punto azul debajo.
+/// Desacoplado de ScreensProvider — recibe [index] y [currentIndex].
 class CustomItemBar extends StatelessWidget {
   final IconData icon;
-  final Widget screen;
-  final ScreenType screenType;
-  final VoidCallback? onTap;
+  final int index;
+  final int currentIndex;
+  final VoidCallback onTap;
 
   const CustomItemBar({
     super.key,
     required this.icon,
-    required this.screen,
-    required this.screenType,
-    this.onTap,
+    required this.index,
+    required this.currentIndex,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screensProvider = Provider.of<ScreensProvider>(context);
-    final bool isSelected =
-        screensProvider.currentScreenType == screenType;
+    final bool isSelected = currentIndex == index;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        screensProvider.setScreenWidget(screen, screenType);
-        onTap?.call();
-      },
+      onTap: onTap,
       child: SizedBox(
         width: 64,
         height: 60,

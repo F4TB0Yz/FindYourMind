@@ -1,18 +1,14 @@
-import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
-import 'package:find_your_mind/features/notes/presentation/screens/notes_screen.dart';
-import 'package:find_your_mind/features/tasks/presentation/screens/tasks_screen.dart';
-import 'package:find_your_mind/features/profile/presentation/screens/profile_screen.dart';
-import 'package:find_your_mind/features/auth/presentation/providers/auth_service_locator.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_item_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-/// Capa: Presentation → Widgets (Shared)
-/// Barra de navegación inferior fija. Sin márgenes externos, sin bordes redondeados.
-/// Separada del contenido por un borde superior sutil.
+/// Barra de navegación inferior fija.
+/// Desacoplada de ScreensProvider — usa [StatefulNavigationShell] de GoRouter.
 class CustomBottomBar extends StatelessWidget {
-  const CustomBottomBar({super.key});
+  final StatefulNavigationShell shell;
+
+  const CustomBottomBar({super.key, required this.shell});
 
   @override
   Widget build(BuildContext context) {
@@ -25,29 +21,30 @@ class CustomBottomBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          const CustomItemBar(
+          CustomItemBar(
             icon: LucideIcons.penTool,
-            screen: NotesScreen(),
-            screenType: ScreenType.notes,
+            index: 2, // notes
+            currentIndex: shell.currentIndex,
+            onTap: () => shell.goBranch(2),
           ),
-          const CustomItemBar(
+          CustomItemBar(
             icon: LucideIcons.checkSquare,
-            screen: TasksScreen(),
-            screenType: ScreenType.tasks,
+            index: 1, // tasks
+            currentIndex: shell.currentIndex,
+            onTap: () => shell.goBranch(1),
           ),
-          const SizedBox(width: 48), // Espacio para el FAB
-          const CustomItemBar(
+          const SizedBox(width: 48), // espacio para el FAB
+          CustomItemBar(
             icon: LucideIcons.clock,
-            screen: HabitsScreen(),
-            screenType: ScreenType.habits,
+            index: 0, // habits
+            currentIndex: shell.currentIndex,
+            onTap: () => shell.goBranch(0),
           ),
           CustomItemBar(
             icon: LucideIcons.user,
-            screen: ProfileScreen(
-              getCurrentUserUseCase: AuthServiceLocator().getCurrentUserUseCase,
-              signOutUseCase: AuthServiceLocator().signOutUseCase,
-            ),
-            screenType: ScreenType.profile,
+            index: 3, // profile
+            currentIndex: shell.currentIndex,
+            onTap: () => shell.goBranch(3),
           ),
         ],
       ),

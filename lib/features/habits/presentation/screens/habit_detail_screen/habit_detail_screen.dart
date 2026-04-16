@@ -2,10 +2,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/details_view.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/editing_view.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class HabitDetailScreen extends StatefulWidget {
@@ -72,7 +70,6 @@ class _HabitDetailHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
@@ -85,7 +82,7 @@ class _HabitDetailHeader extends StatelessWidget {
               if (isEditing) {
                 onToggleEdit();
               } else {
-                screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+                context.pop();
               }
             },
             padding: const EdgeInsets.all(8),

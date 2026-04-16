@@ -2,14 +2,12 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/type_habit_selector.dart';
-import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
-import 'package:find_your_mind/shared/presentation/providers/screen_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class NewHabitScreen extends StatefulWidget {
@@ -25,12 +23,11 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     final cs = Theme.of(context).colorScheme;
     final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
     final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
-    final ScreensProvider screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
     return Column(
       children: [
         _NewHabitHeader(
-          onBack: () => screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits),
+          onBack: () => context.pop(),
         ),
         Divider(height: 1, thickness: 1, color: cs.outlineVariant),
         
@@ -147,7 +144,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: () => _onTapSaveHabit(context, newHabitProvider, habitsProvider, screensProvider),
+                        onPressed: () => _onTapSaveHabit(context, newHabitProvider, habitsProvider),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: cs.tertiary.withValues(alpha: 0.15),
                           foregroundColor: cs.tertiary,
@@ -183,7 +180,6 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     BuildContext context,
     NewHabitProvider newHabitProvider,
     HabitsProvider habitsProvider,
-    ScreensProvider screensProvider,
   ) async {
     final userId = await habitsProvider.getUserId();
     
@@ -203,7 +199,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
 
     if (!context.mounted) return;
 
-    screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits);
+    context.pop();
     CustomToast.showToast(context: context, message: 'Hábito Creado');
 
     newHabitProvider.clear();
