@@ -2,7 +2,7 @@ import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
+import 'package:find_your_mind/shared/presentation/widgets/layouts/feature_layout.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
@@ -58,33 +58,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return ContainerBorderScreens(
+    return FeatureLayout(
+      scrollable: !_isLoading && _currentUser != null,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentUser == null
               ? const Center(child: Text('No hay usuario autenticado'))
-              : SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      // Avatar
-                      _buildAvatar(cs),
-                      const SizedBox(height: 16),
-                      // Nombre/Email
-                      _buildUserInfo(cs),
-                      const SizedBox(height: 32),
-                      // Información de la cuenta
-                      _buildAccountSection(cs),
-                      const SizedBox(height: 16),
-                      // Configuración
-                      _buildSettingsSection(cs),
-                      const SizedBox(height: 32),
-                      // Botón de cerrar sesión
-                      _buildSignOutButton(cs),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+              : Column(
+                  children: [
+                    // Avatar
+                    _buildAvatar(cs),
+                    const SizedBox(height: 16),
+                    // Nombre/Email
+                    _buildUserInfo(cs),
+                    const SizedBox(height: 32),
+                    // Información de la cuenta
+                    _buildAccountSection(cs),
+                    const SizedBox(height: 16),
+                    // Configuración
+                    _buildSettingsSection(cs),
+                    const SizedBox(height: 32),
+                    // Botón de cerrar sesión
+                    _buildSignOutButton(cs),
+                    const SizedBox(height: 16),
+                  ],
                 ),
     );
   }

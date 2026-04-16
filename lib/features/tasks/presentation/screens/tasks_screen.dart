@@ -1,4 +1,4 @@
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
+import 'package:find_your_mind/shared/presentation/widgets/layouts/feature_layout.dart';
 import 'package:find_your_mind/shared/presentation/widgets/soon_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -7,7 +7,7 @@ class TasksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ContainerBorderScreens(
+    return const FeatureLayout(
       child: SoonWidget(
         nameFeature: 'TAREAS',
       ),

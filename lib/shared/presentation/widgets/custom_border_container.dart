@@ -23,10 +23,13 @@ class CustomBorderContainer extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
+        color: cs.surface,
+        borderRadius: BorderRadius.zero,
         border: Border.all(
-          color: isLight ? cs.outlineVariant : cs.outline,
-          width: 0.4,
+          color: isLight 
+              ? cs.outlineVariant.withOpacity(0.8) 
+              : cs.outline.withOpacity(0.5),
+          width: 1.0,
         )
       ),
       child: child,
