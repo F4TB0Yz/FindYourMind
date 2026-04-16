@@ -21,6 +21,8 @@ class CustomItemBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isSelected = currentIndex == index;
 
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -33,9 +35,7 @@ class CustomItemBar extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: isSelected
-                  ? const Color(0xFF58a6ff)
-                  : const Color(0xFF8b949e),
+              color: isSelected ? cs.primary : cs.onSurfaceVariant,
             ),
             const SizedBox(height: 5),
             AnimatedContainer(
@@ -43,9 +43,7 @@ class CustomItemBar extends StatelessWidget {
               width: 4,
               height: 4,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF58a6ff)
-                    : Colors.transparent,
+                color: isSelected ? cs.primary : Colors.transparent,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

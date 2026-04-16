@@ -2,6 +2,7 @@ import 'package:find_your_mind/features/auth/presentation/providers/auth_service
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/blur_show_dialogs.dart';
+import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -99,14 +100,8 @@ class _ProfileWidgetState extends State<Profile> {
 
     showMenu(
       context: context,
-      color: cs.surface,
-      surfaceTintColor: Colors.transparent,
       elevation: 8,
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: cs.outlineVariant.withOpacity(0.3), width: 1),
-      ),
       position: RelativeRect.fromLTRB(
         offset.dx,
         offset.dy + size.height + 8,
@@ -117,44 +112,56 @@ class _ProfileWidgetState extends State<Profile> {
         PopupMenuItem(
           onTap: () => Future.microtask(() => context.push('/profile')),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: cs.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.person_outline, size: 20, color: cs.primary),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Mi Perfil',
-                style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-            ],
+          child: Builder(
+            builder: (innerContext) {
+              final csInner = Theme.of(innerContext).colorScheme;
+              return Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: csInner.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.person_outline, size: 20, color: csInner.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Mi Perfil',
+                    style: TextStyle(color: csInner.onSurface, fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              );
+            }
           ),
         ),
+        const PopupMenuDivider(),
+        const _ThemeToggleMenuItem(),
         const PopupMenuDivider(),
         PopupMenuItem(
           onTap: () => Future.microtask(() => _handleSignOut()),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: cs.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.logout_rounded, size: 20, color: cs.error),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Cerrar sesión',
-                style: TextStyle(color: cs.error, fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-            ],
+          child: Builder(
+            builder: (innerContext) {
+              final csInner = Theme.of(innerContext).colorScheme;
+              return Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: csInner.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.logout_rounded, size: 20, color: csInner.error),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Cerrar sesión',
+                    style: TextStyle(color: csInner.error, fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              );
+            }
           ),
         ),
       ],
@@ -210,5 +217,81 @@ class _ProfileWidgetState extends State<Profile> {
         },
       );
     }
+  }
+}
+
+class _ThemeToggleMenuItem extends PopupMenuEntry<dynamic> {
+  const _ThemeToggleMenuItem({Key? key}) : super(key: key);
+
+  @override
+  double get height => 48.0;
+
+  @override
+  bool represents(dynamic value) => false;
+
+  @override
+  State<_ThemeToggleMenuItem> createState() => _ThemeToggleMenuItemState();
+}
+
+class _ThemeToggleMenuItemState extends State<_ThemeToggleMenuItem> {
+  bool? _localIsDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: true);
+    
+    // Sincronizar estado local si es null o la animación ya terminó.
+    _localIsDark ??= themeProvider.themeMode == ThemeMode.dark;
+
+    final isDark = _localIsDark!;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _localIsDark = !isDark;
+        });
+        
+        // Pequeño delay para que inicie la animación antes del bloqueo por reconstrucción de tema
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (mounted) {
+            themeProvider.toggleTheme();
+          }
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: cs.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutBack,
+                switchOutCurve: Curves.easeInBack,
+                transitionBuilder: (child, animation) {
+                  return RotationTransition(
+                    turns: Tween<double>(begin: 0.5, end: 1.0).animate(animation),
+                    child: ScaleTransition(scale: animation, child: child),
+                  );
+                },
+                child: isDark
+                    ? Icon(Icons.mode_night_rounded, key: const ValueKey('dark'), size: 20, color: cs.primary)
+                    : Icon(Icons.wb_sunny_rounded, key: const ValueKey('light'), size: 20, color: cs.primary),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              isDark ? 'Tema Claro' : 'Tema Oscuro',
+              style: TextStyle(color: cs.onSurface, fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

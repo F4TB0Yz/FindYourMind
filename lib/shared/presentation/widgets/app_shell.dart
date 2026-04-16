@@ -2,6 +2,7 @@ import 'package:find_your_mind/shared/presentation/widgets/app_bar/custom_app_ba
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/fab/habits_fab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 /// Shell persistente: AppBar + BottomBar + FAB condicional.
@@ -19,12 +20,23 @@ class AppShell extends StatelessWidget {
     // Esto evita hardcodear títulos en cada pantalla individual.
     final String currentTitle = _getRouteTitle(context);
 
-    return Scaffold(
-      appBar: CustomAppBar(title: currentTitle),
-      body: shell,
-      bottomNavigationBar: CustomBottomBar(shell: shell),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: isHabitsTab ? const HabitsFab() : null,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        systemNavigationBarColor: surfaceColor,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarColor: surfaceColor,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      ),
+      child: Scaffold(
+        appBar: CustomAppBar(title: currentTitle),
+        body: shell,
+        bottomNavigationBar: CustomBottomBar(shell: shell),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: isHabitsTab ? const HabitsFab() : null,
+      ),
     );
   }
 

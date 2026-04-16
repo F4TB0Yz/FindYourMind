@@ -19,10 +19,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
     final bool isDarkTheme = themeProvider.themeMode == ThemeMode.dark;
 
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0d1117),
-        border: Border(bottom: BorderSide(color: Color(0xFF30363d), width: 1)),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border(bottom: BorderSide(color: cs.outlineVariant.withOpacity(0.5), width: 1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: SafeArea(

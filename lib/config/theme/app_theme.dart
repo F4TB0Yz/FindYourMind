@@ -108,6 +108,14 @@ final ThemeData lightTheme = ThemeData(
     ),
   ),
   dividerTheme: const DividerThemeData(color: _lightOutlineVariant),
+  popupMenuTheme: PopupMenuThemeData(
+    color: _lightSurface,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: BorderSide(color: _lightOutlineVariant.withOpacity(0.3), width: 1),
+    ),
+  ),
 );
 
 final ThemeData darkTheme = ThemeData(
@@ -192,6 +200,14 @@ final ThemeData darkTheme = ThemeData(
     ),
   ),
   dividerTheme: const DividerThemeData(color: _darkOutlineVariant),
+  popupMenuTheme: PopupMenuThemeData(
+    color: _darkSurface,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+      side: BorderSide(color: _darkOutlineVariant.withOpacity(0.3), width: 1),
+    ),
+  ),
 );
 
 class AppTheme {
