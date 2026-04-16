@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:flutter/material.dart';
 
@@ -24,12 +23,14 @@ class StatisticsHabit extends StatelessWidget {
         ? (completedDays / totalDays * 100).toStringAsFixed(1)
         : '0.0';
 
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.darkBackground,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderSubtle, width: 1),
+        border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,22 +59,23 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: AppColors.accentText,
+            color: cs.primary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -88,7 +90,7 @@ class _StatDivider extends StatelessWidget {
     return Container(
       width: 1,
       height: 32,
-      color: AppColors.borderSubtle,
+      color: Theme.of(context).colorScheme.outlineVariant,
     );
   }
 }

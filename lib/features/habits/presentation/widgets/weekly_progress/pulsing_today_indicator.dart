@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Indicador pulsante para el día actual en el progreso semanal.
@@ -45,9 +44,8 @@ class _PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final Color borderColor = widget.isCompleted
-        ? AppColors.successMuted
-        : AppColors.dangerMuted;
+    final cs = Theme.of(context).colorScheme;
+    final Color borderColor = widget.isCompleted ? cs.tertiary : cs.error;
 
     return AnimatedBuilder(
       animation: _animation,
@@ -58,8 +56,8 @@ class _PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: widget.isCompleted
-                ? AppColors.successMuted.withValues(alpha: 0.12)
-                : AppColors.dangerMuted.withValues(alpha: 0.08),
+                ? cs.tertiary.withValues(alpha: 0.12)
+                : cs.error.withValues(alpha: 0.08),
             border: Border.all(
               color: borderColor.withValues(alpha: _animation.value),
               width: 1.5,
@@ -77,9 +75,9 @@ class _PulsingTodayIndicatorState extends State<PulsingTodayIndicator>
       child: Center(
         child: Text(
           '${widget.day}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),

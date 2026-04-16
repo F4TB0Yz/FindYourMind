@@ -9,11 +9,11 @@
 - **UX Onboarding**: Implementación de Empty States y persistencia del FAB para mejorar el flujo de creación.
 
 ## 🎯 ÚLTIMA ACCIÓN REALIZADA
-- **Refactorización de `SyncService`: FIFO estricto + Bloqueo en Cascada (Dependency Awareness)**:
-  1. **`syncPendingChanges` unificado**: Eliminada la separación en `habitItems`/`progressItems` y el método auxiliar `_syncItems`. La cola se procesa como una sola lista ordenada por `created_at ASC`.
-  2. **Bloqueo en Cascada**: Se introdujo `Set<String> failedHabitIds`. En cada iteración se resuelve el `associatedHabitId` (para `habit`, es `entity_id`; para `progress`, se extrae del JSON con `_resolveHabitId`). Si el hábito padre falló, el progreso dependiente se incrementa en `retry_count` y se salta con `continue` sin hacer llamadas a red, previniendo violaciones de FK en Supabase.
-  3. **Helper `_resolveHabitId` extraído**: Encapsula la extracción del `habit_id` desde el JSON del campo `data`, permitiendo declaración `final` limpia en el bucle principal.
-  4. **`deleteHabitPendingSync` expandido en `HabitsLocalDatasourceImpl`**: El DELETE ahora usa una condición compuesta: elimina la tarea del hábito (`entity_type='habit' AND entity_id=?`) Y todas las tareas de sus progresos (`entity_type='progress' AND data LIKE '%"habit_id":"<id>"%'`). Previene tareas huérfanas sin requerir migración de BD.
+- **Refactorización Completa de Flujos de Progreso (Incremento/Decremento) con Idempotencia**:
+  1. **Unificación en `SaveHabitProgressUseCase`**: Tanto el incremento como el decremento ahora utilizan un caso de uso idempotente único, eliminando los antiguos `UpdateHabitCounterUseCase` y `DecrementHabitProgressUseCase`. El dominio ahora solo valida (`dailyCounter >= 0` y `<= dailyGoal`) y delega la responsabilidad algorítmica a la presentación.
+  2. **Client-Side Identity**: `HabitsProvider` genera UUIDs estables para la persistencia inmediata.
+  3. **Optimistic UI con Prevención de Race Conditions**: Las actualizaciones de progreso son atómicas, presentadas de forma instantánea y encoladas para sincronización en SQLite en background mediante `_queueDbOperation`.
+  4. **Codebase Cleanup**: Se eliminó código muerto y se purgó lógica residual redundante de los UseCases y dependencias.
 
 ## 🚀 TAREAS PENDIENTES (BACKLOG INMEDIATO)
 1. Pulir la pantalla de Perfil (`ProfileScreen`) con indicadores de racha (streaks) y logros usando los nuevos estilos de Glassmorfismo.

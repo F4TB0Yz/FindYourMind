@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:find_your_mind/core/constants/color_constants.dart';
 
 class IconPicker {
   static Future<String?> showSvgIconPicker({
@@ -11,12 +10,13 @@ class IconPicker {
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (BuildContext context) {
+        final cs = Theme.of(context).colorScheme;
         return Dialog(
-          backgroundColor: AppColors.darkBackground,
+          backgroundColor: cs.surface,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: AppColors.borderSubtle, width: 1),
+            side: BorderSide(color: cs.outlineVariant, width: 1),
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
@@ -29,12 +29,12 @@ class IconPicker {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Selecciona un ícono',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: cs.onSurface,
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -44,11 +44,11 @@ class IconPicker {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.darkBackgroundAlt,
+                            color: cs.surfaceContainerLowest,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.borderSubtle, width: 1),
+                            border: Border.all(color: cs.outlineVariant, width: 1),
                           ),
-                          child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+                          child: Icon(Icons.close, size: 16, color: cs.onSurfaceVariant),
                         ),
                       ),
                     ],
@@ -70,9 +70,9 @@ class IconPicker {
                           behavior: HitTestBehavior.opaque,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: AppColors.darkBackgroundAlt,
+                              color: cs.surfaceContainerLowest,
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppColors.borderSubtle, width: 1),
+                              border: Border.all(color: cs.outlineVariant, width: 1),
                             ),
                             padding: const EdgeInsets.all(12),
                             child: SvgPicture.asset(

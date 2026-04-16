@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
@@ -23,6 +22,7 @@ class NewHabitScreen extends StatefulWidget {
 class _NewHabitScreenState extends State<NewHabitScreen> {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
     final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
     final ScreensProvider screensProvider = Provider.of<ScreensProvider>(context, listen: false);
@@ -32,7 +32,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
         _NewHabitHeader(
           onBack: () => screensProvider.setScreenWidget(const HabitsScreen(), ScreenType.habits),
         ),
-        const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
+        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
         
         Expanded(
           child: SingleChildScrollView(
@@ -43,12 +43,12 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     const SizedBox(height: 12),
                     
                     // Icono
-                    const Text(
+                    Text(
                       'Icono',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -59,8 +59,8 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.borderSubtle),
-                              color: AppColors.darkBackground,
+                              border: Border.all(color: cs.outlineVariant),
+                              color: cs.surface,
                             ),
                             padding: const EdgeInsets.all(4),
                             child: AddIcon(
@@ -76,13 +76,13 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.accentText,
+                                color: cs.primary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.darkBackgroundAlt, width: 2),
+                                border: Border.all(color: cs.surfaceContainerLowest, width: 2),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.edit,
-                                color: AppColors.darkBackgroundAlt,
+                                color: cs.onPrimary,
                                 size: 14,
                               ),
                             ),
@@ -113,12 +113,12 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     const SizedBox(height: 24),
                     
                     // Tipo
-                    const Text(
+                    Text(
                       'Tipo',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -128,12 +128,12 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     const SizedBox(height: 24),
 
                     // Meta Diaria
-                    const Text(
+                    Text(
                       'Meta Diaria',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -149,13 +149,13 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                       child: ElevatedButton(
                         onPressed: () => _onTapSaveHabit(context, newHabitProvider, habitsProvider, screensProvider),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.successMuted.withValues(alpha: 0.15),
-                          foregroundColor: AppColors.successMuted,
+                          backgroundColor: cs.tertiary.withValues(alpha: 0.15),
+                          foregroundColor: cs.tertiary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              color: AppColors.successMuted.withValues(alpha: 0.4),
+                              color: cs.tertiary.withValues(alpha: 0.4),
                               width: 1,
                             )
                           ),
@@ -209,7 +209,6 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     newHabitProvider.clear();
     
     // 🚀 Fire-and-Forget: createHabit es síncrono para la UI (optimistic insert).
-    // La persistencia ocurre en background. No bloqueamos aquí.
     habitsProvider.createHabit(habit);
   }
 
@@ -242,25 +241,27 @@ class _NewHabitHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, size: 24, color: AppColors.textSecondary),
+            icon: Icon(Icons.close, size: 24, color: cs.onSurfaceVariant),
             onPressed: onBack,
             padding: const EdgeInsets.all(8),
             splashRadius: 24,
             tooltip: 'Cancelar',
           ),
           const SizedBox(width: 4),
-          const Expanded(
+          Expanded(
             child: Text(
               'Nuevo Hábito',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: cs.onSurface,
                 letterSpacing: -0.3,
               ),
             ),
@@ -287,35 +288,37 @@ class _LabeledTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.darkBackground,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.borderSubtle),
+            border: Border.all(color: cs.outlineVariant),
           ),
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: AppColors.textPrimary,
+              color: cs.onSurface,
               fontWeight: FontWeight.w400,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: AppColors.textMuted),
+              hintStyle: TextStyle(color: cs.outline),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),

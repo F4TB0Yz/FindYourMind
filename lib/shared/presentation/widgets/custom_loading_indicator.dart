@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Indicador de carga personalizado para listas
@@ -14,13 +13,14 @@ class CustomLoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Indicador circular con colores del tema
             SizedBox(
               width: 30,
               height: 30,
@@ -29,7 +29,7 @@ class CustomLoadingIndicator extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(
                   color ?? Colors.amber.shade400,
                 ),
-                backgroundColor: AppColors.darkBackground,
+                backgroundColor: cs.surface,
               ),
             ),
             if (text != null) ...[
@@ -38,7 +38,7 @@ class CustomLoadingIndicator extends StatelessWidget {
                 text!,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade400,
+                  color: cs.onSurfaceVariant,
                   fontFamily: 'JosefinSans',
                 ),
               ),
@@ -143,6 +143,8 @@ class CustomLoadingBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
       child: Column(
@@ -155,7 +157,7 @@ class CustomLoadingBar extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation<Color>(
                 color ?? Colors.amber.shade400,
               ),
-              backgroundColor: AppColors.darkBackground,
+              backgroundColor: cs.surface,
             ),
           ),
           if (text != null) ...[
@@ -164,7 +166,7 @@ class CustomLoadingBar extends StatelessWidget {
               text!,
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.grey.shade500,
+                color: cs.onSurfaceVariant,
                 fontFamily: 'JosefinSans',
               ),
             ),

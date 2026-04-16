@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Opción seleccionable usada en el selector de tipo de hábito.
@@ -21,6 +20,7 @@ class CardOptionCustom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final bool disabled = canBeSelected == false && !isSelected;
 
     return GestureDetector(
@@ -32,12 +32,12 @@ class CardOptionCustom extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(6),
           color: isSelected
-              ? AppColors.successMuted.withValues(alpha: 0.1)
-              : AppColors.darkBackgroundAlt,
+              ? cs.tertiary.withValues(alpha: 0.1)
+              : cs.surfaceContainerLowest,
           border: Border.all(
             color: isSelected
-                ? AppColors.successMuted.withValues(alpha: 0.6)
-                : AppColors.borderSubtle,
+                ? cs.tertiary.withValues(alpha: 0.6)
+                : cs.outlineVariant,
             width: 1,
           ),
         ),
@@ -46,10 +46,10 @@ class CardOptionCustom extends StatelessWidget {
             title,
             style: TextStyle(
               color: isSelected
-                  ? AppColors.successMuted
+                  ? cs.tertiary
                   : disabled
-                      ? AppColors.textMuted
-                      : AppColors.textSecondary,
+                      ? cs.outline
+                      : cs.onSurfaceVariant,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),

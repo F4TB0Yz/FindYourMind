@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/global_progress_bar.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
@@ -51,13 +50,15 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         // Header nativo: título + sync
         const _HabitsHeader(),
 
         // Divisor
-        const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
+        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
 
         // Barra de Progreso Global (Dopamina persistente)
         Selector<HabitsProvider, double>(
@@ -133,13 +134,15 @@ class _HabitsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
       child: Row(
         children: [
           Text(
             'Hábitos',
-            style: AppTextStyles.h3,
+            style: AppTextStyles.h3(context),
           ),
           const SizedBox(width: 8),
           const SyncStatusIndicator(),
@@ -150,7 +153,7 @@ class _HabitsHeader extends StatelessWidget {
               screensProvider.setScreenWidget(const NewHabitScreen(), ScreenType.newHabit);
             },
             icon: const Icon(LucideIcons.plusCircle, size: 22),
-            color: AppColors.accentText,
+            color: cs.primary,
             splashRadius: 24,
             tooltip: 'Crear nuevo hábito',
           ),
@@ -165,13 +168,13 @@ class _HabitsTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          const _Tab(label: 'Todos', isActive: true),
-          const SizedBox(width: 20),
-          const _Tab(label: 'Recomendados', isActive: false),
+          _Tab(label: 'Todos', isActive: true),
+          SizedBox(width: 20),
+          _Tab(label: 'Recomendados', isActive: false),
         ],
       ),
     );
@@ -186,6 +189,8 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -196,7 +201,7 @@ class _Tab extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-              color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+              color: isActive ? cs.onSurface : cs.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 4),
@@ -205,7 +210,7 @@ class _Tab extends StatelessWidget {
             height: 2,
             width: isActive ? 24 : 0,
             decoration: BoxDecoration(
-              color: AppColors.accentText,
+              color: cs.primary,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -214,11 +219,14 @@ class _Tab extends StatelessWidget {
     );
   }
 }
+
 class _EmptyHabitsState extends StatelessWidget {
   const _EmptyHabitsState();
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -226,13 +234,12 @@ class _EmptyHabitsState extends StatelessWidget {
           Icon(
             LucideIcons.sparkles,
             size: 80,
-            color: AppColors.textMuted.withOpacity(0.5),
+            color: cs.outline.withOpacity(0.5),
           ),
           const SizedBox(height: 24),
           Text(
             'Comienza tu viaje',
-            style: AppTextStyles.h2.copyWith(
-              color: AppColors.textPrimary,
+            style: AppTextStyles.h2(context).copyWith(
               letterSpacing: -0.5,
             ),
           ),
@@ -242,8 +249,8 @@ class _EmptyHabitsState extends StatelessWidget {
             child: Text(
               'Aún no tienes hábitos registrados. Elige uno y empieza a construir tu mejor versión hoy.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: AppTextStyles.bodyMedium(context).copyWith(
+                color: cs.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -257,20 +264,20 @@ class _EmptyHabitsState extends StatelessWidget {
             icon: const Icon(LucideIcons.plus, size: 18),
             label: const Text('Crear mi primer hábito'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accentText.withOpacity(0.1),
-              foregroundColor: AppColors.accentText,
+              backgroundColor: cs.primary.withOpacity(0.1),
+              foregroundColor: cs.primary,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: AppColors.accentText.withOpacity(0.4),
+                  color: cs.primary.withOpacity(0.4),
                   width: 1,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 60), // Espacio para el FAB central
+          const SizedBox(height: 60),
         ],
       ),
     );

@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/details_view.dart';
@@ -27,6 +26,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     _habitsProvider = Provider.of<HabitsProvider>(context);
     _isEditing = _habitsProvider.isEditing;
 
@@ -43,7 +43,7 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
           isEditing: _isEditing,
           onToggleEdit: () => _habitsProvider.changeIsEditing(!_isEditing),
         ),
-        const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
+        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -71,6 +71,7 @@ class _HabitDetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
     return Padding(
@@ -78,7 +79,7 @@ class _HabitDetailHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textSecondary),
+            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: cs.onSurfaceVariant),
             onPressed: () {
               // Si está editando y presiona atrás, salir de edición. Si no, volver a la lista.
               if (isEditing) {
@@ -99,19 +100,19 @@ class _HabitDetailHeader extends StatelessWidget {
               children: [
                 Text(
                   isEditing ? 'Editar Hábito' : 'Detalles',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: cs.onSurface,
                     letterSpacing: -0.3,
                   ),
                 ),
                 if (!isEditing)
                   Text(
                     '${habit.daysSinceStart + 1} días activos',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
               ],
@@ -139,6 +140,8 @@ class _EditToggleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onToggle,
       behavior: HitTestBehavior.opaque,
@@ -146,20 +149,20 @@ class _EditToggleButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isEditing
-              ? AppColors.dangerMuted.withValues(alpha: 0.15)
+              ? cs.error.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: isEditing
-                ? AppColors.dangerMuted.withValues(alpha: 0.4)
-                : AppColors.borderSubtle,
+                ? cs.error.withValues(alpha: 0.4)
+                : cs.outlineVariant,
             width: 1,
           ),
         ),
         child: Text(
           isEditing ? 'Cancelar' : 'Editar',
           style: TextStyle(
-            color: isEditing ? AppColors.dangerMuted : AppColors.textSecondary,
+            color: isEditing ? cs.error : cs.onSurfaceVariant,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),

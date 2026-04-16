@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,12 +56,14 @@ class _CounterLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.darkBackground,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.borderSubtle, width: 1),
+        border: Border.all(color: cs.outlineVariant, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,10 +74,10 @@ class _CounterLayout extends StatelessWidget {
           ),
           Text(
             '$value',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+              color: cs.onSurface,
             ),
           ),
           _CounterButton(
@@ -98,6 +99,8 @@ class _CounterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -106,7 +109,7 @@ class _CounterButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 20,
-          color: onTap != null ? AppColors.textSecondary : AppColors.textMuted,
+          color: onTap != null ? cs.onSurfaceVariant : cs.outline,
         ),
       ),
     );

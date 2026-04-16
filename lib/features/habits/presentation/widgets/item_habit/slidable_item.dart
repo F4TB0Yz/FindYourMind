@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/habit_detail_screen.dart';
@@ -47,13 +46,14 @@ class _SlidableItemState extends State<SlidableItem> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
     return Slidable(
       key: ValueKey(widget.habit.id),
       startActionPane: ActionPane(
         motion: const StretchMotion(),
-        extentRatio: 0.40, // Ligeramente más amplio para acomodar botones circulares
+        extentRatio: 0.40,
         children: [
           CustomSlidableAction(
             onPressed: (context) {
@@ -65,20 +65,20 @@ class _SlidableItemState extends State<SlidableItem> {
               );
             },
             backgroundColor: Colors.transparent,
-            foregroundColor: AppColors.accentText,
+            foregroundColor: cs.primary,
             padding: EdgeInsets.zero,
             child: Container(
               width: 50,
               height: 50,
               margin: const EdgeInsets.only(left: 12),
               decoration: BoxDecoration(
-                color: AppColors.accentText.withValues(alpha: 0.15),
+                color: cs.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                LucideIcons.edit2, // Icono moderno lineal
+              child: Icon(
+                LucideIcons.edit2,
                 size: 22,
-                color: AppColors.accentText,
+                color: cs.primary,
               ),
             ),
           ),
@@ -111,20 +111,20 @@ class _SlidableItemState extends State<SlidableItem> {
               }
             },
             backgroundColor: Colors.transparent,
-            foregroundColor: AppColors.dangerMuted,
+            foregroundColor: cs.error,
             padding: EdgeInsets.zero,
             child: Container(
               width: 50,
               height: 50,
               margin: const EdgeInsets.only(left: 12, right: 6),
               decoration: BoxDecoration(
-                color: AppColors.dangerMuted.withValues(alpha: 0.15),
+                color: cs.error.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                LucideIcons.trash2, // Icono moderno lineal
+              child: Icon(
+                LucideIcons.trash2,
                 size: 22,
-                color: AppColors.dangerMuted,
+                color: cs.error,
               ),
             ),
           ),

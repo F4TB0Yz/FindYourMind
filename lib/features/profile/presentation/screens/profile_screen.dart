@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
@@ -54,12 +53,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[100],
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text('Mi Perfil', style: AppTextStyles.h3),
+        title: Text('Mi Perfil', style: AppTextStyles.h3(context)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -73,19 +72,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       const SizedBox(height: 20),
                       // Avatar
-                      _buildAvatar(),
+                      _buildAvatar(cs),
                       const SizedBox(height: 16),
                       // Nombre/Email
-                      _buildUserInfo(isDark),
+                      _buildUserInfo(cs),
                       const SizedBox(height: 32),
                       // Información de la cuenta
-                      _buildAccountSection(isDark),
+                      _buildAccountSection(cs),
                       const SizedBox(height: 16),
                       // Configuración
-                      _buildSettingsSection(isDark),
+                      _buildSettingsSection(cs),
                       const SizedBox(height: 32),
                       // Botón de cerrar sesión
-                      _buildSignOutButton(),
+                      _buildSignOutButton(cs),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -93,15 +92,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(ColorScheme cs) {
     final initials = _getInitials();
     return CircleAvatar(
       radius: 50,
-      backgroundColor: Colors.blue,
+      backgroundColor: cs.primaryContainer,
       child: Text(
         initials,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: cs.onPrimaryContainer,
           fontSize: 32,
           fontWeight: FontWeight.bold,
         ),
@@ -121,14 +120,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return email.isNotEmpty ? email.substring(0, 2).toUpperCase() : 'US';
   }
 
-  Widget _buildUserInfo(bool isDark) {
+  Widget _buildUserInfo(ColorScheme cs) {
     return Column(
       children: [
         Text(
           _currentUser?.displayName ?? 'Usuario',
-          style: AppTextStyles.achievementTitle.copyWith(
+          style: AppTextStyles.achievementTitle(context).copyWith(
             fontSize: 28,
-            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
         const SizedBox(height: 4),
@@ -136,18 +134,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _currentUser?.email ?? '',
           style: TextStyle(
             fontSize: 14,
-            color: isDark ? Colors.white54 : Colors.black54,
+            color: cs.onSurfaceVariant,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAccountSection(bool isDark) {
+  Widget _buildAccountSection(ColorScheme cs) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBackground : Colors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -164,38 +162,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Información de la cuenta',
-              style: AppTextStyles.titleLarge.copyWith(fontSize: 16),
+              style: AppTextStyles.titleLarge(context).copyWith(fontSize: 16),
             ),
           ),
           _buildInfoTile(
             icon: Icons.email_outlined,
             title: 'Email',
             subtitle: _currentUser?.email ?? '',
-            isDark: isDark,
+            cs: cs,
           ),
           _buildInfoTile(
             icon: Icons.calendar_today_outlined,
             title: 'Miembro desde',
             subtitle: _formatDate(_currentUser?.createdAt),
-            isDark: isDark,
+            cs: cs,
           ),
           if (_currentUser?.lastSignInAt != null)
             _buildInfoTile(
               icon: Icons.login_outlined,
               title: 'Último acceso',
               subtitle: _formatDate(_currentUser?.lastSignInAt),
-              isDark: isDark,
+              cs: cs,
             ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsSection(bool isDark) {
+  Widget _buildSettingsSection(ColorScheme cs) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkBackground : Colors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -215,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
+                color: cs.onSurface,
               ),
             ),
           ),
@@ -223,37 +221,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.notifications_outlined,
             title: 'Notificaciones',
             onTap: () {
-              // TODO: Implementar configuración de notificaciones
-              CustomToast.showToast(
-                context: context,
-                message: 'Próximamente',
-              );
+              CustomToast.showToast(context: context, message: 'Próximamente');
             },
-            isDark: isDark,
+            cs: cs,
           ),
           _buildSettingsTile(
             icon: Icons.lock_outline,
             title: 'Privacidad',
             onTap: () {
-              // TODO: Implementar configuración de privacidad
-              CustomToast.showToast(
-                context: context,
-                message: 'Próximamente',
-              );
+              CustomToast.showToast(context: context, message: 'Próximamente');
             },
-            isDark: isDark,
+            cs: cs,
           ),
           _buildSettingsTile(
             icon: Icons.help_outline,
             title: 'Ayuda y soporte',
             onTap: () {
-              // TODO: Implementar ayuda y soporte
-              CustomToast.showToast(
-                context: context,
-                message: 'Próximamente',
-              );
+              CustomToast.showToast(context: context, message: 'Próximamente');
             },
-            isDark: isDark,
+            cs: cs,
           ),
         ],
       ),
@@ -264,26 +250,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
-    required bool isDark,
+    required ColorScheme cs,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isDark ? Colors.white70 : Colors.black54,
-      ),
+      leading: Icon(icon, color: cs.onSurfaceVariant),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 14,
-          color: isDark ? Colors.white70 : Colors.black54,
-        ),
+        style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
       ),
       subtitle: Text(
         subtitle,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : Colors.black87,
+          color: cs.onSurface,
         ),
       ),
     );
@@ -293,29 +273,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    required bool isDark,
+    required ColorScheme cs,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: isDark ? Colors.white70 : Colors.black54,
-      ),
+      leading: Icon(icon, color: cs.onSurfaceVariant),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
+        style: TextStyle(fontSize: 16, color: cs.onSurface),
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: isDark ? Colors.white54 : Colors.black38,
-      ),
+      trailing: Icon(Icons.chevron_right, color: cs.outline),
       onTap: onTap,
     );
   }
 
-  Widget _buildSignOutButton() {
+  Widget _buildSignOutButton(ColorScheme cs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SizedBox(
@@ -323,8 +294,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: ElevatedButton(
           onPressed: _handleSignOut,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
+            backgroundColor: cs.error,
+            foregroundColor: cs.onError,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -355,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Cerrar sesión'),
           ),
         ],
@@ -364,17 +335,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (shouldLogout ?? false) {
       try {
-        // Limpiar providers antes del logout
         final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
         final syncProvider = Provider.of<SyncProvider>(context, listen: false);
         
         habitsProvider.clearAllData();
         syncProvider.resetSyncState();
         
-        // Ejecutar el logout (ya limpia la base de datos SQLite)
         await widget.signOutUseCase();
         if (!mounted) return;
-        // Volver a la pantalla de autenticación (home)
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       } catch (e) {
         if (!mounted) return;

@@ -7,9 +7,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/save_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
@@ -21,8 +20,7 @@ class HabitsProvider extends ChangeNotifier {
   final CreateHabitUseCase _createHabitUseCase;
   final UpdateHabitUseCase _updateHabitUseCase;
   final DeleteHabitUseCase _deleteHabitUseCase;
-  final UpdateHabitCounterUseCase _updateHabitCounterUseCase;
-  final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
+  final SaveHabitProgressUseCase _saveHabitProgressUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   
   // Repositorio (para métodos que aún no tienen caso de uso)
@@ -55,15 +53,13 @@ class HabitsProvider extends ChangeNotifier {
     required CreateHabitUseCase createHabitUseCase,
     required UpdateHabitUseCase updateHabitUseCase,
     required DeleteHabitUseCase deleteHabitUseCase,
-    required UpdateHabitCounterUseCase updateHabitCounterUseCase,
-    required DecrementHabitProgressUseCase decrementHabitProgressUseCase,
+    required SaveHabitProgressUseCase saveHabitProgressUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
     required HabitRepository repository,
   })  : _createHabitUseCase = createHabitUseCase,
         _updateHabitUseCase = updateHabitUseCase,
         _deleteHabitUseCase = deleteHabitUseCase,
-        _updateHabitCounterUseCase = updateHabitCounterUseCase,
-        _decrementHabitProgressUseCase = decrementHabitProgressUseCase,
+        _saveHabitProgressUseCase = saveHabitProgressUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _repository = repository;
 
@@ -388,100 +384,73 @@ class HabitsProvider extends ChangeNotifier {
       final habit = _habits[habitIndex];
       final String todayString = DateInfoUtils.todayString();
       
-      // 2. Buscar progreso de hoy EN EL HÁBITO ACTUALIZADO
+      // 2. Buscar progreso de hoy
       final todayIndex = habit.progress.indexWhere(
         (progress) => progress.date == todayString,
       );
 
-      HabitProgress optimisticProgress;
-      bool isNewProgress = false;
-      HabitProgress? existingTodayProgress;
+      final HabitProgress optimisticProgress;
+      final bool isNew;
 
       if (todayIndex == -1) {
-        // Crear nuevo progreso optimista para la UI
-        final String progressId = const Uuid().v4();
+        // GENERAR UUID CLIENT-SIDE para nuevo progreso
+        isNew = true;
         optimisticProgress = HabitProgress(
-          id: progressId,
+          id: const Uuid().v4(),
           habitId: habitId,
           date: todayString,
           dailyGoal: habit.dailyGoal,
           dailyCounter: 1,
         );
-        isNewProgress = true;
-        
-        AppLogger.d('🆕 Creando nuevo progreso optimista: $progressId');
+        AppLogger.d('🆕 Generando identidad de nuevo progreso: ${optimisticProgress.id}');
       } else {
-        // Validar si ya se alcanzó la meta
-        existingTodayProgress = habit.progress[todayIndex];
-        if (existingTodayProgress.dailyCounter >= habit.dailyGoal) {
+        // Validar si ya se alcanzó la meta antes de incrementar
+        final existingProgress = habit.progress[todayIndex];
+        if (existingProgress.dailyCounter >= habit.dailyGoal) {
           AppLogger.w('Meta diaria ya alcanzada para $habitId');
           return false;
         }
-        
-        // Incrementar contador optimistamente
-        optimisticProgress = existingTodayProgress.copyWith(
-          dailyCounter: existingTodayProgress.dailyCounter + 1,
+
+        isNew = false;
+        optimisticProgress = existingProgress.copyWith(
+          dailyCounter: existingProgress.dailyCounter + 1,
         );
-        
-        AppLogger.d('➕ Incrementando progreso existente: ${existingTodayProgress.id} (${existingTodayProgress.dailyCounter} → ${optimisticProgress.dailyCounter})');
+        AppLogger.d('➕ Incrementando contador a ${optimisticProgress.dailyCounter} para ${optimisticProgress.id}');
       }
 
-      // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
+      // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA
       updateHabitCounterOptimistic(optimisticProgress);
 
-      // 💾 Ejecutar caso de uso en segundo plano (SECUENCIALMENTE ENCOLADO)
+      // 💾 PERSISTENCIA EN BACKGROUND (IDEMPOTENCIA)
       _queueDbOperation(habitId, () async {
-        // IMPORTANTE: NO podemos usar simplemente el currentHabit de la lista 
-        // porque ya tiene el cambio optimista aplicado, lo que confunde las validaciones
-        // del UseCase. Debemos usar el 'habit' capturado (que tiene el contador anterior),
-        // PERO parchearle el UUID real más reciente en caso de que alguna operación
-        // asíncrona lo haya cambiado por un UUID proveniente de base de datos.
-        final currentHabitIndex = _habits.indexWhere((h) => h.id == habitId);
-        if (currentHabitIndex == -1) return;
-        
-        // Obtenemos la última versión del hábito desde la lista (nuestra fuente de verdad)
-        final latestHabit = _habits[currentHabitIndex];
-        
-        // Creamos una versión para el UseCase que use los IDs actuales pero el contador anterior
-        // para que la validación y el cálculo del +1 en el UseCase sean correctos.
-        final previousCounter = (existingTodayProgress?.dailyCounter ?? 0);
-        
-        // Si no existía progreso previo, filtramos el optimista para que UseCase lo cree
-        final updatedProgressList = isNewProgress
-            ? latestHabit.progress.where((p) => p.date != todayString).toList()
-            : latestHabit.progress.map((p) => p.date == todayString 
-                ? p.copyWith(dailyCounter: previousCounter) 
-                : p).toList();
-
-        final habitToUseCase = latestHabit.copyWith(progress: updatedProgressList);
-
-        final result = await _updateHabitCounterUseCase.execute(habit: habitToUseCase);
+        final result = await _saveHabitProgressUseCase.execute(
+          progress: optimisticProgress,
+          isNew: isNew,
+        );
         
         result.fold(
           (failure) {
-            AppLogger.e('Error al incrementar: ${failure.message}');
+            AppLogger.e('Error al guardar progreso: ${failure.message}');
             
-            // ⚠️ NO revertir si el error es "Ya se alcanzó la meta" (ValidationFailure)
-            final isValidationError = failure.message.contains('Ya se alcanzó la meta');
-            
-            if (!isValidationError) {
-              // Revertir cambio optimista
-              if (isNewProgress) {
-                final idx = _habits.indexWhere((h) => h.id == habitId);
-                if (idx != -1) {
-                  _habits[idx].progress.removeWhere((p) => p.id == optimisticProgress.id);
-                  notifyListeners();
-                }
-              } else {
-                if (existingTodayProgress != null) {
-                  updateHabitCounterOptimistic(existingTodayProgress);
-                }
+            // Revertir cambio optimista si no es un error de validación esperado
+            // (En este nivel, si enviamos algo que el UseCase rechaza, es fallo de lógica o BD)
+            if (isNew) {
+              final idx = _habits.indexWhere((h) => h.id == habitId);
+              if (idx != -1) {
+                _habits[idx].progress.removeWhere((p) => p.id == optimisticProgress.id);
+                notifyListeners();
+              }
+            } else {
+              // Si no era nuevo, revertimos al estado anterior del progreso
+              final currentIdx = _habits.indexWhere((h) => h.id == habitId);
+              if (currentIdx != -1) {
+                final originalProgress = habit.progress[todayIndex];
+                updateHabitCounterOptimistic(originalProgress);
               }
             }
           },
-          (updatedProgress) {
-            AppLogger.d('✅ Progreso guardado y sincronizado: ${updatedProgress.dailyCounter}');
-            updateHabitCounterOptimistic(updatedProgress);
+          (_) {
+            AppLogger.d('✅ Registro persistido exitosamente: ${optimisticProgress.id}');
             _notifyPendingChanges();
           },
         );
@@ -534,38 +503,30 @@ class HabitsProvider extends ChangeNotifier {
       final optimisticProgress = todayProgress.copyWith(
         dailyCounter: todayProgress.dailyCounter - 1,
       );
+      
+      AppLogger.d('➖ Decrementando contador a ${optimisticProgress.dailyCounter} para ${optimisticProgress.id}');
 
       // 🚀 ACTUALIZACIÓN OPTIMISTA INMEDIATA en la UI (NO bloqueante)
       updateHabitCounterOptimistic(optimisticProgress);
 
       // 💾 Ejecutar caso de uso en segundo plano (SECUENCIALMENTE ENCOLADO)
       _queueDbOperation(habitId, () async {
-        // IMPORTANTE: Al igual que en increment, usamos el hábito capturado
-        // pero inyectamos el UUID más reciente conocido para no causar "Progreso no encontrado"
-        final currentHabitIndex = _habits.indexWhere((h) => h.id == habitId);
-        if (currentHabitIndex == -1) return;
-        
-        // Obtenemos la última versión del hábito desde la lista
-        final latestHabit = _habits[currentHabitIndex];
-        
-        // Aseguramos integridad de IDs cargando el estado de _habits con el contador previo
-        final habitToUseCase = latestHabit.copyWith(
-          progress: latestHabit.progress.map((p) => p.date == todayString 
-            ? p.copyWith(dailyCounter: todayProgress.dailyCounter) 
-            : p).toList()
+        final result = await _saveHabitProgressUseCase.execute(
+          progress: optimisticProgress,
+          isNew: false, // El decremento siembre es sobre un progreso existente
         );
-
-        final result = await _decrementHabitProgressUseCase.execute(habit: habitToUseCase);
         
         result.fold(
           (failure) {
             AppLogger.e('Error al decrementar: ${failure.message}');
             // Revertir cambio optimista si falla
-            updateHabitCounterOptimistic(todayProgress);
+            final currentIdx = _habits.indexWhere((h) => h.id == habitId);
+            if (currentIdx != -1) {
+              updateHabitCounterOptimistic(todayProgress);
+            }
           },
-          (updatedProgress) {
-            AppLogger.d('✅ Progreso decrementado: ${updatedProgress.dailyCounter}');
-            updateHabitCounterOptimistic(updatedProgress);
+          (_) {
+            AppLogger.d('✅ Progreso decrementado persistido: ${optimisticProgress.id}');
             _notifyPendingChanges();
           },
         );

@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +16,9 @@ class CustomBorderContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
+    final cs = Theme.of(context).colorScheme;
+    // ThemeProvider still needed for ThemeMode check (light vs dark)
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Container(
       margin: margin,
@@ -26,8 +27,8 @@ class CustomBorderContainer extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
         border: Border.all(
           color: themeProvider.themeMode == ThemeMode.light
-            ? AppColors.darkBackground
-            : const Color.fromARGB(255, 89, 85, 85),
+              ? cs.outlineVariant
+              : cs.outline,
           width: 0.4,
         )
       ),

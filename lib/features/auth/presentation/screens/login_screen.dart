@@ -106,8 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
@@ -125,13 +123,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
                 Text(
                   'Inicia sesión',
-                  style: AppTextStyles.h2,
+                  style: AppTextStyles.h2(context),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Ingresa tus credenciales para continuar',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: isDark ? const Color(0xFF8b949e) : Colors.black54,
+                  style: AppTextStyles.bodyMedium(context).copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -237,20 +235,21 @@ class _LoginScreenState extends State<LoginScreen> {
 class _OrDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final cs = Theme.of(context).colorScheme;
+    return Row(
       children: [
         Expanded(
-          child: Divider(color: Color(0xFF30363d), thickness: 1),
+          child: Divider(color: cs.outlineVariant, thickness: 1),
         ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             'o',
-            style: TextStyle(color: Color(0xFF8b949e), fontSize: 12),
+            style: TextStyle(color: cs.outline, fontSize: 12),
           ),
         ),
         Expanded(
-          child: Divider(color: Color(0xFF30363d), thickness: 1),
+          child: Divider(color: cs.outlineVariant, thickness: 1),
         ),
       ],
     );

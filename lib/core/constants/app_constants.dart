@@ -4,10 +4,10 @@
 /// 
 /// Esto permite acceder a todas las constantes desde un solo import:
 /// - AnimationConstants.fastAnimation
-/// - AppColors.darkBackground
 /// - AppStrings.habitsTitle
+/// 
+/// Los colores ya no se importan desde aquí. Usar Theme.of(context).colorScheme.*
 library;
 
 export 'animation_constants.dart';
-export 'color_constants.dart';
 export 'string_constants.dart';

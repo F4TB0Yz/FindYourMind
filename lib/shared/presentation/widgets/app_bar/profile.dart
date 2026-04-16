@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/auth/presentation/providers/auth_service_locator.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
@@ -23,35 +22,35 @@ class _ProfileWidgetState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       key: _widgetKey,
       onTap: () => _showDropdownMenu(context),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: widget.isDarkTheme
-              ? AppColors.darkBackground
-              : const Color(0xFFFFFFFF),
+          color: cs.surface,
         ),
         padding: const EdgeInsets.all(5),
         child: Row(
           children: [
             CircleAvatar(
               radius: 14,
-              backgroundColor: AppColors.accentText.withValues(alpha: 0.15),
-              child: const Text(
+              backgroundColor: cs.primary.withValues(alpha: 0.15),
+              child: Text(
                 'JF',
                 style: TextStyle(
-                  color: AppColors.accentText,
+                  color: cs.primary,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(
+            Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: AppColors.textSecondary,
+              color: cs.onSurfaceVariant,
               size: 20,
             ),
           ],
@@ -61,7 +60,6 @@ class _ProfileWidgetState extends State<Profile> {
   }
 
   void _showDropdownMenu(BuildContext context) {
-    // Obtener Posicion del Widget
     final RenderBox? renderBox =
         _widgetKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
@@ -71,9 +69,8 @@ class _ProfileWidgetState extends State<Profile> {
 
     final double screenWidth = MediaQuery.of(context).size.width;
 
-    // Ajustar la posición horizontal para que el dropdown no se salga de la pantalla
     const double dropdownWidth = 150;
-    const double horizontalPadding = 15; // margen mínimo desde los bordes
+    const double horizontalPadding = 15;
     double adjustedDx = position.dx;
     if (adjustedDx + dropdownWidth > screenWidth - horizontalPadding) {
       adjustedDx = screenWidth - dropdownWidth - horizontalPadding;
@@ -84,13 +81,14 @@ class _ProfileWidgetState extends State<Profile> {
     showDialog(
       context: context,
       builder: (context) {
+        final cs = Theme.of(context).colorScheme;
         return BlurShowDialogs(
           position: adjustedPosition,
           size: size,
           child: Material(
             elevation: 8,
             borderRadius: BorderRadius.circular(10),
-            color: widget.isDarkTheme ? AppColors.darkBackground : Colors.white,
+            color: cs.surface,
             child: Container(
               width: 160,
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -102,10 +100,10 @@ class _ProfileWidgetState extends State<Profile> {
                     alignment: Alignment.topRight,
                     child: GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         size: 18,
-                        color: Colors.white54,
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -121,13 +119,13 @@ class _ProfileWidgetState extends State<Profile> {
                       Navigator.of(context).pop();
                       Navigator.of(context).pushNamed('/profile');
                     },
+                    cs: cs,
                   ),
                   
                   const SizedBox(height: 8),
                   
-                  // Divisor
                   Divider(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: cs.outlineVariant,
                     height: 1,
                   ),
                   
@@ -140,6 +138,7 @@ class _ProfileWidgetState extends State<Profile> {
                     label: 'Cerrar sesión',
                     onTap: () => _handleSignOut(context),
                     isDestructive: true,
+                    cs: cs,
                   ),
                   
                   const SizedBox(height: 4),
@@ -157,6 +156,7 @@ class _ProfileWidgetState extends State<Profile> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    required ColorScheme cs,
     bool isDestructive = false,
   }) {
     return InkWell(
@@ -169,17 +169,13 @@ class _ProfileWidgetState extends State<Profile> {
             Icon(
               icon,
               size: 20,
-              color: isDestructive 
-                ? Colors.red.shade400 
-                : Colors.white70,
+              color: isDestructive ? cs.error : cs.onSurfaceVariant,
             ),
             const SizedBox(width: 10),
             Text(
               label,
               style: TextStyle(
-                color: isDestructive 
-                  ? Colors.red.shade400 
-                  : Colors.white70,
+                color: isDestructive ? cs.error : cs.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -191,12 +187,10 @@ class _ProfileWidgetState extends State<Profile> {
   }
 
   Future<void> _handleSignOut(BuildContext dropdownContext) async {
-    // Guardar el contexto raíz antes de cerrar el dropdown
     final rootContext = context;
     
-    Navigator.of(dropdownContext).pop(); // Cerrar el dropdown
+    Navigator.of(dropdownContext).pop();
     
-    // Mostrar un diálogo de confirmación
     final shouldLogout = await showDialog<bool>(
       context: rootContext,
       builder: (context) => AlertDialog(
@@ -217,14 +211,12 @@ class _ProfileWidgetState extends State<Profile> {
 
     if (shouldLogout ?? false) {
       if (!rootContext.mounted) return;
-      // Limpiar providers antes del logout
       final habitsProvider = Provider.of<HabitsProvider>(rootContext, listen: false);
       final syncProvider = Provider.of<SyncProvider>(rootContext, listen: false);
       
       habitsProvider.clearAllData();
       syncProvider.resetSyncState();
       
-      // Ejecutar el logout (ya limpia la base de datos SQLite)
       final result = await AuthServiceLocator().signOutUseCase();
       
       if (!rootContext.mounted) return;
@@ -236,7 +228,6 @@ class _ProfileWidgetState extends State<Profile> {
           );
         },
         (_) {
-          // Volver a la pantalla de autenticación (home)
           Navigator.of(rootContext).pushNamedAndRemoveUntil('/', (route) => false);
         },
       );

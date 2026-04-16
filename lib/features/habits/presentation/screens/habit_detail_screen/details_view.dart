@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/statistics_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/weekly_progress/weekly_progress.dart';
@@ -12,6 +11,8 @@ class DetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -22,9 +23,9 @@ class DetailsView extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.darkBackground,
+              color: cs.surface,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.borderSubtle),
+              border: Border.all(color: cs.outlineVariant),
             ),
             child: SvgPicture.asset(
               habit.icon,
@@ -36,12 +37,12 @@ class DetailsView extends StatelessWidget {
         
         const SizedBox(height: 36),
 
-        const Text(
+        Text(
           'Progreso Semanal',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 16),
@@ -49,18 +50,18 @@ class DetailsView extends StatelessWidget {
 
         const SizedBox(height: 36),
 
-        const Text(
+        Text(
           'Estadísticas',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 16),
         StatisticsHabit(habit: habit),
 
-        const SizedBox(height: 48), // Espacio extra al fondo
+        const SizedBox(height: 48),
       ],
     );
   }

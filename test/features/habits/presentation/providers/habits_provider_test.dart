@@ -5,8 +5,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/save_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
@@ -19,8 +18,7 @@ import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 class MockCreateHabitUseCase extends Mock implements CreateHabitUseCase {}
 class MockUpdateHabitUseCase extends Mock implements UpdateHabitUseCase {}
 class MockDeleteHabitUseCase extends Mock implements DeleteHabitUseCase {}
-class MockUpdateHabitCounterUseCase extends Mock implements UpdateHabitCounterUseCase {}
-class MockDecrementHabitProgressUseCase extends Mock implements DecrementHabitProgressUseCase {}
+class MockSaveHabitProgressUseCase extends Mock implements SaveHabitProgressUseCase {}
 class MockGetCurrentUserUseCase extends Mock implements GetCurrentUserUseCase {}
 class MockHabitRepository extends Mock implements HabitRepository {}
 
@@ -29,8 +27,7 @@ void main() {
   late MockCreateHabitUseCase mockCreateHabitUseCase;
   late MockUpdateHabitUseCase mockUpdateHabitUseCase;
   late MockDeleteHabitUseCase mockDeleteHabitUseCase;
-  late MockUpdateHabitCounterUseCase mockUpdateHabitCounterUseCase;
-  late MockDecrementHabitProgressUseCase mockDecrementHabitProgressUseCase;
+  late MockSaveHabitProgressUseCase mockSaveHabitProgressUseCase;
   late MockGetCurrentUserUseCase mockGetCurrentUserUseCase;
   late MockHabitRepository mockRepository;
 
@@ -47,8 +44,7 @@ void main() {
     mockCreateHabitUseCase = MockCreateHabitUseCase();
     mockUpdateHabitUseCase = MockUpdateHabitUseCase();
     mockDeleteHabitUseCase = MockDeleteHabitUseCase();
-    mockUpdateHabitCounterUseCase = MockUpdateHabitCounterUseCase();
-    mockDecrementHabitProgressUseCase = MockDecrementHabitProgressUseCase();
+    mockSaveHabitProgressUseCase = MockSaveHabitProgressUseCase();
     mockGetCurrentUserUseCase = MockGetCurrentUserUseCase();
     mockRepository = MockHabitRepository();
 
@@ -56,8 +52,7 @@ void main() {
       createHabitUseCase: mockCreateHabitUseCase,
       updateHabitUseCase: mockUpdateHabitUseCase,
       deleteHabitUseCase: mockDeleteHabitUseCase,
-      updateHabitCounterUseCase: mockUpdateHabitCounterUseCase,
-      decrementHabitProgressUseCase: mockDecrementHabitProgressUseCase,
+      saveHabitProgressUseCase: mockSaveHabitProgressUseCase,
       getCurrentUserUseCase: mockGetCurrentUserUseCase,
       repository: mockRepository,
     );
@@ -175,9 +170,11 @@ void main() {
       
       await provider.loadHabits();
 
-      final updatedProgress = habitWithProgress.progress.first.copyWith(dailyCounter: 3);
-      when(() => mockUpdateHabitCounterUseCase.execute(habit: any(named: 'habit')))
-          .thenAnswer((_) async => Right(updatedProgress));
+      // Stub para el nuevo caso de uso
+      when(() => mockSaveHabitProgressUseCase.execute(
+        progress: any(named: 'progress'),
+        isNew: any(named: 'isNew'),
+      )).thenAnswer((_) async => const Right(null));
 
       // --- ACT ---
       final result = await provider.updateHabitCounter('1');
@@ -187,7 +184,10 @@ void main() {
       expect(provider.getTodayCount('1'), 3); // Optimista
       
       await Future.delayed(Duration.zero);
-      verify(() => mockUpdateHabitCounterUseCase.execute(habit: any(named: 'habit'))).called(1);
+      verify(() => mockSaveHabitProgressUseCase.execute(
+        progress: any(named: 'progress'),
+        isNew: false, // Ya existía progreso
+      )).called(1);
     });
   });
 
@@ -215,9 +215,11 @@ void main() {
       
       await provider.loadHabits();
 
-      final updatedProgress = habitWithProgress.progress.first.copyWith(dailyCounter: 1);
-      when(() => mockDecrementHabitProgressUseCase.execute(habit: any(named: 'habit')))
-          .thenAnswer((_) async => Right(updatedProgress));
+      // Stub para el nuevo caso de uso
+      when(() => mockSaveHabitProgressUseCase.execute(
+        progress: any(named: 'progress'),
+        isNew: any(named: 'isNew'),
+      )).thenAnswer((_) async => const Right(null));
 
       // --- ACT ---
       final result = await provider.decrementHabitProgress('1');
@@ -227,7 +229,10 @@ void main() {
       expect(provider.getTodayCount('1'), 1); // Optimista
       
       await Future.delayed(Duration.zero);
-      verify(() => mockDecrementHabitProgressUseCase.execute(habit: any(named: 'habit'))).called(1);
+      verify(() => mockSaveHabitProgressUseCase.execute(
+        progress: any(named: 'progress'),
+        isNew: false, // Ya existía progreso
+      )).called(1);
     });
   });
 }

@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/weekly_progress/pulsing_today_indicator.dart';
@@ -72,9 +71,10 @@ class _WeekDayColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final Color labelColor = isToday
-        ? (isCompleted ? AppColors.successMuted : AppColors.dangerMuted)
-        : AppColors.textMuted;
+        ? (isCompleted ? cs.tertiary : cs.error)
+        : cs.outline;
 
     return Column(
       children: [
@@ -109,23 +109,25 @@ class _DayCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     final Color borderColor = isFuture
-        ? AppColors.borderSubtle
+        ? cs.outlineVariant
         : isCompleted
-            ? AppColors.successMuted
-            : AppColors.dangerMuted.withValues(alpha: 0.6);
+            ? cs.tertiary
+            : cs.error.withValues(alpha: 0.6);
 
     final Color bgColor = isFuture
         ? Colors.transparent
         : isCompleted
-            ? AppColors.successMuted.withValues(alpha: 0.1)
+            ? cs.tertiary.withValues(alpha: 0.1)
             : Colors.transparent;
 
     final Color textColor = isFuture
-        ? AppColors.textMuted
+        ? cs.outline
         : isCompleted
-            ? AppColors.successMuted
-            : AppColors.dangerMuted.withValues(alpha: 0.8);
+            ? cs.tertiary
+            : cs.error.withValues(alpha: 0.8);
 
     return Container(
       width: 38,

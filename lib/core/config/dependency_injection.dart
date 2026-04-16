@@ -10,9 +10,8 @@ import 'package:find_your_mind/features/habits/data/datasources/habits_remote_da
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/habits/domain/repositories/habit_repository.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/decrement_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/delete_habit_usecase.dart';
-import 'package:find_your_mind/features/habits/domain/usecases/update_habit_counter_usecase.dart';
+import 'package:find_your_mind/features/habits/domain/usecases/save_habit_progress_usecase.dart';
 import 'package:find_your_mind/features/habits/domain/usecases/update_habit_usecase.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -47,8 +46,7 @@ class DependencyInjection {
   late final CreateHabitUseCase _createHabitUseCase;
   late final UpdateHabitUseCase _updateHabitUseCase;
   late final DeleteHabitUseCase _deleteHabitUseCase;
-  late final UpdateHabitCounterUseCase _updateHabitCounterUseCase;
-  late final DecrementHabitProgressUseCase _decrementHabitProgressUseCase;
+  late final SaveHabitProgressUseCase _saveHabitProgressUseCase;
 
   // Casos de uso de Autenticación
   late final SignInWithEmailUseCase _signInWithEmailUseCase;
@@ -152,10 +150,7 @@ class DependencyInjection {
     _createHabitUseCase = CreateHabitUseCase(_habitRepository);
     _updateHabitUseCase = UpdateHabitUseCase(_habitRepository);
     _deleteHabitUseCase = DeleteHabitUseCase(_habitRepository);
-    _updateHabitCounterUseCase = UpdateHabitCounterUseCase(
-      _habitRepository,
-    );
-    _decrementHabitProgressUseCase = DecrementHabitProgressUseCase(
+    _saveHabitProgressUseCase = SaveHabitProgressUseCase(
       _habitRepository,
     );
 
@@ -175,10 +170,8 @@ class DependencyInjection {
   CreateHabitUseCase get createHabitUseCase => _createHabitUseCase;
   UpdateHabitUseCase get updateHabitUseCase => _updateHabitUseCase;
   DeleteHabitUseCase get deleteHabitUseCase => _deleteHabitUseCase;
-  UpdateHabitCounterUseCase get updateHabitCounterUseCase =>
-      _updateHabitCounterUseCase;
-  DecrementHabitProgressUseCase get decrementHabitProgressUseCase =>
-      _decrementHabitProgressUseCase;
+  SaveHabitProgressUseCase get saveHabitProgressUseCase =>
+      _saveHabitProgressUseCase;
 
   // Getters para los casos de uso de Autenticación
   SignInWithEmailUseCase get signInWithEmailUseCase => _signInWithEmailUseCase;

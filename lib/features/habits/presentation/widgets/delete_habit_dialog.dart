@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Diálogo de confirmación para eliminar un hábito
@@ -7,17 +6,20 @@ class DeleteHabitDialog {
   /// 
   /// Retorna `true` si el usuario confirma, `false` si cancela
   static Future<bool> show(BuildContext context, String habitTitle) async {
+    final cs = Theme.of(context).colorScheme;
+
     return await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        final cs = Theme.of(context).colorScheme;
         return AlertDialog(
-          backgroundColor: AppColors.darkBackground,
+          backgroundColor: cs.surface,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(
-              color: AppColors.borderSubtle,
+            side: BorderSide(
+              color: cs.outlineVariant,
               width: 1,
             ),
           ),
@@ -26,21 +28,21 @@ class DeleteHabitDialog {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.dangerMuted.withValues(alpha: 0.15),
+                  color: cs.error.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.warning_amber_rounded,
-                  color: AppColors.dangerMuted,
+                  color: cs.error,
                   size: 24,
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Eliminar hábito',
                   style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 18,
                     letterSpacing: -0.3,
@@ -55,8 +57,8 @@ class DeleteHabitDialog {
             children: [
               Text(
                 '¿Eliminar "$habitTitle"?',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: cs.onSurfaceVariant,
                   fontSize: 15,
                 ),
               ),
@@ -64,25 +66,25 @@ class DeleteHabitDialog {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.darkBackgroundAlt,
+                  color: cs.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: AppColors.borderSubtle,
+                    color: cs.outlineVariant,
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: AppColors.textMuted,
+                      color: cs.outline,
                       size: 18,
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Esta acción no se puede deshacer y borrará todo el progreso.',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: cs.onSurfaceVariant,
                           fontSize: 13,
                           height: 1.4,
                         ),
@@ -103,10 +105,10 @@ class DeleteHabitDialog {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Cancelar',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
                 ),
@@ -116,8 +118,8 @@ class DeleteHabitDialog {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dangerMuted,
-                foregroundColor: Colors.white,
+                backgroundColor: cs.error,
+                foregroundColor: cs.onError,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +47,7 @@ class GestureCardHabitItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final bool isFlashing = isFlashingRed || isFlashingGreen;
     final double progress = dailyGoal > 0
         ? (counterToday / dailyGoal).clamp(0.0, 1.0)
@@ -78,34 +78,34 @@ class GestureCardHabitItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: isFlashingGreen
-                        ? AppColors.successMuted.withValues(alpha: 0.3)
+                        ? cs.tertiary.withValues(alpha: 0.3)
                         : isFlashingRed
-                            ? AppColors.dangerMuted.withValues(alpha: 0.3)
+                            ? cs.error.withValues(alpha: 0.3)
                             : atRisk && !isComplete
-                                ? Colors.black.withValues(alpha: 0.4) // Desaturado/Oscuro
-                                : AppColors.darkBackground.withValues(alpha: 0.7),
+                                ? Colors.black.withValues(alpha: 0.4)
+                                : cs.surface.withValues(alpha: 0.7),
                     border: Border.all(
                       color: isFlashingGreen
-                          ? AppColors.successMuted.withValues(alpha: 0.6)
+                          ? cs.tertiary.withValues(alpha: 0.6)
                           : isFlashingRed
-                              ? AppColors.dangerMuted.withValues(alpha: 0.6)
+                              ? cs.error.withValues(alpha: 0.6)
                               : isComplete
-                                  ? AppColors.successMuted.withValues(alpha: 0.5)
-                                  : AppColors.borderSubtle.withValues(alpha: 0.5),
+                                  ? cs.tertiary.withValues(alpha: 0.5)
+                                  : cs.outlineVariant.withValues(alpha: 0.5),
                       width: isComplete ? 1.5 : 1,
                     ),
                     boxShadow: [
                       if (isComplete)
                         BoxShadow(
-                          color: AppColors.successMuted.withValues(alpha: 0.15),
+                          color: cs.tertiary.withValues(alpha: 0.15),
                           blurRadius: 12,
                           spreadRadius: 2,
                         ),
                       if (isFlashing)
                         BoxShadow(
                           color: isFlashingGreen
-                              ? AppColors.successMuted.withValues(alpha: 0.2)
-                              : AppColors.dangerMuted.withValues(alpha: 0.2),
+                              ? cs.tertiary.withValues(alpha: 0.2)
+                              : cs.error.withValues(alpha: 0.2),
                           blurRadius: 8,
                         ),
                     ],
@@ -136,14 +136,14 @@ class GestureCardHabitItem extends StatelessWidget {
                           children: [
                             Text(
                               '$counterToday/$dailyGoal',
-                              style: AppTextStyles.counter.copyWith(
+                              style: AppTextStyles.counter(context).copyWith(
                                 fontSize: 13,
-                                color: isComplete ? AppColors.successMuted : AppColors.accentText,
+                                color: isComplete ? cs.tertiary : cs.primary,
                               ),
                             ),
                             Text(
                               timeSinceStart,
-                              style: AppTextStyles.timerSmall.copyWith(fontSize: 11),
+                              style: AppTextStyles.timerSmall(context).copyWith(fontSize: 11),
                             ),
                           ],
                         ),
@@ -211,7 +211,7 @@ class _HabitCardContent extends StatelessWidget {
         Text(
           title,
           overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.titleLarge.copyWith(fontSize: 15),
+          style: AppTextStyles.titleLarge(context).copyWith(fontSize: 15),
         ),
         const SizedBox(height: 6),
         _ProgressBar(progress: progress, isComplete: isComplete),
@@ -229,6 +229,8 @@ class _ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
@@ -238,7 +240,7 @@ class _ProgressBar extends StatelessWidget {
               height: 2,
               width: constraints.maxWidth,
               decoration: BoxDecoration(
-                color: AppColors.borderSubtle,
+                color: cs.outlineVariant,
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -250,8 +252,8 @@ class _ProgressBar extends StatelessWidget {
               width: constraints.maxWidth * progress,
               decoration: BoxDecoration(
                 color: isComplete
-                    ? AppColors.successMuted
-                    : AppColors.accentText.withValues(alpha: 0.7),
+                    ? cs.tertiary
+                    : cs.primary.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(1),
               ),
             ),

@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/shared/domain/entities/screen_type.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_border_container.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +23,8 @@ class ContainerBorderScreens extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return CustomBorderContainer(
       margin: margin,
       child: Column(
@@ -33,12 +34,12 @@ class ContainerBorderScreens extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 35,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(5),
                 topRight: Radius.circular(5),
               ),
-              color: AppColors.darkBackground
+              color: cs.surface,
             ),
             child: Stack(
               children: [
@@ -46,9 +47,9 @@ class ContainerBorderScreens extends StatelessWidget {
                 Center(
                   child: Text(
                     screenType.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white,
+                      color: cs.onSurface,
                       letterSpacing: 2,
                       fontWeight: FontWeight.bold,
                     ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:find_your_mind/core/constants/color_constants.dart';
 
 class GlobalProgressBar extends StatefulWidget {
   final double progress;
@@ -31,11 +30,13 @@ class _GlobalProgressBarState extends State<GlobalProgressBar>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       height: 4,
       decoration: BoxDecoration(
-        color: AppColors.borderSubtle,
+        color: cs.outlineVariant,
         borderRadius: BorderRadius.circular(2),
       ),
       child: FractionallySizedBox(
@@ -51,20 +52,16 @@ class _GlobalProgressBarState extends State<GlobalProgressBar>
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    AppColors.accentText,
-                    AppColors.successMuted,
-                    AppColors.accentText,
+                    cs.primary,
+                    cs.tertiary,
+                    cs.primary,
                   ],
-                  stops: [
-                    0.0,
-                    0.5,
-                    1.0,
-                  ],
+                  stops: const [0.0, 0.5, 1.0],
                   transform: GradientRotation(_controller.value * 2 * 3.1415),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.successMuted.withOpacity(0.3),
+                    color: cs.tertiary.withOpacity(0.3),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),

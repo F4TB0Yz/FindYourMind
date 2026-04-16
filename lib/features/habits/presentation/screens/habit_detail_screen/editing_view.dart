@@ -1,4 +1,3 @@
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_screen.dart';
@@ -43,6 +42,7 @@ class _EditingViewState extends State<EditingView> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
     final screensProvider = Provider.of<ScreensProvider>(context, listen: false);
 
@@ -52,12 +52,12 @@ class _EditingViewState extends State<EditingView> {
         const SizedBox(height: 12),
 
         // Selector de icono
-        const Text(
+        Text(
           'Icono',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 12),
@@ -68,8 +68,8 @@ class _EditingViewState extends State<EditingView> {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.borderSubtle),
-                  color: AppColors.darkBackground,
+                  border: Border.all(color: cs.outlineVariant),
+                  color: cs.surface,
                 ),
                 padding: const EdgeInsets.all(4),
                 child: AddIcon(
@@ -89,13 +89,13 @@ class _EditingViewState extends State<EditingView> {
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.accentText,
+                    color: cs.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.darkBackgroundAlt, width: 2),
+                    border: Border.all(color: cs.surfaceContainerLowest, width: 2),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.edit,
-                    color: AppColors.darkBackgroundAlt,
+                    color: cs.onPrimary,
                     size: 14,
                   ),
                 ),
@@ -126,12 +126,12 @@ class _EditingViewState extends State<EditingView> {
         const SizedBox(height: 24),
 
         // Meta Diaria
-        const Text(
+        Text(
           'Meta Diaria',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
           ),
         ),
 
@@ -158,13 +158,13 @@ class _EditingViewState extends State<EditingView> {
           child: ElevatedButton(
             onPressed: () => _saveHabit(habitsProvider, screensProvider),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.successMuted.withValues(alpha: 0.15),
-              foregroundColor: AppColors.successMuted,
+              backgroundColor: cs.tertiary.withValues(alpha: 0.15),
+              foregroundColor: cs.tertiary,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
-                  color: AppColors.successMuted.withValues(alpha: 0.4),
+                  color: cs.tertiary.withValues(alpha: 0.4),
                   width: 1,
                 ),
               ),
@@ -194,7 +194,6 @@ class _EditingViewState extends State<EditingView> {
     }
 
     // Validar que la nueva meta diaria no sea menor que el progreso de hoy.
-    // Si el usuario ya registró 5 de 5 y baja la meta a 3, no debe poderse guardar.
     final int todayCount = habitsProvider.getTodayCount(widget.habit.id);
     if (_dailyGoal < todayCount) {
       CustomToast.showToast(
@@ -249,35 +248,37 @@ class _LabeledTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: cs.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.darkBackground,
+            color: cs.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.borderSubtle),
+            border: Border.all(color: cs.outlineVariant),
           ),
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: AppColors.textPrimary,
+              color: cs.onSurface,
               fontWeight: FontWeight.w400,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: AppColors.textMuted),
+              hintStyle: TextStyle(color: cs.outline),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),

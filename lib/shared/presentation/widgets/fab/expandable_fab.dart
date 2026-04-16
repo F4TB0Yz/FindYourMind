@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Un Floating Action Button expandible para "Quick Actions".
@@ -28,7 +27,6 @@ class _ExpandableFabState extends State<ExpandableFab>
   late final Animation<double> _expandAnimation;
   bool _open = false;
 
-  // Para posicionar los botones del overlay relativos al FAB
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
@@ -88,12 +86,10 @@ class _ExpandableFabState extends State<ExpandableFab>
     return OverlayEntry(
       builder: (context) => Stack(
         children: [
-          // Fondo para cerrar al tocar fuera (Scrim)
           GestureDetector(
             onTap: _toggle,
             child: Container(color: Colors.transparent),
           ),
-          // Botones de acción vinculados al FAB
           CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
@@ -115,8 +111,6 @@ class _ExpandableFabState extends State<ExpandableFab>
 
   @override
   Widget build(BuildContext context) {
-    // IMPORTANTE: El tamaño reportado al Scaffold es de 56x56.
-    // Esto asegura que el botón se posicione correctamente en el notch.
     return CompositedTransformTarget(
       link: _layerLink,
       child: SizedBox(
@@ -135,6 +129,8 @@ class _ExpandableFabState extends State<ExpandableFab>
   }
 
   Widget _buildTapToCloseFab() {
+    final cs = Theme.of(context).colorScheme;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
@@ -145,14 +141,14 @@ class _ExpandableFabState extends State<ExpandableFab>
           shape: const CircleBorder(),
           clipBehavior: Clip.antiAlias,
           elevation: 4,
-          color: AppColors.darkBackground,
+          color: cs.surface,
           child: InkWell(
             onTap: _toggle,
             child: const Padding(
               padding: EdgeInsets.all(12),
               child: Icon(
                 Icons.close,
-                color: Color(0xFF6366F1), // Indigo accent
+                color: Color(0xFF6366F1), // Indigo accent — intencional, no semántico
                 size: 24,
               ),
             ),
@@ -165,8 +161,8 @@ class _ExpandableFabState extends State<ExpandableFab>
   List<Widget> _buildExpandingActionButtons() {
     final children = <Widget>[];
     final count = widget.children.length;
-    final startAngle = 0.7; // ~40 grados
-    final endAngle = 2.4; // ~140 grados
+    final startAngle = 0.7;
+    final endAngle = 2.4;
     final step = count > 1 ? (endAngle - startAngle) / (count - 1) : 0.0;
 
     for (var i = 0; i < count; i++) {
@@ -196,9 +192,9 @@ class _ExpandableFabState extends State<ExpandableFab>
           1.0,
         ),
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
@@ -208,7 +204,7 @@ class _ExpandableFabState extends State<ExpandableFab>
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF6366F1).withOpacity(0.3),
+                color: Color(0x4D6366F1),
                 blurRadius: 15,
                 spreadRadius: 2,
               ),
@@ -280,23 +276,25 @@ class ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Material(
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
-      color: color?.withOpacity(0.9) ?? AppColors.darkBackground,
+      color: color?.withOpacity(0.9) ?? cs.surface,
       elevation: 6,
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: cs.outlineVariant.withOpacity(0.5),
             width: 1,
           ),
         ),
         child: IconButton(
           onPressed: onPressed,
           icon: icon,
-          color: Colors.white,
+          color: cs.onSurface,
           iconSize: 22,
         ),
       ),

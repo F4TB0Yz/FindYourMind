@@ -1,5 +1,4 @@
 import 'package:find_your_mind/core/constants/animation_constants.dart';
-import 'package:find_your_mind/core/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 
 /// Botón primario de la feature de hábitos.
@@ -45,6 +44,8 @@ class _CustomButtonState extends State<CustomButton>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: widget.onTap,
       onTapDown: (_) => _scaleController.forward(),
@@ -60,9 +61,9 @@ class _CustomButtonState extends State<CustomButton>
           margin: const EdgeInsets.symmetric(horizontal: 15),
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(6)),
-            color: AppColors.darkBackground,
+            color: cs.surface,
             border: Border.all(
-              color: AppColors.borderSubtle,
+              color: cs.outlineVariant,
               width: 1,
             ),
             boxShadow: const [
@@ -76,10 +77,10 @@ class _CustomButtonState extends State<CustomButton>
           child: Center(
             child: Text(
               widget.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: cs.onSurface,
                 letterSpacing: 0.3,
               ),
             ),
