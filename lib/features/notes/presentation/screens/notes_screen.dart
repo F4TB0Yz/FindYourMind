@@ -8,7 +8,6 @@ class NotesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const ContainerBorderScreens(
-      title: 'NOTAS',
       child: SoonWidget(
         nameFeature: 'NOTAS',
       )

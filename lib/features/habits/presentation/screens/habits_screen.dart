@@ -2,8 +2,8 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/features/habits/presentation/widgets/global_progress_bar.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
-import 'package:find_your_mind/features/habits/presentation/widgets/sync_status_indicator.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -24,11 +24,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Provider.of<HabitsProvider>(context, listen: false).resetTitle();
-      }
-    });
     _scrollController.addListener(_onScroll);
   }
 
@@ -50,109 +45,72 @@ class _HabitsScreenState extends State<HabitsScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Column(
-      children: [
-        // Header nativo: título + sync
-        const _HabitsHeader(),
-
-        // Divisor
-        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
-
-        // Barra de Progreso Global (Dopamina persistente)
-        Selector<HabitsProvider, double>(
-          selector: (_, provider) => provider.globalTodayProgress,
-          builder: (context, progress, _) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: GlobalProgressBar(progress: progress),
-          ),
-        ),
-
-        // Filtros
-        const _HabitsTabBar(),
-
-        // Banner offline
-        Consumer<SyncProvider>(
-          builder: (context, syncProvider, _) => OfflineModeBanner(
-            pendingChanges: syncProvider.pendingChangesCount,
-            onSyncPressed: () async => syncProvider.syncWithServer(),
-          ),
-        ),
-
-        // Lista
-        Expanded(
-          child: Consumer<HabitsProvider>(
-            builder: (context, habitsProvider, _) {
-              if (habitsProvider.isLoading && habitsProvider.habits.isEmpty) {
-                return const Center(
-                  child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
-                );
-              }
-              
-              if (habitsProvider.habits.isEmpty) {
-                return const _EmptyHabitsState();
-              }
-              
-              return ListView.builder(
-                controller: _scrollController,
-                clipBehavior: Clip.none,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                itemCount: habitsProvider.habits.length +
-                    (habitsProvider.isLoading &&
-                            habitsProvider.hasMore &&
-                            habitsProvider.habits.isNotEmpty
-                        ? 1
-                        : 0),
-                itemBuilder: (context, index) {
-                  if (index >= habitsProvider.habits.length) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: CustomLoadingDots(),
-                    );
-                  }
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: ItemHabit(
-                      itemHabit: habitsProvider.habits[index],
-                      habitsProvider: habitsProvider,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _HabitsHeader extends StatelessWidget {
-  const _HabitsHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      child: Row(
+    return ContainerBorderScreens(
+      child: Column(
         children: [
-          Text(
-            'Hábitos',
-            style: AppTextStyles.h3(context),
+          // Barra de Progreso Global (Dopamina persistente)
+          Selector<HabitsProvider, double>(
+            selector: (_, provider) => provider.globalTodayProgress,
+            builder: (context, progress, _) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: GlobalProgressBar(progress: progress),
+            ),
           ),
-          const SizedBox(width: 8),
-          const SyncStatusIndicator(),
-          const Spacer(),
-          IconButton(
-            onPressed: () {
-              context.push('/habits/new');
-            },
-            icon: const Icon(LucideIcons.plusCircle, size: 22),
-            color: cs.primary,
-            splashRadius: 24,
-            tooltip: 'Crear nuevo hábito',
+      
+          // Filtros
+          const _HabitsTabBar(),
+      
+          // Banner offline
+          Consumer<SyncProvider>(
+            builder: (context, syncProvider, _) => OfflineModeBanner(
+              pendingChanges: syncProvider.pendingChangesCount,
+              onSyncPressed: () async => syncProvider.syncWithServer(),
+            ),
+          ),
+      
+          // Lista
+          Expanded(
+            child: Consumer<HabitsProvider>(
+              builder: (context, habitsProvider, _) {
+                if (habitsProvider.isLoading && habitsProvider.habits.isEmpty) {
+                  return const Center(
+                    child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
+                  );
+                }
+                
+                if (habitsProvider.habits.isEmpty) {
+                  return const _EmptyHabitsState();
+                }
+                
+                return ListView.builder(
+                  controller: _scrollController,
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  itemCount: habitsProvider.habits.length +
+                      (habitsProvider.isLoading &&
+                              habitsProvider.hasMore &&
+                              habitsProvider.habits.isNotEmpty
+                          ? 1
+                          : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= habitsProvider.habits.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: CustomLoadingDots(),
+                      );
+                    }
+  
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ItemHabit(
+                        itemHabit: habitsProvider.habits[index],
+                        habitsProvider: habitsProvider,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -160,6 +118,7 @@ class _HabitsHeader extends StatelessWidget {
   }
 }
 
+// Filtros
 class _HabitsTabBar extends StatelessWidget {
   const _HabitsTabBar();
 

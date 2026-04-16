@@ -2,9 +2,11 @@ import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -55,15 +57,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: cs.surface,
-      appBar: AppBar(
-        title: Text('Mi Perfil', style: AppTextStyles.h3(context)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: _isLoading
+    return ContainerBorderScreens(
+      child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentUser == null
               ? const Center(child: Text('No hay usuario autenticado'))
@@ -343,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         
         await widget.signOutUseCase();
         if (!mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        context.go('/login');
       } catch (e) {
         if (!mounted) return;
         CustomToast.showToast(

@@ -51,10 +51,9 @@ class _EditingViewState extends State<EditingView> {
         // Selector de icono
         Text(
           'Icono',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: cs.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 12),
@@ -125,10 +124,9 @@ class _EditingViewState extends State<EditingView> {
         // Meta Diaria
         Text(
           'Meta Diaria',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: cs.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
           ),
         ),
 
@@ -155,21 +153,21 @@ class _EditingViewState extends State<EditingView> {
           child: ElevatedButton(
             onPressed: () => _saveHabit(habitsProvider),
             style: ElevatedButton.styleFrom(
-              backgroundColor: cs.tertiary.withValues(alpha: 0.15),
+              backgroundColor: cs.tertiary.withOpacity(0.15),
               foregroundColor: cs.tertiary,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
-                  color: cs.tertiary.withValues(alpha: 0.4),
+                  color: cs.tertiary.withOpacity(0.4),
                   width: 1,
                 ),
               ),
             ),
-            child: const Text(
+            child: Text(
               'Guardar Cambios',
-              style: TextStyle(
-                fontSize: 15,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: cs.tertiary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -252,11 +250,10 @@ class _LabeledTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: cs.onSurfaceVariant,
-          ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -268,14 +265,14 @@ class _LabeledTextField extends StatelessWidget {
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: TextStyle(
-              fontSize: 15,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: cs.onSurface,
-              fontWeight: FontWeight.w400,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: cs.outline),
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: cs.outline,
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),

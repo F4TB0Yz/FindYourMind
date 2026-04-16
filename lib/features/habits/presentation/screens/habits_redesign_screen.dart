@@ -1,3 +1,4 @@
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:flutter/material.dart';
 
 class HabitsRedesignScreen extends StatelessWidget {
@@ -5,8 +6,8 @@ class HabitsRedesignScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
+    return const ContainerBorderScreens(
+      child: Center(
         child: Text('Rediseño de Hábitos (Placeholder)'),
       ),
     );

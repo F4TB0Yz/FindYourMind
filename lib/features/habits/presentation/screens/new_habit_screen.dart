@@ -5,6 +5,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/new_habit_
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/type_habit_selector.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -24,16 +25,17 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
     final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
 
-    return Column(
-      children: [
-        _NewHabitHeader(
-          onBack: () => context.pop(),
-        ),
-        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
-        
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    return ContainerBorderScreens(
+      child: Column(
+        children: [
+          _NewHabitHeader(
+            onBack: () => context.pop(),
+          ),
+          Divider(height: 1, thickness: 1, color: cs.outlineVariant),
+          
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -42,10 +44,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     // Icono
                     Text(
                       'Icono',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -112,10 +113,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     // Tipo
                     Text(
                       'Tipo',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -127,10 +127,9 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                     // Meta Diaria
                     Text(
                       'Meta Diaria',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -146,21 +145,21 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                       child: ElevatedButton(
                         onPressed: () => _onTapSaveHabit(context, newHabitProvider, habitsProvider),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: cs.tertiary.withValues(alpha: 0.15),
+                          backgroundColor: cs.tertiary.withOpacity(0.15),
                           foregroundColor: cs.tertiary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              color: cs.tertiary.withValues(alpha: 0.4),
+                              color: cs.tertiary.withOpacity(0.4),
                               width: 1,
-                            )
+                            ),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Crear Hábito',
-                          style: TextStyle(
-                            fontSize: 15,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: cs.tertiary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -173,7 +172,8 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
               ),
             ),
           ],
-        );
+        )
+    );
   }
 
   void _onTapSaveHabit(
@@ -240,7 +240,7 @@ class _NewHabitHeader extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(8, 4, 16, 4),
       child: Row(
         children: [
           IconButton(
@@ -249,18 +249,6 @@ class _NewHabitHeader extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             splashRadius: 24,
             tooltip: 'Cancelar',
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              'Nuevo Hábito',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: cs.onSurface,
-                letterSpacing: -0.3,
-              ),
-            ),
           ),
         ],
       ),
@@ -291,11 +279,10 @@ class _LabeledTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: cs.onSurfaceVariant,
-          ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -307,14 +294,14 @@ class _LabeledTextField extends StatelessWidget {
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: TextStyle(
-              fontSize: 15,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: cs.onSurface,
-              fontWeight: FontWeight.w400,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: cs.outline),
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: cs.outline,
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),

@@ -1,3 +1,4 @@
+import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 class SoonWidget extends StatelessWidget {
@@ -18,20 +19,19 @@ class SoonWidget extends StatelessWidget {
           children: [
             Text(
               nameFeature,
-              style: TextStyle(
+              style: AppTextStyles.achievementTitle(context).copyWith(
                 color: Colors.lime,
                 fontSize: 42,
-                fontWeight: FontWeight.bold,
                 shadows: [
                   Shadow(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  offset: const Offset(0, 4),
-                  blurRadius: 18,
+                    color: Colors.black.withOpacity(0.8),
+                    offset: const Offset(0, 4),
+                    blurRadius: 18,
                   ),
                   Shadow(
-                  color: Colors.lime.withValues(alpha: 0.5),
-                  offset: const Offset(0, 2),
-                  blurRadius: 10,
+                    color: Colors.lime.withOpacity(0.5),
+                    offset: const Offset(0, 2),
+                    blurRadius: 10,
                   ),
                 ],
               ),
@@ -39,8 +39,8 @@ class SoonWidget extends StatelessWidget {
       
             Text(
               'PROXIMAMENTE',
-              style: TextStyle(
-                color: Colors.yellow.shade300.withValues(alpha: 0.6),
+              style: AppTextStyles.h2(context).copyWith(
+                color: Colors.yellow.shade300.withOpacity(0.6),
                 fontSize: 24,
                 fontStyle: FontStyle.italic,
               ),

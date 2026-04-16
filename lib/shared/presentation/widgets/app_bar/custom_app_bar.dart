@@ -2,15 +2,17 @@ import 'package:find_your_mind/shared/presentation/widgets/app_bar/profile.dart'
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Capa: Presentation → Widgets (Shared)
-/// AppBar de la aplicación. Logo a la izquierda, perfil a la derecha.
-/// Separado del contenido por un borde inferior sutil.
+/// AppBar de la aplicación con estética Terminal.
+/// Muestra el path dinámico basado en la navegación actual.
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key});
+  final String? title;
+
+  const CustomAppBar({super.key, this.title});
 
   @override
-  Size get preferredSize => const Size.fromHeight(70);
+  Size get preferredSize => const Size.fromHeight(75);
 
   @override
   Widget build(BuildContext context) {
@@ -18,26 +20,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final bool isDarkTheme = themeProvider.themeMode == ThemeMode.dark;
 
     return Container(
-      height: 100,
       decoration: const BoxDecoration(
         color: Color(0xFF0d1117),
-        border: Border(
-          bottom: BorderSide(color: Color(0xFF30363d), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFF30363d), width: 1)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Image.asset(
-            'assets/images/app_logo.png',
-            height: 70,
-            fit: BoxFit.contain,
-          ),
-          Profile(
-            isDarkTheme: isDarkTheme,
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SafeArea(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0),
+              child: Transform.scale(
+                scale: 2.5,
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                  height: 40,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+
+            Profile(isDarkTheme: isDarkTheme),
+          ],
+        ),
       ),
     );
   }

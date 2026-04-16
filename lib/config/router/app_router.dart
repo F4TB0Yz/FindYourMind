@@ -46,6 +46,7 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                name: 'habitos',
                 path: '/habits',
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: HabitsRedesignScreen(),
@@ -53,11 +54,13 @@ class AppRouter {
                 routes: [
                   // /habits/new — push desde FAB, back nativo funciona
                   GoRoute(
+                    name: 'nuevo_habito',
                     path: 'new',
                     builder: (context, state) => const NewHabitScreen(),
                   ),
                   // /habits/:habitId — push desde SlidableItem con extra: HabitEntity
                   GoRoute(
+                    name: 'detalle_habito',
                     path: ':habitId',
                     builder: (context, state) {
                       final habit = state.extra as HabitEntity;
@@ -73,6 +76,7 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                name: 'tareas',
                 path: '/tasks',
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: TasksScreen(),
@@ -85,6 +89,7 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                name: 'notas',
                 path: '/notes',
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: NotesScreen(),
@@ -97,6 +102,7 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                name: 'perfil',
                 path: '/profile',
                 pageBuilder: (context, state) => NoTransitionPage(
                   child: ProfileScreen(

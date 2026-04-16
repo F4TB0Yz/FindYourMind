@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// Shell persistente: AppBar + BottomBar + FAB condicional.
-/// Se renderiza UNA sola vez; solo el [shell] (contenido interior) cambia.
+/// Determina el título dinámicamente basado en la ruta activa.
 class AppShell extends StatelessWidget {
   final StatefulNavigationShell shell;
 
@@ -14,13 +14,23 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isHabitsTab = shell.currentIndex == 0;
+    
+    // Obtener el nombre de la ruta actual para el título del AppBar.
+    // Esto evita hardcodear títulos en cada pantalla individual.
+    final String currentTitle = _getRouteTitle(context);
 
     return Scaffold(
-      appBar: const CustomAppBar(),
+      appBar: CustomAppBar(title: currentTitle),
       body: shell,
       bottomNavigationBar: CustomBottomBar(shell: shell),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: isHabitsTab ? const HabitsFab() : null,
     );
+  }
+
+  String _getRouteTitle(BuildContext context) {
+    final state = GoRouterState.of(context);
+    // Usamos el 'name' definido en el AppRouter.
+    return state.name ?? state.matchedLocation.split('/').last;
   }
 }

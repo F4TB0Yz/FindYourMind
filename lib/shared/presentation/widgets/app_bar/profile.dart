@@ -3,6 +3,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/widgets/blur_show_dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
@@ -37,7 +38,7 @@ class _ProfileWidgetState extends State<Profile> {
           children: [
             CircleAvatar(
               radius: 14,
-              backgroundColor: cs.primary.withValues(alpha: 0.15),
+              backgroundColor: cs.primary.withOpacity(0.15),
               child: Text(
                 'JF',
                 style: TextStyle(
@@ -117,7 +118,7 @@ class _ProfileWidgetState extends State<Profile> {
                     label: 'Ver perfil',
                     onTap: () {
                       Navigator.of(context).pop();
-                      Navigator.of(context).pushNamed('/profile');
+                      context.push('/profile');
                     },
                     cs: cs,
                   ),
@@ -228,7 +229,7 @@ class _ProfileWidgetState extends State<Profile> {
           );
         },
         (_) {
-          Navigator.of(rootContext).pushNamedAndRemoveUntil('/', (route) => false);
+          context.go('/login');
         },
       );
     }

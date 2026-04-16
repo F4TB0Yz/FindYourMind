@@ -2,6 +2,7 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/details_view.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/editing_view.dart';
+import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -9,10 +10,7 @@ import 'package:provider/provider.dart';
 class HabitDetailScreen extends StatefulWidget {
   final HabitEntity habit;
 
-  const HabitDetailScreen({
-    super.key,
-    required this.habit,
-  });
+  const HabitDetailScreen({super.key, required this.habit});
 
   @override
   State<HabitDetailScreen> createState() => _HabitDetailScreenState();
@@ -34,24 +32,26 @@ class _HabitDetailScreenState extends State<HabitDetailScreen> {
       orElse: () => widget.habit,
     );
 
-    return Column(
-      children: [
-        _HabitDetailHeader(
-          habit: currentHabit,
-          isEditing: _isEditing,
-          onToggleEdit: () => _habitsProvider.changeIsEditing(!_isEditing),
-        ),
-        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: !_isEditing
-                    ? DetailsView(habit: currentHabit)
-                    : EditingView(habit: currentHabit),
-              ),
+    return ContainerBorderScreens(
+      child: Column(
+        children: [
+          _HabitDetailHeader(
+            habit: currentHabit,
+            isEditing: _isEditing,
+            onToggleEdit: () => _habitsProvider.changeIsEditing(!_isEditing),
+          ),
+          Divider(height: 1, thickness: 1, color: cs.outlineVariant),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: !_isEditing
+                  ? DetailsView(habit: currentHabit)
+                  : EditingView(habit: currentHabit),
             ),
-          ],
-        );
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -76,7 +76,11 @@ class _HabitDetailHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: cs.onSurfaceVariant),
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 20,
+              color: cs.onSurfaceVariant,
+            ),
             onPressed: () {
               // Si está editando y presiona atrás, salir de edición. Si no, volver a la lista.
               if (isEditing) {
@@ -95,30 +99,17 @@ class _HabitDetailHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  isEditing ? 'Editar Hábito' : 'Detalles',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: cs.onSurface,
-                    letterSpacing: -0.3,
-                  ),
-                ),
                 if (!isEditing)
                   Text(
                     '${habit.daysSinceStart + 1} días activos',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
               ],
             ),
           ),
-          _EditToggleButton(
-            isEditing: isEditing,
-            onToggle: onToggleEdit,
-          ),
+          _EditToggleButton(isEditing: isEditing, onToggle: onToggleEdit),
         ],
       ),
     );
@@ -130,10 +121,7 @@ class _EditToggleButton extends StatelessWidget {
   final bool isEditing;
   final VoidCallback onToggle;
 
-  const _EditToggleButton({
-    required this.isEditing,
-    required this.onToggle,
-  });
+  const _EditToggleButton({required this.isEditing, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -145,14 +133,10 @@ class _EditToggleButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isEditing
-              ? cs.error.withValues(alpha: 0.15)
-              : Colors.transparent,
+          color: isEditing ? cs.error.withOpacity(0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isEditing
-                ? cs.error.withValues(alpha: 0.4)
-                : cs.outlineVariant,
+            color: isEditing ? cs.error.withOpacity(0.4) : cs.outlineVariant,
             width: 1,
           ),
         ),

@@ -8,7 +8,6 @@ class TasksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const ContainerBorderScreens(
-      title: 'TAREAS',
       child: SoonWidget(
         nameFeature: 'TAREAS',
       ),
