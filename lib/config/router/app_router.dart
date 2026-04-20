@@ -38,7 +38,12 @@ class AppRouter {
       ),
 
       // ─── Shell: layout persistente (bottom bar + frame) ──────────────────
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
+        navigatorContainerBuilder:
+            (context, navigationShell, children) => _LazyBranchContainer(
+              navigationShell: navigationShell,
+              children: children,
+            ),
         builder: (context, state, navigationShell) =>
             AppShell(shell: navigationShell),
         branches: [
@@ -118,6 +123,57 @@ class AppRouter {
       ),
     ],
   );
+}
+
+/// Renderiza solo ramas ya visitadas para reducir costo de build inicial.
+class _LazyBranchContainer extends StatefulWidget {
+  const _LazyBranchContainer({
+    required this.navigationShell,
+    required this.children,
+  });
+
+  final StatefulNavigationShell navigationShell;
+  final List<Widget> children;
+
+  @override
+  State<_LazyBranchContainer> createState() => _LazyBranchContainerState();
+}
+
+class _LazyBranchContainerState extends State<_LazyBranchContainer> {
+  late final Set<int> _loadedBranches;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadedBranches = <int>{widget.navigationShell.currentIndex};
+  }
+
+  @override
+  void didUpdateWidget(covariant _LazyBranchContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadedBranches.add(widget.navigationShell.currentIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = widget.navigationShell.currentIndex;
+
+    return Stack(
+      children: List<Widget>.generate(widget.children.length, (index) {
+        if (!_loadedBranches.contains(index)) {
+          return const SizedBox.shrink();
+        }
+
+        return Offstage(
+          offstage: currentIndex != index,
+          child: TickerMode(
+            enabled: currentIndex == index,
+            child: widget.children[index],
+          ),
+        );
+      }),
+    );
+  }
 }
 
 /// ChangeNotifier que escucha onAuthStateChange de Supabase

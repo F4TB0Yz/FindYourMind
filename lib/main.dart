@@ -1,3 +1,5 @@
+import 'dart:ui' show FrameTiming;
+
 import 'package:find_your_mind/config/router/app_router.dart';
 import 'package:find_your_mind/config/theme/app_theme.dart';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
@@ -14,22 +16,147 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
+  final Stopwatch startupTimer = Stopwatch()..start();
+  int startupFramesLogged = 0;
+
+  void onFrameTimings(List<FrameTiming> timings) {
+    for (final timing in timings) {
+      if (startupFramesLogged >= 5) {
+        WidgetsBinding.instance.removeTimingsCallback(onFrameTimings);
+        return;
+      }
+
+      startupFramesLogged++;
+      AppLogger.i(
+        '[STARTUP_FRAME] #$startupFramesLogged '
+        'build=${timing.buildDuration.inMilliseconds}ms '
+        'raster=${timing.rasterDuration.inMilliseconds}ms '
+        'total=${timing.totalSpan.inMilliseconds}ms',
+      );
+    }
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
-
-  await _loadEnv();
-
-  await DependencyInjection().initialize();
-
-  final DependencyInjection dependencies = DependencyInjection();
-
-  AuthServiceLocator().setup(
-    dependencies.authService,
-    dependencies.usersRemoteDataSource,
-    dependencies.databaseHelper,
+  WidgetsBinding.instance.addTimingsCallback(onFrameTimings);
+  AppLogger.i(
+    '[STARTUP] Binding listo en ${startupTimer.elapsedMilliseconds}ms',
   );
 
-  runApp(
-    MultiProvider(
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final firstFrameMs = startupTimer.elapsedMilliseconds;
+    AppLogger.i('[STARTUP] Tiempo hasta primer frame: ${firstFrameMs}ms');
+  });
+
+  runApp(BootstrapApp(startupTimer: startupTimer));
+
+  AppLogger.i(
+    '[STARTUP] runApp llamado en ${startupTimer.elapsedMilliseconds}ms',
+  );
+}
+
+class BootstrapApp extends StatefulWidget {
+  final Stopwatch startupTimer;
+
+  const BootstrapApp({super.key, required this.startupTimer});
+
+  @override
+  State<BootstrapApp> createState() => _BootstrapAppState();
+}
+
+class _BootstrapAppState extends State<BootstrapApp> {
+  DependencyInjection? _dependencies;
+  bool _bootstrapStarted = false;
+  bool _showMainApp = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _bootstrapStarted) return;
+      _bootstrapStarted = true;
+      _bootstrap();
+    });
+  }
+
+  Future<void> _bootstrap() async {
+    await _loadEnv();
+    AppLogger.i(
+      '[STARTUP] _loadEnv completo en ${widget.startupTimer.elapsedMilliseconds}ms',
+    );
+
+    final dependencies = DependencyInjection();
+    await dependencies.initialize();
+
+    AppLogger.i(
+      '[STARTUP] DependencyInjection completo en '
+      '${widget.startupTimer.elapsedMilliseconds}ms',
+    );
+
+    AuthServiceLocator().setup(
+      dependencies.authService,
+      dependencies.usersRemoteDataSource,
+      dependencies.databaseHelper,
+    );
+
+    _warmUpUiRuntime();
+    await _precacheStartupAssets();
+
+    if (!mounted) return;
+    setState(() {
+      _dependencies = dependencies;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showMainApp) return;
+      setState(() {
+        _showMainApp = true;
+      });
+    });
+
+    AppLogger.i(
+      '[STARTUP] App lista para providers en '
+      '${widget.startupTimer.elapsedMilliseconds}ms',
+    );
+  }
+
+  void _warmUpUiRuntime() {
+    // Fuerza inicialización de singletons costosos de UI fuera del frame de montaje principal.
+    AppRouter.router;
+    AppTheme.getAppTheme(isDark: false);
+    AppTheme.getAppTheme(isDark: true);
+    AppLogger.i(
+      '[STARTUP] Warm-up UI runtime en ${widget.startupTimer.elapsedMilliseconds}ms',
+    );
+  }
+
+  Future<void> _precacheStartupAssets() async {
+    if (!mounted) return;
+
+    try {
+      await precacheImage(
+        const AssetImage('assets/images/app_logo.png'),
+        context,
+      );
+      AppLogger.i(
+        '[STARTUP] Assets precargados en ${widget.startupTimer.elapsedMilliseconds}ms',
+      );
+    } catch (e) {
+      AppLogger.w('[STARTUP] No se pudo precargar logo', error: e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dependencies = _dependencies;
+
+    if (dependencies == null) {
+      return const Directionality(
+        textDirection: TextDirection.ltr,
+        child: ColoredBox(color: Colors.black, child: SizedBox.expand()),
+      );
+    }
+
+    return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NewHabitProvider()),
@@ -45,9 +172,14 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
       ],
-      child: const MainApp(),
-    ),
-  );
+      child: _showMainApp
+          ? const MainApp()
+          : const Directionality(
+              textDirection: TextDirection.ltr,
+              child: ColoredBox(color: Colors.black, child: SizedBox.expand()),
+            ),
+    );
+  }
 }
 
 Future<void> _loadEnv() async {
@@ -71,9 +203,7 @@ Future<void> _loadEnv() async {
     }
   });
 
-  AppLogger.i(
-    '✅ [MAIN] Supabase inicializado con soporte para OAuth/PKCE (Windows)',
-  );
+  AppLogger.i('✅ [MAIN] Supabase inicializado con soporte para OAuth/PKCE');
 }
 
 class MainApp extends StatefulWidget {
@@ -84,28 +214,49 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+  bool _routerReady = false;
+
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final habitsProvider = Provider.of<HabitsProvider>(
-        context,
-        listen: false,
-      );
-      final syncProvider = Provider.of<SyncProvider>(context, listen: false);
-
-      syncProvider.setOnSyncCompleteCallback(() {
-        habitsProvider.refreshHabitsFromLocal();
+      if (!mounted || _routerReady) return;
+      setState(() {
+        _routerReady = true;
       });
+    });
 
-      habitsProvider.setSyncProvider(syncProvider);
-      habitsProvider.loadHabits();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+
+        final habitsProvider = Provider.of<HabitsProvider>(
+          context,
+          listen: false,
+        );
+        final syncProvider = Provider.of<SyncProvider>(context, listen: false);
+
+        syncProvider.setOnSyncCompleteCallback(() {
+          habitsProvider.refreshHabitsFromLocal();
+        });
+
+        habitsProvider.setSyncProvider(syncProvider);
+        // Fire-and-forget para no encadenar trabajo adicional al callback de frame.
+        habitsProvider.loadHabits(startupMode: true);
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_routerReady) {
+      return const Directionality(
+        textDirection: TextDirection.ltr,
+        child: ColoredBox(color: Colors.black, child: SizedBox.expand()),
+      );
+    }
+
     final ThemeProvider themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp.router(

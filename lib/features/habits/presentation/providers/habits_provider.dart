@@ -221,7 +221,7 @@ class HabitsProvider extends ChangeNotifier {
   }
 
   /// Carga hábitos desde SQLite (instantáneo) y sincroniza en segundo plano
-  Future<void> loadHabits() async {
+  Future<void> loadHabits({bool startupMode = false}) async {
     // Patrón de semáforo para evitar ejecuciones concurrentes
     if (_activeLoadFuture != null) {
       AppLogger.d('[PROVIDER] loadHabits() bloqueada por carga preexistente.');
@@ -231,10 +231,13 @@ class HabitsProvider extends ChangeNotifier {
     _activeLoadFuture = (() async {
       AppLogger.d('[PROVIDER] Iniciando loadHabits()...');
       
-      // Estado Inicial
+      // Estado inicial. En startupMode evitamos notificaciones intermedias para
+      // no disparar builds costosos durante los primeros frames.
       _isLoading = true;
       clearError();
-      notifyListeners();
+      if (!startupMode) {
+        notifyListeners();
+      }
 
       try {
         final userId = await getUserId();

@@ -65,4 +65,4 @@ Ejemplo — operación destructiva:
 
 ## Límites
 
-Código/commits/PRs: escribir normal. "stop caveman" o "modo normal": revertir. Nivel persiste hasta cambio o fin de sesión.
+Código/commits/PRs: escribir normal y en español. "stop caveman" o "modo normal": revertir. Nivel persiste hasta cambio o fin de sesión.

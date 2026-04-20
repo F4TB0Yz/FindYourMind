@@ -1,8 +1,6 @@
 import 'package:find_your_mind/features/auth/presentation/providers/auth_service_locator.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
-import 'package:find_your_mind/shared/presentation/widgets/blur_show_dialogs.dart';
-import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +22,12 @@ class _ProfileWidgetState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    _loadInitials();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 600), () async {
+        if (!mounted) return;
+        await _loadInitials();
+      });
+    });
   }
 
   Future<void> _loadInitials() async {
@@ -93,8 +96,6 @@ class _ProfileWidgetState extends State<Profile> {
 
     final Offset offset = renderBox.localToGlobal(Offset.zero);
     final Size size = renderBox.size;
-    final cs = Theme.of(context).colorScheme;
-
     showMenu(
       context: context,
       elevation: 8,

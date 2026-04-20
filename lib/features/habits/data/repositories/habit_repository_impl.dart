@@ -20,6 +20,7 @@ class HabitRepositoryImpl implements HabitRepository {
   final HabitsLocalDatasource _localDataSource;
   final NetworkInfo _networkInfo;
   final SyncService _syncService;
+  static const Duration _startupSyncDelay = Duration(milliseconds: 1800);
 
   HabitRepositoryImpl({
     required HabitsRemoteDataSource remoteDataSource,
@@ -92,13 +93,16 @@ class HabitRepositoryImpl implements HabitRepository {
 
       // Solo en la primera página, sincronizar en segundo plano
       if (offset == 0) {
-        AppLogger.d('[REPO] Iniciando sincronización en segundo plano...');
-        // Verificar conectividad y sincronizar SIN esperar (unawaited)
-        _networkInfo.isConnected.then((isConnected) {
-          if (isConnected) {
-            unawaited(_syncInBackground(email));
-          }
-        });
+        AppLogger.d('[REPO] Sincronización en segundo plano diferida para evitar jank de arranque');
+        // Defer sync para sacar trabajo de CPU fuera de los primeros frames de UI.
+        unawaited(
+          Future<void>.delayed(_startupSyncDelay, () async {
+            final isConnected = await _networkInfo.isConnected;
+            if (isConnected) {
+              await _syncInBackground(email);
+            }
+          }),
+        );
       }
 
       return localHabits;

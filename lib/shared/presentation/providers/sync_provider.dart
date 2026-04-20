@@ -24,6 +24,7 @@ class SyncProvider extends ChangeNotifier {
   static const Duration _autoSyncInterval = Duration(minutes: 5);
   static const Duration _syncDelay = Duration(milliseconds: 800);
   static const Duration _refreshDelay = Duration(milliseconds: 500);
+  static const Duration _initialPendingCountDelay = Duration(milliseconds: 1200);
 
   // Repositorio
   final HabitRepositoryImpl _repository = DependencyInjection().habitRepository as HabitRepositoryImpl;
@@ -46,7 +47,10 @@ class SyncProvider extends ChangeNotifier {
 
   SyncProvider() {
     _startAutoSync();
-    _updatePendingCount();
+    Future<void>.delayed(_initialPendingCountDelay, () async {
+      if (_disposed) return;
+      await _updatePendingCount();
+    });
   }
 
   /// Obtiene el ID del usuario autenticado

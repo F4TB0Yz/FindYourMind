@@ -117,14 +117,22 @@ class DependencyInjection {
     print('✅ [DI] AuthRepository inicializado con UsersRemoteDataSource');
 
     // Inicializar casos de uso de autenticación
-    _signInWithEmailUseCase = SignInWithEmailUseCase(authRepository: _authRepository);
-    _signUpWithEmailUseCase = SignUpWithEmailUseCase(authRepository: _authRepository);
-    _signInWithGoogleUseCase = SignInWithGoogleUseCase(authRepository: _authRepository);
+    _signInWithEmailUseCase = SignInWithEmailUseCase(
+      authRepository: _authRepository,
+    );
+    _signUpWithEmailUseCase = SignUpWithEmailUseCase(
+      authRepository: _authRepository,
+    );
+    _signInWithGoogleUseCase = SignInWithGoogleUseCase(
+      authRepository: _authRepository,
+    );
     _signOutUseCase = SignOutUseCase(
       authRepository: _authRepository,
       databaseHelper: _databaseHelper,
     );
-    _getCurrentUserUseCase = GetCurrentUserUseCase(authRepository: _authRepository);
+    _getCurrentUserUseCase = GetCurrentUserUseCase(
+      authRepository: _authRepository,
+    );
 
     // 2. Inicializar datasources
     _remoteDataSource = HabitsRemoteDataSourceImpl(client: _supabaseClient);
@@ -150,9 +158,7 @@ class DependencyInjection {
     _createHabitUseCase = CreateHabitUseCase(_habitRepository);
     _updateHabitUseCase = UpdateHabitUseCase(_habitRepository);
     _deleteHabitUseCase = DeleteHabitUseCase(_habitRepository);
-    _saveHabitProgressUseCase = SaveHabitProgressUseCase(
-      _habitRepository,
-    );
+    _saveHabitProgressUseCase = SaveHabitProgressUseCase(_habitRepository);
 
     _isInitialized = true;
   }
@@ -176,10 +182,11 @@ class DependencyInjection {
   // Getters para los casos de uso de Autenticación
   SignInWithEmailUseCase get signInWithEmailUseCase => _signInWithEmailUseCase;
   SignUpWithEmailUseCase get signUpWithEmailUseCase => _signUpWithEmailUseCase;
-  SignInWithGoogleUseCase get signInWithGoogleUseCase => _signInWithGoogleUseCase;
+  SignInWithGoogleUseCase get signInWithGoogleUseCase =>
+      _signInWithGoogleUseCase;
   SignOutUseCase get signOutUseCase => _signOutUseCase;
   GetCurrentUserUseCase get getCurrentUserUseCase => _getCurrentUserUseCase;
-  
+
   /// Verifica si el sistema de autenticación está correctamente inicializado
   bool get isAuthInitialized => _isInitialized;
 }

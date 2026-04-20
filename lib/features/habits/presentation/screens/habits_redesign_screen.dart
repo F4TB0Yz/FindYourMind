@@ -7,9 +7,7 @@ class HabitsRedesignScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const FeatureLayout(
-      child: Center(
-        child: Text('Rediseño de Hábitos (Placeholder)'),
-      ),
+      child: Padding(padding: EdgeInsets.all(16), child: Column()),
     );
   }
 }

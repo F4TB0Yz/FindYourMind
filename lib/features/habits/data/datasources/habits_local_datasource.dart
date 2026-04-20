@@ -51,8 +51,40 @@ abstract class HabitsLocalDatasource {
 
 class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   final DatabaseHelper databaseHelper;
+  static const int _startupProgressLimitPerHabit = 30;
 
   HabitsLocalDatasourceImpl({required this.databaseHelper});
+
+  Future<Map<String, List<Map<String, dynamic>>>> _loadProgressByHabitIds(
+    Database db,
+    List<String> habitIds, {
+    int? maxPerHabit,
+  }) async {
+    if (habitIds.isEmpty) return {};
+
+    final placeholders = List.filled(habitIds.length, '?').join(',');
+    final List<Map<String, dynamic>> progressRows = await db.query(
+      'habit_progress',
+      where: 'habit_id IN ($placeholders)',
+      whereArgs: habitIds,
+      orderBy: 'habit_id ASC, date DESC',
+    );
+
+    final Map<String, List<Map<String, dynamic>>> groupedProgress =
+        <String, List<Map<String, dynamic>>>{};
+
+    for (final row in progressRows) {
+      final String habitId = row['habit_id'] as String;
+      final List<Map<String, dynamic>> rowsForHabit =
+          groupedProgress.putIfAbsent(habitId, () => <Map<String, dynamic>>[]);
+
+      if (maxPerHabit == null || rowsForHabit.length < maxPerHabit) {
+        rowsForHabit.add(row);
+      }
+    }
+
+    return groupedProgress;
+  }
 
   @override
   Future<List<HabitEntity>> getHabitsByUserId(String userId) async {
@@ -74,21 +106,17 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         '[LOCAL_DS] getHabitsByUserId - Query exitosa: ${habitMaps.length} hábitos',
       );
 
-      List<Map<String, dynamic>> habitsWithProgress = [];
+      final List<String> habitIds =
+          habitMaps.map((habitMap) => habitMap['id'] as String).toList();
+      final progressByHabit = await _loadProgressByHabitIds(db, habitIds);
 
-      for (var habitMap in habitMaps) {
+      final List<Map<String, dynamic>> habitsWithProgress = [];
+
+      for (final habitMap in habitMaps) {
         // Crear una copia mutable del map
         final mutableHabitMap = Map<String, dynamic>.from(habitMap);
         final habitId = mutableHabitMap['id'] as String;
-
-        final progressResponse = await db.query(
-          'habit_progress',
-          where: 'habit_id = ?',
-          whereArgs: [habitId],
-          orderBy: 'date DESC',
-        );
-
-        mutableHabitMap['progress'] = progressResponse;
+        mutableHabitMap['progress'] = progressByHabit[habitId] ?? [];
         habitsWithProgress.add(mutableHabitMap);
       }
 
@@ -137,38 +165,25 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
         '[LOCAL_DS] Query exitosa - ${habitMaps.length} registros encontrados',
       );
 
-      List<Map<String, dynamic>> habitsWithProgress = [];
+      final List<String> habitIds =
+          habitMaps.map((habitMap) => habitMap['id'] as String).toList();
 
       AppLogger.d(
-        '[LOCAL_DS] Iterando sobre ${habitMaps.length} hábitos para obtener progreso...',
+        '[LOCAL_DS] Cargando progreso en batch para ${habitMaps.length} hábitos...',
       );
-      for (var habitMap in habitMaps) {
-        // Crear una copia mutable del map
+      final progressByHabit = await _loadProgressByHabitIds(
+        db,
+        habitIds,
+        maxPerHabit: _startupProgressLimitPerHabit,
+      );
+
+      final List<Map<String, dynamic>> habitsWithProgress = [];
+
+      for (final habitMap in habitMaps) {
         final mutableHabitMap = Map<String, dynamic>.from(habitMap);
         final habitId = mutableHabitMap['id'] as String;
-        AppLogger.d('[LOCAL_DS] Obteniendo progreso para hábito: $habitId');
-
-        try {
-          // Obtener solo los últimos 30 días de progreso para optimizar
-          final progressResponse = await db.query(
-            'habit_progress',
-            where: 'habit_id = ?',
-            whereArgs: [habitId],
-            orderBy: 'date DESC',
-            limit: 30,
-          );
-
-          AppLogger.d(
-            '[LOCAL_DS] Progreso obtenido: ${progressResponse.length} registros',
-          );
-          mutableHabitMap['progress'] = progressResponse;
-          habitsWithProgress.add(mutableHabitMap);
-        } catch (e) {
-          AppLogger.w('[LOCAL_DS] Error obteniendo progreso para $habitId', error: e);
-          // Si falla obtener el progreso, agregar el hábito sin progreso
-          mutableHabitMap['progress'] = [];
-          habitsWithProgress.add(mutableHabitMap);
-        }
+        mutableHabitMap['progress'] = progressByHabit[habitId] ?? [];
+        habitsWithProgress.add(mutableHabitMap);
       }
 
       AppLogger.d(
