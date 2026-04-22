@@ -14,9 +14,10 @@ class SignInWithEmailUseCase {
   /// Parámetros:
   ///   - email: Email del usuario
   ///   - password: Contraseña del usuario
-  /// Retorna:
-  ///   - Either<Failure, UserEntity>
-  Future<Either<Failure, UserEntity>> call({required String email, required String password}) async {
+  Future<Either<Failure, UserEntity>> call({
+    required String email,
+    required String password,
+  }) async {
     // Validar email no vacío
     if (email.isEmpty) {
       return Left(ValidationFailure('El email no puede estar vacío'));

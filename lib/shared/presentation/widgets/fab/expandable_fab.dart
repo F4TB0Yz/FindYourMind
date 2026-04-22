@@ -161,8 +161,8 @@ class _ExpandableFabState extends State<ExpandableFab>
   List<Widget> _buildExpandingActionButtons() {
     final children = <Widget>[];
     final count = widget.children.length;
-    final startAngle = 0.7;
-    final endAngle = 2.4;
+    const startAngle = 0.7;
+    const endAngle = 2.4;
     final step = count > 1 ? (endAngle - startAngle) / (count - 1) : 0.0;
 
     for (var i = 0; i < count; i++) {
@@ -281,13 +281,13 @@ class ActionButton extends StatelessWidget {
     return Material(
       shape: const CircleBorder(),
       clipBehavior: Clip.antiAlias,
-      color: color?.withOpacity(0.9) ?? cs.surface,
+      color: color?.withValues(alpha: 0.9) ?? cs.surface,
       elevation: 6,
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: cs.outlineVariant.withOpacity(0.5),
+            color: cs.outlineVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),

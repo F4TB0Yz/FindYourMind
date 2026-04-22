@@ -5,7 +5,6 @@ import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart'
 import 'package:find_your_mind/shared/presentation/widgets/layouts/feature_layout.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
-import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -64,33 +63,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentUser == null
-              ? const Center(child: Text('No hay usuario autenticado'))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      child: Column(
-                        children: [
-                          // Avatar
-                          _buildAvatar(cs),
-                          const SizedBox(height: 16),
-                          // Nombre/Email
-                          _buildUserInfo(cs),
-                          const SizedBox(height: 32),
-                          // Información de la cuenta
-                          _buildAccountSection(cs),
-                          const SizedBox(height: 16),
-                          // Configuración
-                          _buildSettingsSection(cs),
-                          const SizedBox(height: 32),
-                          // Botón de cerrar sesión
-                          _buildSignOutButton(cs),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ],
+          ? const Center(child: Text('No hay usuario autenticado'))
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    children: [
+                      // Avatar
+                      _buildAvatar(cs),
+                      const SizedBox(height: 16),
+                      // Nombre/Email
+                      _buildUserInfo(cs),
+                      const SizedBox(height: 32),
+                      // Información de la cuenta
+                      _buildAccountSection(cs),
+                      const SizedBox(height: 16),
+                      // Configuración
+                      _buildSettingsSection(cs),
+                      const SizedBox(height: 32),
+                      // Botón de cerrar sesión
+                      _buildSignOutButton(cs),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
+              ],
+            ),
     );
   }
 
@@ -111,7 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _getInitials() {
-    if (_currentUser?.displayName != null && _currentUser!.displayName!.isNotEmpty) {
+    if (_currentUser?.displayName != null &&
+        _currentUser!.displayName!.isNotEmpty) {
       final names = _currentUser!.displayName!.split(' ');
       if (names.length >= 2) {
         return '${names[0][0]}${names[1][0]}'.toUpperCase();
@@ -127,17 +130,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(
           _currentUser?.displayName ?? 'Usuario',
-          style: AppTextStyles.achievementTitle(context).copyWith(
-            fontSize: 28,
-          ),
+          style: AppTextStyles.achievementTitle(context).copyWith(fontSize: 28),
         ),
         const SizedBox(height: 4),
         Text(
           _currentUser?.email ?? '',
-          style: TextStyle(
-            fontSize: 14,
-            color: cs.onSurfaceVariant,
-          ),
+          style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
         ),
       ],
     );
@@ -149,7 +147,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.outlineVariant.withOpacity(0.5), width: 1),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.5),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +192,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.outlineVariant.withOpacity(0.5), width: 1),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.5),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,15 +271,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return ListTile(
       leading: Icon(icon, color: cs.onSurfaceVariant),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, color: cs.onSurface),
-      ),
+      title: Text(title, style: TextStyle(fontSize: 16, color: cs.onSurface)),
       trailing: Icon(Icons.chevron_right, color: cs.outline),
       onTap: onTap,
     );
   }
-
 
   Widget _buildSignOutButton(ColorScheme cs) {
     return Padding(
@@ -294,10 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: const Text(
             'Cerrar sesión',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -317,7 +314,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Text('Cerrar sesión'),
           ),
         ],
@@ -326,12 +325,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (shouldLogout ?? false) {
       try {
-        final habitsProvider = Provider.of<HabitsProvider>(context, listen: false);
+        if (!mounted) return;
+        final habitsProvider = Provider.of<HabitsProvider>(
+          context,
+          listen: false,
+        );
         final syncProvider = Provider.of<SyncProvider>(context, listen: false);
-        
+
         habitsProvider.clearAllData();
         syncProvider.resetSyncState();
-        
+
         await widget.signOutUseCase();
         if (!mounted) return;
         context.go('/login');
@@ -348,8 +351,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _formatDate(DateTime? date) {
     if (date == null) return 'N/A';
     final months = [
-      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }

@@ -13,7 +13,7 @@ class HabitEntity extends Equatable {
   final String initialDate;
   final List<HabitProgress> progress;
 
-  HabitEntity({
+  const HabitEntity({
     required this.id,
     required this.userId,
     required this.title,
@@ -22,7 +22,7 @@ class HabitEntity extends Equatable {
     required this.type,
     required this.dailyGoal,
     required this.initialDate,
-    required this.progress
+    required this.progress,
   });
 
   HabitEntity copyWith({
@@ -34,7 +34,7 @@ class HabitEntity extends Equatable {
     TypeHabit? type,
     int? dailyGoal,
     String? initialDate,
-    List<HabitProgress>? progress
+    List<HabitProgress>? progress,
   }) {
     return HabitEntity(
       id: id ?? this.id,
@@ -45,16 +45,17 @@ class HabitEntity extends Equatable {
       type: type ?? this.type,
       dailyGoal: dailyGoal ?? this.dailyGoal,
       initialDate: initialDate ?? this.initialDate,
-      progress: progress ?? this.progress
+      progress: progress ?? this.progress,
     );
   }
 
   // Calcular días transcurridos
-  int get daysSinceStart => DateTime.now().difference(DateTime.parse(initialDate)).inDays;
-  
+  int get daysSinceStart =>
+      DateTime.now().difference(DateTime.parse(initialDate)).inDays;
+
   // Calcular semanas transcurridas
   int get weeksSinceStart => (daysSinceStart / 7).floor();
-  
+
   // Formato amigable del tiempo transcurrido
   String get timeSinceStart {
     final now = DateTime.now();
@@ -64,12 +65,12 @@ class HabitEntity extends Equatable {
     if (difference.inSeconds < 60) {
       return '${difference.inSeconds} s';
     }
-    
+
     if (difference.inMinutes < 60) {
       final seconds = difference.inSeconds % 60;
       return '${difference.inMinutes} m $seconds s';
     }
-    
+
     if (difference.inHours < 24) {
       final minutes = difference.inMinutes % 60;
       return '${difference.inHours} h $minutes m';
@@ -78,7 +79,7 @@ class HabitEntity extends Equatable {
     if (difference.inDays == 1) {
       return '1 día';
     }
-    
+
     if (difference.inDays < 7) {
       return '${difference.inDays} días';
     }
@@ -86,12 +87,12 @@ class HabitEntity extends Equatable {
     if (difference.inDays < 14) {
       return '1 semana';
     }
-    
+
     if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
       return '$weeks semanas';
     }
-    
+
     int months = (now.year - start.year) * 12 + now.month - start.month;
     if (now.day < start.day) {
       months--;
@@ -104,7 +105,7 @@ class HabitEntity extends Equatable {
     if (months < 12) {
       return '$months meses';
     }
-    
+
     final years = (months / 12).floor();
     final remainingMonths = months % 12;
     if (remainingMonths == 0) {
@@ -128,6 +129,6 @@ class HabitEntity extends Equatable {
     type,
     dailyGoal,
     initialDate,
-    progress
+    progress,
   ];
 }

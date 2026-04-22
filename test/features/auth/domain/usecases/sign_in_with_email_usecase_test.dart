@@ -17,8 +17,8 @@ void main() {
     usecase = SignInWithEmailUseCase(authRepository: mockRepository);
   });
 
-  final tEmail = 'test@example.com';
-  final tPassword = 'password123';
+  const tEmail = 'test@example.com';
+  const tPassword = 'password123';
   final tUser = UserEntity(
     id: '123',
     email: 'test@example.com',

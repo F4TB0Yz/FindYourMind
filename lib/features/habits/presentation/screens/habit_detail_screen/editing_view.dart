@@ -153,13 +153,13 @@ class _EditingViewState extends State<EditingView> {
           child: ElevatedButton(
             onPressed: () => _saveHabit(habitsProvider),
             style: ElevatedButton.styleFrom(
-              backgroundColor: cs.tertiary.withOpacity(0.15),
+              backgroundColor: cs.tertiary.withValues(alpha: 0.15),
               foregroundColor: cs.tertiary,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: BorderSide(
-                  color: cs.tertiary.withOpacity(0.4),
+                  color: cs.tertiary.withValues(alpha: 0.4),
                   width: 1,
                 ),
               ),

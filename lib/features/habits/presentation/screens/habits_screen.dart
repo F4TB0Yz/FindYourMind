@@ -43,8 +43,6 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return ContainerBorderScreens(
       child: Column(
         children: [
@@ -56,10 +54,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
               child: GlobalProgressBar(progress: progress),
             ),
           ),
-      
+
           // Filtros
           const _HabitsTabBar(),
-      
+
           // Banner offline
           Consumer<SyncProvider>(
             builder: (context, syncProvider, _) => OfflineModeBanner(
@@ -67,7 +65,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
               onSyncPressed: () async => syncProvider.syncWithServer(),
             ),
           ),
-      
+
           // Lista
           Expanded(
             child: Consumer<HabitsProvider>(
@@ -77,16 +75,17 @@ class _HabitsScreenState extends State<HabitsScreen> {
                     child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
                   );
                 }
-                
+
                 if (habitsProvider.habits.isEmpty) {
                   return const _EmptyHabitsState();
                 }
-                
+
                 return ListView.builder(
                   controller: _scrollController,
                   clipBehavior: Clip.none,
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  itemCount: habitsProvider.habits.length +
+                  itemCount:
+                      habitsProvider.habits.length +
                       (habitsProvider.isLoading &&
                               habitsProvider.hasMore &&
                               habitsProvider.habits.isNotEmpty
@@ -99,7 +98,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
                         child: CustomLoadingDots(),
                       );
                     }
-  
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: ItemHabit(
@@ -190,14 +189,12 @@ class _EmptyHabitsState extends StatelessWidget {
           Icon(
             LucideIcons.sparkles,
             size: 80,
-            color: cs.outline.withOpacity(0.5),
+            color: cs.outline.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 24),
           Text(
             'Comienza tu viaje',
-            style: AppTextStyles.h2(context).copyWith(
-              letterSpacing: -0.5,
-            ),
+            style: AppTextStyles.h2(context).copyWith(letterSpacing: -0.5),
           ),
           const SizedBox(height: 12),
           Padding(
@@ -205,10 +202,9 @@ class _EmptyHabitsState extends StatelessWidget {
             child: Text(
               'Aún no tienes hábitos registrados. Elige uno y empieza a construir tu mejor versión hoy.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium(context).copyWith(
-                color: cs.onSurfaceVariant,
-                height: 1.5,
-              ),
+              style: AppTextStyles.bodyMedium(
+                context,
+              ).copyWith(color: cs.onSurfaceVariant, height: 1.5),
             ),
           ),
           const SizedBox(height: 40),
@@ -219,16 +215,13 @@ class _EmptyHabitsState extends StatelessWidget {
             icon: const Icon(LucideIcons.plus, size: 18),
             label: const Text('Crear mi primer hábito'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: cs.primary.withOpacity(0.1),
+              backgroundColor: cs.primary.withValues(alpha: 0.1),
               foregroundColor: cs.primary,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: cs.primary.withOpacity(0.4),
-                  width: 1,
-                ),
+                side: BorderSide(color: cs.primary.withValues(alpha: 0.4), width: 1),
               ),
             ),
           ),

@@ -1,5 +1,3 @@
-/// Capa: Presentation → Screens
-/// Pantalla de inicio de sesión con validación de formularios.
 import 'package:find_your_mind/core/utils/validators.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/auth/presentation/screens/register_screen.dart';
@@ -121,10 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Image.asset('assets/images/app_logo.png', width: 150),
                 ),
                 const SizedBox(height: 32),
-                Text(
-                  'Inicia sesión',
-                  style: AppTextStyles.h2(context),
-                ),
+                Text('Inicia sesión', style: AppTextStyles.h2(context)),
                 const SizedBox(height: 4),
                 Text(
                   'Ingresa tus credenciales para continuar',
@@ -238,19 +233,12 @@ class _OrDivider extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Expanded(
-          child: Divider(color: cs.outlineVariant, thickness: 1),
-        ),
+        Expanded(child: Divider(color: cs.outlineVariant, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'o',
-            style: TextStyle(color: cs.outline, fontSize: 12),
-          ),
+          child: Text('o', style: TextStyle(color: cs.outline, fontSize: 12)),
         ),
-        Expanded(
-          child: Divider(color: cs.outlineVariant, thickness: 1),
-        ),
+        Expanded(child: Divider(color: cs.outlineVariant, thickness: 1)),
       ],
     );
   }

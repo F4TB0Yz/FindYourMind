@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
 import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
@@ -54,19 +55,18 @@ class SyncProvider extends ChangeNotifier {
   }
 
   /// Obtiene el ID del usuario autenticado
-  /// Retorna el ID del usuario actual o un valor por defecto si no hay sesión
-  Future<String> _getUserId() async {
+  /// Retorna el ID del usuario actual o null si no hay sesión
+  Future<String?> _getUserId() async {
     try {
       final user = await _getCurrentUserUseCase();
       if (user != null && user.id.isNotEmpty) {
         return user.id;
       }
-      // Fallback al ID hardcodeado si no hay usuario autenticado
-      if (kDebugMode) print('⚠️ No hay usuario autenticado, usando ID por defecto');
-      return AppConstants.currentUserId;
+      AppLogger.w('No hay usuario autenticado');
+      return null;
     } catch (e) {
-      if (kDebugMode) print('❌ Error al obtener usuario: $e');
-      return AppConstants.currentUserId;
+      AppLogger.e('Error al obtener usuario', error: e);
+      return null;
     }
   }
 
@@ -100,7 +100,7 @@ class SyncProvider extends ChangeNotifier {
       _pendingChangesCount = await _repository.getPendingSyncCount();
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) print('⚠️ Error al actualizar contador pendiente: $e');
+      AppLogger.w('Error al actualizar contador pendiente', error: e);
     }
   }
 
@@ -116,6 +116,8 @@ class SyncProvider extends ChangeNotifier {
       await Future.delayed(_syncDelay);
 
       final userId = await _getUserId();
+      if (userId == null) return;
+      
       final result = await _repository.syncWithRemote(userId);
 
       if (result.isFullSuccess || result.success > 0) {
@@ -132,7 +134,7 @@ class SyncProvider extends ChangeNotifier {
       }
     } catch (e) {
       // Sincronización silenciosa, no mostrar error al usuario
-      if (kDebugMode) print('🔄 Sincronización en segundo plano (no crítico): $e');
+      AppLogger.d('Sincronización en segundo plano (no crítico)', error: e);
       _lastSyncError = e.toString();
     } finally {
       _isSyncing = false;
@@ -143,7 +145,7 @@ class SyncProvider extends ChangeNotifier {
   /// Sincronización manual (para botón de refresh)
   Future<bool> syncWithServer() async {
     if (_isSyncing) {
-      if (kDebugMode) print('⚠️ Sincronización ya en progreso');
+      AppLogger.w('Sincronización ya en progreso');
       return false;
     }
 
@@ -153,6 +155,12 @@ class SyncProvider extends ChangeNotifier {
       notifyListeners();
 
       final userId = await _getUserId();
+      if (userId == null) {
+        _isSyncing = false;
+        notifyListeners();
+        return false;
+      }
+      
       final result = await _repository.syncWithRemote(userId);
 
       if (result.isFullSuccess || result.success > 0) {
@@ -169,7 +177,7 @@ class SyncProvider extends ChangeNotifier {
 
       return false;
     } catch (e) {
-      if (kDebugMode) print('❌ Error syncWithServer: $e');
+      AppLogger.e('Error syncWithServer', error: e);
       _lastSyncError = e.toString();
       return false;
     } finally {
@@ -183,7 +191,7 @@ class SyncProvider extends ChangeNotifier {
     try {
       return await _repository.getPendingSyncCount();
     } catch (e) {
-      if (kDebugMode) print('❌ Error getPendingChangesCount: $e');
+      AppLogger.e('Error getPendingChangesCount', error: e);
       return 0;
     }
   }
@@ -210,6 +218,6 @@ class SyncProvider extends ChangeNotifier {
     _lastSyncError = null;
     _onSyncComplete = null;
     notifyListeners();
-    print('🧹 [SYNC_PROVIDER] Estado de sincronización reseteado');
+    AppLogger.i('🧹 [SYNC_PROVIDER] Estado de sincronización reseteado');
   }
 }

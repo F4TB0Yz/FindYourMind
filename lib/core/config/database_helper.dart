@@ -1,3 +1,4 @@
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 import 'package:path/path.dart' show join;
@@ -32,12 +33,12 @@ class DatabaseHelper {
 
       if (await file.exists()) {
         await file.delete();
-        print('🗑️ [DB] Base de datos eliminada: $path');
+        AppLogger.i('🗑️ [DB] Base de datos eliminada: $path');
       } else {
-        print('ℹ️ [DB] No existe base de datos para eliminar');
+        AppLogger.i('ℹ️ [DB] No existe base de datos para eliminar');
       }
     } catch (e) {
-      print('❌ [DB] Error eliminando base de datos: $e');
+      AppLogger.e('Error eliminando base de datos', error: e);
       rethrow;
     }
   }
@@ -56,7 +57,7 @@ class DatabaseHelper {
       // Usar la factory de FFI
       databaseFactory = databaseFactoryFfi;
 
-      print('✅ [DB] sqflite_ffi inicializado para ${Platform.operatingSystem}');
+      AppLogger.i('✅ [DB] sqflite_ffi inicializado para ${Platform.operatingSystem}');
       _ffiInitialized = true;
     }
   }
@@ -82,11 +83,11 @@ class DatabaseHelper {
     final path = await _getDatabasePath();
 
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      print('📂 [DB] Plataforma: Desktop (${Platform.operatingSystem})');
+      AppLogger.d('📂 [DB] Plataforma: Desktop (${Platform.operatingSystem})');
     } else {
-      print('📂 [DB] Plataforma: Móvil');
+      AppLogger.d('📂 [DB] Plataforma: Móvil');
     }
-    print('📂 [DB] Ruta de la base de datos: $path');
+    AppLogger.d('📂 [DB] Ruta de la base de datos: $path');
 
     try {
       // Usar openDatabase con la factory configurada
@@ -99,16 +100,16 @@ class DatabaseHelper {
         singleInstance: true,
       );
 
-      print('✅ [DB] Base de datos abierta correctamente');
+      AppLogger.i('✅ [DB] Base de datos abierta correctamente');
       return db;
     } catch (e) {
-      print('❌ [DB] Error abriendo base de datos: $e');
+      AppLogger.e('Error abriendo base de datos', error: e);
       rethrow;
     }
   }
 
   Future<void> _onOpen(Database db) async {
-    print('🔍 [DB] Verificando integridad de la base de datos...');
+    AppLogger.d('🔍 [DB] Verificando integridad de la base de datos...');
 
     try {
       // Verificar si las tablas principales existen
@@ -117,7 +118,7 @@ class DatabaseHelper {
       );
 
       if (result.length < 3) {
-        print('⚠️ [DB] Tablas faltantes detectadas. Recreando...');
+        AppLogger.w('Tablas faltantes detectadas. Recreando...');
 
         // Eliminar tablas existentes si las hay
         await db.execute('DROP TABLE IF EXISTS pending_sync');
@@ -128,22 +129,22 @@ class DatabaseHelper {
         await _onCreate(db, 1);
       } else {
         await _ensurePerformanceIndexes(db);
-        print('✅ [DB] Todas las tablas existen correctamente');
+        AppLogger.i('✅ [DB] Todas las tablas existen correctamente');
       }
     } catch (e) {
-      print('❌ [DB] Error verificando tablas: $e');
+      AppLogger.e('Error verificando tablas', error: e);
       // Si hay error, intentar recrear
       try {
         await _onCreate(db, 1);
       } catch (e2) {
-        print('❌ [DB] Error recreando tablas: $e2');
+        AppLogger.e('Error recreando tablas', error: e2);
         rethrow;
       }
     }
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    print('🔨 [DB] Creando tablas de la base de datos...');
+    AppLogger.i('🔨 [DB] Creando tablas de la base de datos...');
 
     // Tabla de hábitos
     await db.execute('''
@@ -161,7 +162,7 @@ class DatabaseHelper {
         updated_at TEXT NOT NULL
       )
     ''');
-    print('✅ [DB] Tabla habits creada');
+    AppLogger.i('✅ [DB] Tabla habits creada');
 
     // Tabla de progreso de hábitos
     await db.execute('''
@@ -176,7 +177,7 @@ class DatabaseHelper {
         UNIQUE(habit_id, date)
       )
     ''');
-    print(
+    AppLogger.i(
       '✅ [DB] Tabla habit_progress creada con restricción UNIQUE(habit_id, date)',
     );
 
@@ -192,12 +193,12 @@ class DatabaseHelper {
         retry_count INTEGER DEFAULT 0
       )
     ''');
-    print('✅ [DB] Tabla pending_sync creada');
+    AppLogger.i('✅ [DB] Tabla pending_sync creada');
 
     await _ensurePerformanceIndexes(db);
 
-    print('✅ [DB] Índices creados');
-    print('🎉 [DB] Base de datos inicializada correctamente');
+    AppLogger.i('✅ [DB] Índices creados');
+    AppLogger.i('🎉 [DB] Base de datos inicializada correctamente');
   }
 
   Future<void> _ensurePerformanceIndexes(Database db) async {
@@ -226,7 +227,7 @@ class DatabaseHelper {
   /// Limpia todas las tablas de la base de datos (útil al cerrar sesión)
   /// Mantiene la estructura pero elimina todos los datos
   Future<void> clearAllTables() async {
-    print('🧹 [DB] Limpiando todas las tablas...');
+    AppLogger.i('🧹 [DB] Limpiando todas las tablas...');
 
     try {
       final db = await database;
@@ -236,9 +237,9 @@ class DatabaseHelper {
       await db.delete('habit_progress');
       await db.delete('pending_sync');
 
-      print('✅ [DB] Todas las tablas limpiadas exitosamente');
+      AppLogger.i('✅ [DB] Todas las tablas limpiadas exitosamente');
     } catch (e) {
-      print('❌ [DB] Error al limpiar tablas: $e');
+      AppLogger.e('Error al limpiar tablas', error: e);
       rethrow;
     }
   }

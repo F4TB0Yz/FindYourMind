@@ -1,4 +1,5 @@
 import 'package:find_your_mind/core/config/database_helper.dart';
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/network/network_info.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
 import 'package:find_your_mind/features/auth/data/datasources/users_remote_datasource.dart';
@@ -75,11 +76,11 @@ class DependencyInjection {
 
     // Si se solicita reset, eliminar la base de datos
     if (forceResetDatabase) {
-      print('🔄 [DI] Forzando recreación de la base de datos...');
+      AppLogger.i('🔄 [DI] Forzando recreación de la base de datos...');
       try {
         await _databaseHelper.deleteDatabaseFile();
       } catch (e) {
-        print('⚠️ [DI] Error al eliminar BD (puede no existir): $e');
+        AppLogger.w('Error al eliminar BD (puede no existir)', error: e);
       }
     }
 
@@ -87,13 +88,13 @@ class DependencyInjection {
     try {
       await _databaseHelper.database;
     } catch (e) {
-      print('⚠️ [DI] Error al abrir la base de datos. Intentando recrear...');
+      AppLogger.w('Error al abrir la base de datos. Intentando recrear...', error: e);
       // Si hay error, eliminar y recrear la base de datos
       try {
         await _databaseHelper.deleteDatabaseFile();
         await _databaseHelper.database;
       } catch (e2) {
-        print('❌ [DI] Error crítico al inicializar la base de datos: $e2');
+        AppLogger.e('Error crítico al inicializar la base de datos', error: e2);
         rethrow;
       }
     }
@@ -103,18 +104,18 @@ class DependencyInjection {
 
     // Inicializar servicio de autenticación
     _authService = SupabaseAuthService(_supabaseClient);
-    print('✅ [DI] AuthService inicializado');
+    AppLogger.i('✅ [DI] AuthService inicializado');
 
     // Inicializar datasource de usuarios
     _usersRemoteDataSource = UsersRemoteDataSourceImpl(client: _supabaseClient);
-    print('✅ [DI] UsersRemoteDataSource inicializado');
+    AppLogger.i('✅ [DI] UsersRemoteDataSource inicializado');
 
     // Inicializar repositorio de autenticación
     _authRepository = AuthRepositoryImpl(
       authService: _authService,
       usersDataSource: _usersRemoteDataSource,
     );
-    print('✅ [DI] AuthRepository inicializado con UsersRemoteDataSource');
+    AppLogger.i('✅ [DI] AuthRepository inicializado con UsersRemoteDataSource');
 
     // Inicializar casos de uso de autenticación
     _signInWithEmailUseCase = SignInWithEmailUseCase(

@@ -24,12 +24,12 @@ class SoonWidget extends StatelessWidget {
                 fontSize: 42,
                 shadows: [
                   Shadow(
-                    color: Colors.black.withOpacity(0.8),
+                    color: Colors.black.withValues(alpha: 0.8),
                     offset: const Offset(0, 4),
                     blurRadius: 18,
                   ),
                   Shadow(
-                    color: Colors.lime.withOpacity(0.5),
+                    color: Colors.lime.withValues(alpha: 0.5),
                     offset: const Offset(0, 2),
                     blurRadius: 10,
                   ),
@@ -40,7 +40,7 @@ class SoonWidget extends StatelessWidget {
             Text(
               'PROXIMAMENTE',
               style: AppTextStyles.h2(context).copyWith(
-                color: Colors.yellow.shade300.withOpacity(0.6),
+                color: Colors.yellow.shade300.withValues(alpha: 0.6),
                 fontSize: 24,
                 fontStyle: FontStyle.italic,
               ),

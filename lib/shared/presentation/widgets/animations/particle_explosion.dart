@@ -35,7 +35,7 @@ class ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
       if (particle.opacity <= 0) continue;
-      final paint = Paint()..color = particle.color.withOpacity(particle.opacity);
+      final paint = Paint()..color = particle.color.withValues(alpha: particle.opacity);
       canvas.drawCircle(Offset(particle.x, particle.y), particle.size, paint);
     }
   }
@@ -108,7 +108,7 @@ class _ParticleExplosionState extends State<ParticleExplosion>
           vx: math.cos(angle) * speed,
           vy: math.sin(angle) * speed,
           size: _random.nextDouble() * 2.5 + 1,
-          color: widget.color.withOpacity(0.8 + _random.nextDouble() * 0.2),
+          color: widget.color.withValues(alpha: 0.8 + _random.nextDouble() * 0.2),
         ),
       );
     }

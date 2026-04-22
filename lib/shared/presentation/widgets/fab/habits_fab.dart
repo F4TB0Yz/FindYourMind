@@ -18,12 +18,12 @@ class HabitsFab extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             colorScheme.primary,
-            colorScheme.primary.withOpacity(0.8),
+            colorScheme.primary.withValues(alpha: 0.8),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.35),
+            color: colorScheme.primary.withValues(alpha: 0.35),
             blurRadius: 16,
             spreadRadius: 2,
           ),

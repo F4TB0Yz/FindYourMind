@@ -145,13 +145,13 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
                       child: ElevatedButton(
                         onPressed: () => _onTapSaveHabit(context, newHabitProvider, habitsProvider),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: cs.tertiary.withOpacity(0.15),
+                          backgroundColor: cs.tertiary.withValues(alpha: 0.15),
                           foregroundColor: cs.tertiary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              color: cs.tertiary.withOpacity(0.4),
+                              color: cs.tertiary.withValues(alpha: 0.4),
                               width: 1,
                             ),
                           ),
@@ -183,6 +183,16 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
   ) async {
     final userId = await habitsProvider.getUserId();
     
+    if (userId == null) {
+      if (context.mounted) {
+        CustomToast.showToast(
+          context: context,
+          message: 'Error: No se pudo identificar al usuario',
+        );
+      }
+      return;
+    }
+    
     final habit = HabitEntity(
       id: '',
       userId: userId,
@@ -192,7 +202,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       type: newHabitProvider.typeHabitSelected,
       dailyGoal: newHabitProvider.dailyGoal,
       initialDate: DateTime.now().toIso8601String(),
-      progress: [],
+      progress: const [],
     );
 
     if (!_verifyFields(habit)) return;

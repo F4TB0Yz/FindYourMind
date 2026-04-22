@@ -14,9 +14,10 @@ class SignUpWithEmailUseCase {
   /// Parámetros:
   ///   - email: Email del nuevo usuario
   ///   - password: Contraseña del nuevo usuario
-  /// Retorna:
-  ///   - Either<Failure, UserEntity>
-  Future<Either<Failure, UserEntity>> call({required String email, required String password}) async {
+  Future<Either<Failure, UserEntity>> call({
+    required String email,
+    required String password,
+  }) async {
     // Validar email no vacío
     if (email.isEmpty) {
       return Left(ValidationFailure('El email no puede estar vacío'));
@@ -34,7 +35,9 @@ class SignUpWithEmailUseCase {
 
     // Validar contraseña mínima
     if (password.length < 6) {
-      return Left(ValidationFailure('La contraseña debe tener al menos 6 caracteres'));
+      return Left(
+        ValidationFailure('La contraseña debe tener al menos 6 caracteres'),
+      );
     }
 
     // Delegar al repositorio

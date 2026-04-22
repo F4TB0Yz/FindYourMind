@@ -17,7 +17,7 @@ class SyncStatusIndicator extends StatefulWidget {
 }
 
 class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
-  Future<void> _handleSync(BuildContext context) async {
+  Future<void> _handleSync() async {
     final syncProvider = Provider.of<SyncProvider>(context, listen: false);
     
     if (syncProvider.isSyncing) return;
@@ -104,7 +104,7 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
           children: [
             // Botón de sincronización
             GestureDetector(
-              onTap: isSyncing ? null : () => _handleSync(context),
+              onTap: isSyncing ? null : () => _handleSync(),
               child: isSyncing
                     ? SizedBox(
                       width: 20,

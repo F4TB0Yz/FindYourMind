@@ -61,7 +61,7 @@ class _GlobalProgressBarState extends State<GlobalProgressBar>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: cs.tertiary.withOpacity(0.3),
+                    color: cs.tertiary.withValues(alpha: 0.3),
                     blurRadius: 10,
                     spreadRadius: 1,
                   ),

@@ -1,6 +1,3 @@
-/// Capa: Core → Services
-/// Servicio dedicado a la sincronización bidireccional entre SQLite y Supabase.
-/// Implementa lógica de reintentos y cola de operaciones pendientes.
 import 'dart:convert';
 import 'package:find_your_mind/core/config/database_helper.dart';
 import 'package:find_your_mind/core/error/exceptions.dart';
@@ -19,8 +16,8 @@ class SyncService {
   SyncService({
     required DatabaseHelper dbHelper,
     required HabitsRemoteDataSource remoteDataSource,
-  })  : _dbHelper = dbHelper,
-        _remoteDataSource = remoteDataSource;
+  }) : _dbHelper = dbHelper,
+       _remoteDataSource = remoteDataSource;
 
   /// Marca una operación como pendiente de sincronización
   Future<void> markPendingSync({
@@ -32,20 +29,18 @@ class SyncService {
     try {
       final db = await _dbHelper.database;
 
-      await db.insert(
-        'pending_sync',
-        {
-          'entity_type': entityType,
-          'entity_id': entityId,
-          'action': action,
-          'data': jsonEncode(data),
-          'created_at': DateTime.now().toIso8601String(),
-          'retry_count': 0,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await db.insert('pending_sync', {
+        'entity_type': entityType,
+        'entity_id': entityId,
+        'action': action,
+        'data': jsonEncode(data),
+        'created_at': DateTime.now().toIso8601String(),
+        'retry_count': 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     } on DatabaseException catch (e) {
-      throw CacheException('Error al marcar para sincronización: ${e.toString()}');
+      throw CacheException(
+        'Error al marcar para sincronización: ${e.toString()}',
+      );
     }
   }
 
@@ -124,7 +119,9 @@ class SyncService {
             // Fallo de red/servidor → registrar para bloqueo en cascada
             if (entityType == 'habit') {
               failedHabitIds.add(associatedHabitId);
-              AppLogger.w('[SYNC] ❌ Hábito $entityId falló — bloqueando dependientes');
+              AppLogger.w(
+                '[SYNC] ❌ Hábito $entityId falló — bloqueando dependientes',
+              );
             }
             await db.update(
               'pending_sync',
@@ -171,8 +168,9 @@ class SyncService {
   }) {
     if (entityType == 'habit') return entityId;
     try {
-      final Map<String, dynamic> decoded =
-          MapUtils.convertToMap(jsonDecode(rawData));
+      final Map<String, dynamic> decoded = MapUtils.convertToMap(
+        jsonDecode(rawData),
+      );
       return (decoded['habit_id'] as String?) ?? '';
     } catch (_) {
       return '';
@@ -183,7 +181,7 @@ class SyncService {
   Future<bool> _processSyncItem(Map<String, dynamic> item) async {
     final entityType = item['entity_type'] as String;
     final action = item['action'] as String;
-    
+
     // Decodificar JSON y convertir explícitamente a Map<String, dynamic>
     final decodedData = jsonDecode(item['data'] as String);
     final data = MapUtils.convertToMap(decodedData);
@@ -211,7 +209,7 @@ class SyncService {
           final habitModel = ItemHabitModel.fromJson(data);
           final habit = habitModel.toEntity();
           final remoteId = await _remoteDataSource.createHabit(habit);
-          
+
           if (remoteId == null) return false;
 
           // ✅ Con UUIDs únicos, remoteId debería ser igual a data['id']
@@ -254,13 +252,15 @@ class SyncService {
             dailyGoal: data['daily_goal'],
             dailyCounter: data['daily_counter'],
           );
-          final remoteId = await _remoteDataSource.createHabitProgress(progress);
-          
+          final remoteId = await _remoteDataSource.createHabitProgress(
+            progress,
+          );
+
           if (remoteId == null) return false;
 
           // ✅ Con UUIDs únicos, remoteId debería ser igual a data['id']
           // No es necesario actualizar nada
-          
+
           return true;
 
         case 'update':
@@ -284,9 +284,13 @@ class SyncService {
   }
 
   /// Marca una entidad como sincronizada
-  Future<void> _markAsSynced(Database db, String entityType, String entityId) async {
+  Future<void> _markAsSynced(
+    Database db,
+    String entityType,
+    String entityId,
+  ) async {
     String table;
-    
+
     switch (entityType) {
       case 'habit':
         table = 'habits';
@@ -302,7 +306,8 @@ class SyncService {
       table,
       {
         'synced': 1,
-        if (entityType == 'habit') 'updated_at': DateTime.now().toIso8601String(),
+        if (entityType == 'habit')
+          'updated_at': DateTime.now().toIso8601String(),
       },
       where: 'id = ?',
       whereArgs: [entityId],
@@ -313,7 +318,9 @@ class SyncService {
   Future<int> getPendingCount() async {
     try {
       final db = await _dbHelper.database;
-      final result = await db.rawQuery('SELECT COUNT(*) as count FROM pending_sync');
+      final result = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM pending_sync',
+      );
       return Sqflite.firstIntValue(result) ?? 0;
     } catch (e) {
       return 0;
@@ -326,7 +333,9 @@ class SyncService {
       final db = await _dbHelper.database;
       await db.delete('pending_sync');
     } on DatabaseException catch (e) {
-      throw CacheException('Error al limpiar cola de sincronización: ${e.toString()}');
+      throw CacheException(
+        'Error al limpiar cola de sincronización: ${e.toString()}',
+      );
     }
   }
 }
@@ -345,7 +354,7 @@ class SyncResult {
 
   bool get hasErrors => failed > 0;
   bool get isFullSuccess => failed == 0 && success > 0;
-  
+
   @override
   String toString() {
     return 'SyncResult(success: $success, failed: $failed, errors: ${errors.length})';

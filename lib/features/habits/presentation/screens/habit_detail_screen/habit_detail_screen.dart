@@ -133,10 +133,10 @@ class _EditToggleButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isEditing ? cs.error.withOpacity(0.15) : Colors.transparent,
+          color: isEditing ? cs.error.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isEditing ? cs.error.withOpacity(0.4) : cs.outlineVariant,
+            color: isEditing ? cs.error.withValues(alpha: 0.4) : cs.outlineVariant,
             width: 1,
           ),
         ),

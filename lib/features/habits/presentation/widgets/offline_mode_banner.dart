@@ -32,7 +32,7 @@ class OfflineModeBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.3),
+            color: Colors.orange.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -40,7 +40,7 @@ class OfflineModeBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.cloud_off,
             color: Colors.white,
             size: 24,
@@ -51,7 +51,7 @@ class OfflineModeBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'Modo offline activo',
                   style: TextStyle(
                     color: Colors.white,
@@ -63,7 +63,7 @@ class OfflineModeBanner extends StatelessWidget {
                 Text(
                   '$pendingChanges cambio${pendingChanges > 1 ? 's' : ''} pendiente${pendingChanges > 1 ? 's' : ''} de sincronización',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 12,
                   ),
                 ),
@@ -73,17 +73,17 @@ class OfflineModeBanner extends StatelessWidget {
           if (onSyncPressed != null)
             TextButton.icon(
               onPressed: onSyncPressed,
-              icon: Icon(Icons.sync, color: Colors.white, size: 18),
-              label: Text(
+              icon: const Icon(Icons.sync, color: Colors.white, size: 18),
+              label: const Text(
                 'Sincronizar',
                 style: TextStyle(color: Colors.white, fontSize: 12),
               ),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.2),
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               ),
             ),
         ],

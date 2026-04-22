@@ -1,3 +1,4 @@
+import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'auth_service.dart';
 
@@ -27,37 +28,36 @@ class SupabaseAuthService implements AuthService {
 
   @override
   Future<User?> signUpWithEmail(String email, String password) async {
-    print('🔐 [AUTH_SERVICE] signUpWithEmail - Iniciando para: $email');
+    AppLogger.i('🔐 [AUTH_SERVICE] signUpWithEmail - Iniciando para: $email');
     
     try {
-      print('📡 [AUTH_SERVICE] Llamando a Supabase.auth.signUp...');
+      AppLogger.i('📡 [AUTH_SERVICE] Llamando a Supabase.auth.signUp...');
       final response = await _client.auth.signUp(email: email, password: password);
       
-      print('📨 [AUTH_SERVICE] Respuesta recibida de Supabase');
-      print('   Session: ${response.session != null ? "✅" : "❌"}');
-      print('   User: ${response.user != null ? "✅" : "❌"}');
+      AppLogger.i('📨 [AUTH_SERVICE] Respuesta recibida de Supabase');
+      AppLogger.d('   Session: ${response.session != null ? "✅" : "❌"}');
+      AppLogger.d('   User: ${response.user != null ? "✅" : "❌"}');
       
       if (response.user != null) {
-        print('✅ [AUTH_SERVICE] Usuario creado: ${response.user!.id}');
+        AppLogger.i('✅ [AUTH_SERVICE] Usuario creado: ${response.user!.id}');
       }
       
       final currentUser = _client.auth.currentUser;
-      print('👤 [AUTH_SERVICE] currentUser: ${currentUser?.id ?? "null"}');
+      AppLogger.d('👤 [AUTH_SERVICE] currentUser: ${currentUser?.id ?? "null"}');
       
       return currentUser;
     } catch (e, stackTrace) {
-      print('❌ [AUTH_SERVICE] Error en signUpWithEmail: $e');
-      print('   Stack trace: $stackTrace');
+      AppLogger.e('Error en signUpWithEmail', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
 
   @override
   Future<User?> signInWithGoogle() async {
-    print('🔐 [AUTH_SERVICE] signInWithGoogle - Iniciando autenticación con Google');
+    AppLogger.i('🔐 [AUTH_SERVICE] signInWithGoogle - Iniciando autenticación con Google');
     
     try {
-      print('📡 [AUTH_SERVICE] Llamando a Supabase.auth.signInWithOAuth...');
+      AppLogger.i('📡 [AUTH_SERVICE] Llamando a Supabase.auth.signInWithOAuth...');
       
       // Configurar OAuth con Google
       // IMPORTANTE: Debes configurar Google OAuth en tu proyecto Supabase:
@@ -72,10 +72,10 @@ class SupabaseAuthService implements AuthService {
         OAuthProvider.google,
       );
       
-      print('📨 [AUTH_SERVICE] OAuth iniciado - URL: ${result ? "generada" : "error"}');
-      print('⏳ [AUTH_SERVICE] Esperando que el usuario complete la autenticación...');
-      print('ℹ️  [AUTH_SERVICE] El usuario será autenticado cuando regrese de Google');
-      print('ℹ️  [AUTH_SERVICE] El AuthScreen detectará el cambio automáticamente');
+      AppLogger.i('📨 [AUTH_SERVICE] OAuth iniciado - URL: ${result ? "generada" : "error"}');
+      AppLogger.i('⏳ [AUTH_SERVICE] Esperando que el usuario complete la autenticación...');
+      AppLogger.d('ℹ️  [AUTH_SERVICE] El usuario será autenticado cuando regrese de Google');
+      AppLogger.d('ℹ️  [AUTH_SERVICE] El AuthScreen detectará el cambio automáticamente');
       
       // signInWithOAuth solo abre el navegador, no espera el resultado
       // El usuario será autenticado cuando regrese del navegador
@@ -83,8 +83,7 @@ class SupabaseAuthService implements AuthService {
       // Por ahora retornamos null, lo cual es esperado
       return null;
     } catch (e, stackTrace) {
-      print('❌ [AUTH_SERVICE] Error en signInWithGoogle: $e');
-      print('   Stack trace: $stackTrace');
+      AppLogger.e('Error en signInWithGoogle', error: e, stackTrace: stackTrace);
       
       // Dar un error más específico si es problema de configuración
       if (e.toString().contains('validation_failed') || 

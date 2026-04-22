@@ -27,8 +27,8 @@ class CustomBorderContainer extends StatelessWidget {
         borderRadius: BorderRadius.zero,
         border: Border.all(
           color: isLight 
-              ? cs.outlineVariant.withOpacity(0.8) 
-              : cs.outline.withOpacity(0.5),
+              ? cs.outlineVariant.withValues(alpha: 0.8) 
+              : cs.outline.withValues(alpha: 0.5),
           width: 1.0,
         )
       ),

@@ -1,6 +1,3 @@
-/// Capa: Feature → Habits → Data → Datasources
-/// Datasource local que gestiona la base de datos SQLite para hábitos y progresos.
-/// Implementa persistencia offline-first con soporte para sincronización diferida.
 import 'package:find_your_mind/core/config/database_helper.dart';
 import 'package:find_your_mind/core/error/exceptions.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';

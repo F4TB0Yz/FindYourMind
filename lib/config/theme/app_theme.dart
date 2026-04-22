@@ -83,7 +83,7 @@ final ThemeData lightTheme = ThemeData(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
       side: BorderSide(
-        color: AppColors.lightOutlineVariant.withOpacity(0.3),
+        color: AppColors.lightOutlineVariant.withValues(alpha: 0.3),
         width: 1,
       ),
     ),
@@ -169,7 +169,7 @@ final ThemeData darkTheme = ThemeData(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
       side: BorderSide(
-        color: AppColors.darkOutlineVariant.withOpacity(0.3),
+        color: AppColors.darkOutlineVariant.withValues(alpha: 0.3),
         width: 1,
       ),
     ),

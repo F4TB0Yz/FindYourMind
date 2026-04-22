@@ -11,8 +11,6 @@ class SignInWithGoogleUseCase {
   SignInWithGoogleUseCase({required this.authRepository});
 
   /// Ejecuta el caso de uso de autenticación con Google
-  /// Retorna:
-  ///   - Either<Failure, UserEntity>
   Future<Either<Failure, UserEntity>> call() async {
     // Delegar al repositorio
     return await authRepository.signInWithGoogle();

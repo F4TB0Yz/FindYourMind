@@ -1,5 +1,3 @@
-/// Capa: Presentation → Providers
-/// Gestiona el estado de los hábitos y su progreso local.
 import 'package:find_your_mind/core/constants/string_constants.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/utils/date_utils.dart';
@@ -74,19 +72,18 @@ class HabitsProvider extends ChangeNotifier {
   bool get hasError => _lastError != null;
 
   /// Obtiene el ID del usuario autenticado
-  /// Retorna el ID del usuario actual o un valor por defecto si no hay sesión
-  Future<String> getUserId() async {
+  /// Retorna el ID del usuario actual o null si no hay sesión
+  Future<String?> getUserId() async {
     try {
       final user = await _getCurrentUserUseCase();
       if (user != null && user.id.isNotEmpty) {
         return user.id;
       }
-      // Fallback al ID hardcodeado si no hay usuario autenticado
-      AppLogger.w('No hay usuario autenticado, usando ID por defecto');
-      return AppConstants.currentUserId;
+      AppLogger.w('No hay usuario autenticado');
+      return null;
     } catch (e) {
       AppLogger.e('Error al obtener usuario', error: e);
-      return AppConstants.currentUserId;
+      return null;
     }
   }
 
@@ -166,6 +163,8 @@ class HabitsProvider extends ChangeNotifier {
     try {
       AppLogger.d('[PROVIDER] Refrescando desde SQLite...');
       final userId = await getUserId();
+      if (userId == null) return;
+      
       final updatedHabits = await _repository.getHabitsByEmail(userId);
       _habits.clear();
       
@@ -241,6 +240,11 @@ class HabitsProvider extends ChangeNotifier {
 
       try {
         final userId = await getUserId();
+        if (userId == null) {
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
         
         // Cargar desde SQLite (offline-first, instantáneo)
         final List<HabitEntity> habits = await _repository.getHabitsByEmailPaginated(
@@ -292,6 +296,12 @@ class HabitsProvider extends ChangeNotifier {
 
     try {
       final userId = await getUserId();
+      if (userId == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
       final List<HabitEntity> newHabits = await _repository.getHabitsByEmailPaginated(
         email: userId,
         limit: _pageSize,
