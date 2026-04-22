@@ -16,8 +16,10 @@ class AppRouter {
   AppRouter._();
 
   static final _authNotifier = _AuthChangeNotifier();
+  static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
   static final GoRouter router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/habits',
     refreshListenable: _authNotifier,
     redirect: (context, state) {
@@ -61,12 +63,14 @@ class AppRouter {
                   GoRoute(
                     name: 'nuevo_habito',
                     path: 'new',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const NewHabitScreen(),
                   ),
                   // /habits/:habitId — push desde SlidableItem con extra: HabitEntity
                   GoRoute(
                     name: 'detalle_habito',
                     path: ':habitId',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final habit = state.extra as HabitEntity;
                       return HabitDetailScreen(habit: habit);
@@ -86,6 +90,15 @@ class AppRouter {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: TasksScreen(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const Scaffold(
+                      body: Center(child: Text('Nueva Tarea (Próximamente)')),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -99,6 +112,15 @@ class AppRouter {
                 pageBuilder: (context, state) => const NoTransitionPage(
                   child: NotesScreen(),
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const Scaffold(
+                      body: Center(child: Text('Nueva Nota (Próximamente)')),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:find_your_mind/shared/presentation/widgets/app_bar/app_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
-import 'package:find_your_mind/shared/presentation/widgets/fab/habits_fab.dart';
+import 'package:find_your_mind/shared/presentation/widgets/fab/main_fab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -14,8 +14,6 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isHabitsTab = shell.currentIndex == 0;
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = Theme.of(context).colorScheme.surface;
 
@@ -33,7 +31,23 @@ class AppShell extends StatelessWidget {
         body: shell,
         bottomNavigationBar: CustomBottomBar(shell: shell),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: isHabitsTab ? const HabitsFab() : null,
+        floatingActionButton: MainFab(
+          onPressed: () {
+            switch (shell.currentIndex) {
+              case 0: // Hábitos
+                context.push('/habits/new');
+                break;
+              case 1: // Tareas
+                context.push('/tasks/new');
+                break;
+              case 2: // Notas
+                context.push('/notes/new');
+                break;
+              default:
+                break;
+            }
+          },
+        ),
       ),
     );
   }

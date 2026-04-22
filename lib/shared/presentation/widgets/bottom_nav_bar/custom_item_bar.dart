@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 /// Estado activo indicado por color del ícono y punto azul debajo.
 /// Desacoplado de ScreensProvider — recibe [index] y [currentIndex].
 class CustomItemBar extends StatelessWidget {
+  final String text;
   final IconData icon;
   final int index;
   final int currentIndex;
@@ -11,6 +12,7 @@ class CustomItemBar extends StatelessWidget {
 
   const CustomItemBar({
     super.key,
+    required this.text,
     required this.icon,
     required this.index,
     required this.currentIndex,
@@ -34,17 +36,16 @@ class CustomItemBar extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 20,
+              size: 24,
               color: isSelected ? cs.primary : cs.onSurfaceVariant,
             ),
             const SizedBox(height: 5),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              width: 4,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isSelected ? cs.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(2),
+            Text(
+              text,
+              style: TextStyle(
+                color: isSelected ? cs.primary : cs.onSurfaceVariant,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
               ),
             ),
           ],

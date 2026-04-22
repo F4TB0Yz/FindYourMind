@@ -22,25 +22,29 @@ class CustomBottomBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           CustomItemBar(
-            icon: LucideIcons.penTool,
+            text: "NOTAS",
+            icon: LucideIcons.fileText,
             index: 2, // notes
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(2),
           ),
           CustomItemBar(
-            icon: LucideIcons.checkSquare,
+            text: "TAREAS",
+            icon: LucideIcons.listChecks,
             index: 1, // tasks
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(1),
           ),
           const SizedBox(width: 48), // espacio para el FAB
           CustomItemBar(
-            icon: LucideIcons.clock,
+            text: "HABITOS",
+            icon: LucideIcons.heartPulse,
             index: 0, // habits
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(0),
           ),
           CustomItemBar(
+            text: "PERFIL",
             icon: LucideIcons.user,
             index: 3, // profile
             currentIndex: shell.currentIndex,

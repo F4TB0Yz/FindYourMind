@@ -25,10 +25,12 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(
       context,
     );
-
-    return Column(
-      children: [
-        _NewHabitHeader(onBack: () => context.pop()),
+    return Scaffold(
+      backgroundColor: cs.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _NewHabitHeader(onBack: () => context.pop()),
         Divider(height: 1, thickness: 1, color: cs.outlineVariant),
 
         Expanded(
@@ -178,6 +180,8 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
           ),
         ),
       ],
+    ),
+      ),
     );
   }
 
