@@ -5,7 +5,6 @@ import 'package:find_your_mind/features/habits/presentation/providers/new_habit_
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/type_habit_selector.dart';
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -23,156 +22,162 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final HabitsProvider habitsProvider = Provider.of<HabitsProvider>(context);
-    final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(context);
+    final NewHabitProvider newHabitProvider = Provider.of<NewHabitProvider>(
+      context,
+    );
 
-    return ContainerBorderScreens(
-      child: Column(
-        children: [
-          _NewHabitHeader(
-            onBack: () => context.pop(),
-          ),
-          Divider(height: 1, thickness: 1, color: cs.outlineVariant),
-          
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    return Column(
+      children: [
+        _NewHabitHeader(onBack: () => context.pop()),
+        Divider(height: 1, thickness: 1, color: cs.outlineVariant),
+
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
-                    
-                    // Icono
-                    Text(
-                      'Icono',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: cs.outlineVariant),
-                              color: cs.surface,
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: AddIcon(
-                              size: 64,
-                              saveIcon: (newIcon) => newHabitProvider.setSelectedIcon(newIcon), 
-                              withText: false,
-                              initialIcon: newHabitProvider.selectedIcon,
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: cs.primary,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: cs.surfaceContainerLowest, width: 2),
-                              ),
-                              child: Icon(
-                                Icons.edit,
-                                color: cs.onPrimary,
-                                size: 14,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
 
-                    const SizedBox(height: 24),
-
-                    // Título del hábito
-                    _LabeledTextField(
-                      controller: newHabitProvider.titleController,
-                      label: 'Título',
-                      hint: 'Ej. Leer un libro',
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Descripción
-                    _LabeledTextField(
-                      controller: newHabitProvider.descriptionController,
-                      label: 'Descripción (Opcional)',
-                      hint: 'Notas adicionales sobre el hábito',
-                      maxLines: 3,
-                    ),
-
-                    const SizedBox(height: 24),
-                    
-                    // Tipo
-                    Text(
-                      'Tipo',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    const TypeHabitSelector(),
-
-                    const SizedBox(height: 24),
-
-                    // Meta Diaria
-                    Text(
-                      'Meta Diaria',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    const DailyGoalCounter(),
-
-                    const SizedBox(height: 48),
-
-                    // Botón Guardar
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () => _onTapSaveHabit(context, newHabitProvider, habitsProvider),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: cs.tertiary.withValues(alpha: 0.15),
-                          foregroundColor: cs.tertiary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: cs.tertiary.withValues(alpha: 0.4),
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          'Crear Hábito',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: cs.tertiary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                  ],
+                // Icono
+                Text(
+                  'Icono',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+
+                Center(
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: cs.outlineVariant),
+                          color: cs.surface,
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: AddIcon(
+                          size: 64,
+                          saveIcon: (newIcon) =>
+                              newHabitProvider.setSelectedIcon(newIcon),
+                          withText: false,
+                          initialIcon: newHabitProvider.selectedIcon,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: cs.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: cs.surfaceContainerLowest,
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.edit,
+                            color: cs.onPrimary,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Título del hábito
+                _LabeledTextField(
+                  controller: newHabitProvider.titleController,
+                  label: 'Título',
+                  hint: 'Ej. Leer un libro',
+                ),
+
+                const SizedBox(height: 20),
+
+                // Descripción
+                _LabeledTextField(
+                  controller: newHabitProvider.descriptionController,
+                  label: 'Descripción (Opcional)',
+                  hint: 'Notas adicionales sobre el hábito',
+                  maxLines: 3,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Tipo
+                Text(
+                  'Tipo',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                const TypeHabitSelector(),
+
+                const SizedBox(height: 24),
+
+                // Meta Diaria
+                Text(
+                  'Meta Diaria',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                const DailyGoalCounter(),
+
+                const SizedBox(height: 48),
+
+                // Botón Guardar
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => _onTapSaveHabit(
+                      context,
+                      newHabitProvider,
+                      habitsProvider,
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cs.tertiary.withValues(alpha: 0.15),
+                      foregroundColor: cs.tertiary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                          color: cs.tertiary.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Crear Hábito',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: cs.tertiary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+              ],
             ),
-          ],
-        )
+          ),
+        ),
+      ],
     );
   }
 
@@ -182,7 +187,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     HabitsProvider habitsProvider,
   ) async {
     final userId = await habitsProvider.getUserId();
-    
+
     if (userId == null) {
       if (context.mounted) {
         CustomToast.showToast(
@@ -192,7 +197,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       }
       return;
     }
-    
+
     final habit = HabitEntity(
       id: '',
       userId: userId,
@@ -213,7 +218,7 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
     CustomToast.showToast(context: context, message: 'Hábito Creado');
 
     newHabitProvider.clear();
-    
+
     // 🚀 Fire-and-Forget: createHabit es síncrono para la UI (optimistic insert).
     habitsProvider.createHabit(habit);
   }
@@ -290,9 +295,9 @@ class _LabeledTextField extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
+            color: cs.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -304,16 +309,19 @@ class _LabeledTextField extends StatelessWidget {
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: cs.onSurface,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: cs.onSurface),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: cs.outline,
-              ),
+              hintStyle: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: cs.outline),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
         ),

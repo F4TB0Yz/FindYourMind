@@ -1,4 +1,3 @@
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:flutter/material.dart';
 
 /// Layout base para las pantallas de funcionalidades.
@@ -22,26 +21,23 @@ class FeatureLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ContainerBorderScreens(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Área de contenido
-          Expanded(
-            child: scrollable
-                ? SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: padding ?? const EdgeInsets.all(0),
-                    child: child,
-                  )
-                : Padding(
-                    padding: padding ?? const EdgeInsets.all(0),
-                    child: child,
-                  ),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Área de contenido
+        Expanded(
+          child: scrollable
+              ? SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: padding ?? const EdgeInsets.all(0),
+                  child: child,
+                )
+              : Padding(
+                  padding: padding ?? const EdgeInsets.all(0),
+                  child: child,
+                ),
+        ),
+      ],
     );
   }
 }

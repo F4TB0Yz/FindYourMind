@@ -3,7 +3,6 @@ import 'package:find_your_mind/features/habits/presentation/widgets/global_progr
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/item_habit.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/offline_mode_banner.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
-import 'package:find_your_mind/shared/presentation/widgets/container_border_screens.dart';
 import 'package:find_your_mind/shared/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -43,76 +42,74 @@ class _HabitsScreenState extends State<HabitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ContainerBorderScreens(
-      child: Column(
-        children: [
-          // Barra de Progreso Global (Dopamina persistente)
-          Selector<HabitsProvider, double>(
-            selector: (_, provider) => provider.globalTodayProgress,
-            builder: (context, progress, _) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: GlobalProgressBar(progress: progress),
-            ),
+    return Column(
+      children: [
+        // Barra de Progreso Global (Dopamina persistente)
+        Selector<HabitsProvider, double>(
+          selector: (_, provider) => provider.globalTodayProgress,
+          builder: (context, progress, _) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: GlobalProgressBar(progress: progress),
           ),
+        ),
 
-          // Filtros
-          const _HabitsTabBar(),
+        // Filtros
+        const _HabitsTabBar(),
 
-          // Banner offline
-          Consumer<SyncProvider>(
-            builder: (context, syncProvider, _) => OfflineModeBanner(
-              pendingChanges: syncProvider.pendingChangesCount,
-              onSyncPressed: () async => syncProvider.syncWithServer(),
-            ),
+        // Banner offline
+        Consumer<SyncProvider>(
+          builder: (context, syncProvider, _) => OfflineModeBanner(
+            pendingChanges: syncProvider.pendingChangesCount,
+            onSyncPressed: () async => syncProvider.syncWithServer(),
           ),
+        ),
 
-          // Lista
-          Expanded(
-            child: Consumer<HabitsProvider>(
-              builder: (context, habitsProvider, _) {
-                if (habitsProvider.isLoading && habitsProvider.habits.isEmpty) {
-                  return const Center(
-                    child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
-                  );
-                }
-
-                if (habitsProvider.habits.isEmpty) {
-                  return const _EmptyHabitsState();
-                }
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  clipBehavior: Clip.none,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  itemCount:
-                      habitsProvider.habits.length +
-                      (habitsProvider.isLoading &&
-                              habitsProvider.hasMore &&
-                              habitsProvider.habits.isNotEmpty
-                          ? 1
-                          : 0),
-                  itemBuilder: (context, index) {
-                    if (index >= habitsProvider.habits.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: CustomLoadingDots(),
-                      );
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: ItemHabit(
-                        itemHabit: habitsProvider.habits[index],
-                        habitsProvider: habitsProvider,
-                      ),
-                    );
-                  },
+        // Lista
+        Expanded(
+          child: Consumer<HabitsProvider>(
+            builder: (context, habitsProvider, _) {
+              if (habitsProvider.isLoading && habitsProvider.habits.isEmpty) {
+                return const Center(
+                  child: CustomLoadingIndicator(text: 'Cargando hábitos...'),
                 );
-              },
-            ),
+              }
+
+              if (habitsProvider.habits.isEmpty) {
+                return const _EmptyHabitsState();
+              }
+
+              return ListView.builder(
+                controller: _scrollController,
+                clipBehavior: Clip.none,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                itemCount:
+                    habitsProvider.habits.length +
+                    (habitsProvider.isLoading &&
+                            habitsProvider.hasMore &&
+                            habitsProvider.habits.isNotEmpty
+                        ? 1
+                        : 0),
+                itemBuilder: (context, index) {
+                  if (index >= habitsProvider.habits.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: CustomLoadingDots(),
+                    );
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: ItemHabit(
+                      itemHabit: habitsProvider.habits[index],
+                      habitsProvider: habitsProvider,
+                    ),
+                  );
+                },
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -221,7 +218,10 @@ class _EmptyHabitsState extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: cs.primary.withValues(alpha: 0.4), width: 1),
+                side: BorderSide(
+                  color: cs.primary.withValues(alpha: 0.4),
+                  width: 1,
+                ),
               ),
             ),
           ),
