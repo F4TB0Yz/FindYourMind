@@ -1,4 +1,4 @@
-import 'package:find_your_mind/shared/presentation/widgets/app_bar/custom_app_bar.dart';
+import 'package:find_your_mind/shared/presentation/widgets/app_bar/app_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_bottom_bar.dart';
 import 'package:find_your_mind/shared/presentation/widgets/fab/habits_fab.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 /// Shell persistente: AppBar + BottomBar + FAB condicional.
-/// Determina el título dinámicamente basado en la ruta activa.
+/// El MainAppBar es global y se muestra en todas las pantallas del shell.
 class AppShell extends StatelessWidget {
   final StatefulNavigationShell shell;
 
@@ -15,10 +15,6 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isHabitsTab = shell.currentIndex == 0;
-    
-    // Obtener el nombre de la ruta actual para el título del AppBar.
-    // Esto evita hardcodear títulos en cada pantalla individual.
-    final String currentTitle = _getRouteTitle(context);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surfaceColor = Theme.of(context).colorScheme.surface;
@@ -26,23 +22,19 @@ class AppShell extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         systemNavigationBarColor: surfaceColor,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
         statusBarColor: surfaceColor,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
-        appBar: CustomAppBar(title: currentTitle),
+        appBar: MainAppBar(isProfileActive: shell.currentIndex == 3),
         body: shell,
         bottomNavigationBar: CustomBottomBar(shell: shell),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: isHabitsTab ? const HabitsFab() : null,
       ),
     );
-  }
-
-  String _getRouteTitle(BuildContext context) {
-    final state = GoRouterState.of(context);
-    // Usamos el 'name' definido en el AppRouter.
-    return state.name ?? state.matchedLocation.split('/').last;
   }
 }

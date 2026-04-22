@@ -1,30 +1,8 @@
+import 'package:find_your_mind/config/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 
-final double _borderRadius = 8.0;
-
-// ── Paleta Dark (GitHub-inspired) ───────────────────────────────────────────
-const _darkSurface = Color(0xFF161b22); // darkBackground
-const _darkSurfaceLowest = Color(0xFF0d1117); // darkBackgroundAlt
-const _darkOnSurface = Color(0xFFE6EDF3); // textPrimary
-const _darkOnSurfaceVariant = Color(0xFF8B949E); // textSecondary
-const _darkOutline = Color(0xFF484F58); // textMuted
-const _darkOutlineVariant = Color(0xFF30363D); // borderSubtle
-const _darkPrimary = Color(0xFF4DD0E1); // accentText
-const _darkTertiary = Color(0xFF3FB950); // successMuted
-const _darkError = Color(0xFFF85149); // dangerMuted
-
-// ── Paleta Light ─────────────────────────────────────────────────────────────
-const _lightSurface = Color(0xFFFCFEFE);
-const _lightSurfaceLowest = Color(0xFFF0F9FA);
-const _lightOnSurface = Color(0xFF1F2328);
-const _lightOnSurfaceVariant = Color(0xFF636C76);
-const _lightOutline = Color(0xFF8C959F);
-const _lightOutlineVariant = Color(0xFFD0D7DE);
-const _lightPrimary = Color(0xFF0097A7);
-const _lightTertiary = Color(0xFF1A7F37);
-const _lightError = Color(0xFFCF222E);
+const double _borderRadius = 8.0;
 
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
@@ -32,45 +10,36 @@ final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
   colorScheme: const ColorScheme(
     brightness: Brightness.light,
-    // Primaries
-    primary: _lightPrimary,
+    primary: AppColors.lightPrimary,
     onPrimary: Colors.white,
-    primaryContainer: Color(0xFFDDF4FF),
-    onPrimaryContainer: Color(0xFF0969DA),
-    // Secondary
-    secondary: Color(0xFF6E7781),
+    secondary: AppColors.lightSecondary,
     onSecondary: Colors.white,
-    secondaryContainer: Color(0xFFEAF5FB),
-    onSecondaryContainer: Color(0xFF1F2328),
-    // Tertiary (success)
-    tertiary: _lightTertiary,
-    onTertiary: Colors.white,
-    tertiaryContainer: Color(0xFFDCFCE7),
-    onTertiaryContainer: _lightTertiary,
-    // Error (danger)
-    error: _lightError,
+    error: AppColors.lightError,
     onError: Colors.white,
-    errorContainer: Color(0xFFFFEBEB),
-    onErrorContainer: _lightError,
-    // Surface
-    surface: _lightSurface,
-    onSurface: _lightOnSurface,
-    surfaceContainerLowest: _lightSurfaceLowest,
-    // Outline
-    outline: _lightOutline,
-    outlineVariant: _lightOutlineVariant,
-    // Misc
-    shadow: Colors.black,
-    scrim: Colors.black,
-    inverseSurface: Color(0xFF1F2328),
-    onInverseSurface: Colors.white,
-    inversePrimary: Color(0xFF79C0FF),
-    onSurfaceVariant: _lightOnSurfaceVariant,
+    surface: AppColors.lightSurface,
+    onSurface: AppColors.lightOnSurface,
+    surfaceContainer: AppColors.lightSurfaceContainer,
+    onSurfaceVariant: AppColors.lightOnSurfaceVariant,
+    outlineVariant: AppColors.lightOutlineVariant,
   ),
-  scaffoldBackgroundColor: const Color(0xFFF5FBFB),
+  scaffoldBackgroundColor: AppColors.lightSurface,
+  appBarTheme: AppBarTheme(
+    backgroundColor: AppColors.lightSurface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    centerTitle: false,
+    titleTextStyle: GoogleFonts.plusJakartaSans(
+      color: AppColors.lightOnSurface,
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+    ),
+  ),
   cardTheme: CardThemeData(
+    color: AppColors.lightSurfaceContainer,
+    elevation: 0,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(_borderRadius),
+      borderRadius: BorderRadius.circular(_borderRadius * 2),
+      side: const BorderSide(color: AppColors.lightOutlineVariant, width: 1),
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -100,20 +69,23 @@ final ThemeData lightTheme = ThemeData(
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_borderRadius),
-      borderSide: const BorderSide(color: _lightOutlineVariant),
+      borderSide: const BorderSide(color: AppColors.lightOutlineVariant),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_borderRadius),
-      borderSide: const BorderSide(color: _lightPrimary, width: 2),
+      borderSide: const BorderSide(color: AppColors.lightPrimary, width: 2),
     ),
   ),
-  dividerTheme: const DividerThemeData(color: _lightOutlineVariant),
+  dividerTheme: const DividerThemeData(color: AppColors.lightOutlineVariant),
   popupMenuTheme: PopupMenuThemeData(
-    color: _lightSurface,
+    color: AppColors.lightSurface,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
-      side: BorderSide(color: _lightOutlineVariant.withOpacity(0.3), width: 1),
+      side: BorderSide(
+        color: AppColors.lightOutlineVariant.withOpacity(0.3),
+        width: 1,
+      ),
     ),
   ),
 );
@@ -124,45 +96,36 @@ final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
-    // Primaries
-    primary: _darkPrimary,
-    onPrimary: Color(0xFF0d1117),
-    primaryContainer: Color(0xFF1C3A5E),
-    onPrimaryContainer: _darkPrimary,
-    // Secondary
-    secondary: Color(0xFF8B949E),
-    onSecondary: Color(0xFF0d1117),
-    secondaryContainer: Color(0xFF21262D),
-    onSecondaryContainer: Color(0xFFE6EDF3),
-    // Tertiary (success)
-    tertiary: _darkTertiary,
-    onTertiary: Color(0xFF0d1117),
-    tertiaryContainer: Color(0xFF0D2E14),
-    onTertiaryContainer: _darkTertiary,
-    // Error (danger)
-    error: _darkError,
-    onError: Color(0xFF0d1117),
-    errorContainer: Color(0xFF3B0A0A),
-    onErrorContainer: _darkError,
-    // Surface
-    surface: _darkSurface,
-    onSurface: _darkOnSurface,
-    surfaceContainerLowest: _darkSurfaceLowest,
-    // Outline
-    outline: _darkOutline,
-    outlineVariant: _darkOutlineVariant,
-    // Misc
-    shadow: Colors.black,
-    scrim: Colors.black,
-    inverseSurface: Color(0xFFE6EDF3),
-    onInverseSurface: Color(0xFF161b22),
-    inversePrimary: Color(0xFF0969DA),
-    onSurfaceVariant: _darkOnSurfaceVariant,
+    primary: AppColors.darkPrimary,
+    onPrimary: AppColors.darkSurface,
+    secondary: AppColors.darkSecondary,
+    onSecondary: AppColors.darkSurface,
+    error: AppColors.darkError,
+    onError: Colors.white,
+    surface: AppColors.darkSurface,
+    onSurface: AppColors.darkOnSurface,
+    surfaceContainer: AppColors.darkSurfaceContainer,
+    onSurfaceVariant: AppColors.darkOnSurfaceVariant,
+    outlineVariant: AppColors.darkOutlineVariant,
   ),
-  scaffoldBackgroundColor: const Color(0xFF0d1117),
+  scaffoldBackgroundColor: AppColors.darkSurface,
+  appBarTheme: AppBarTheme(
+    backgroundColor: AppColors.darkSurface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    centerTitle: false,
+    titleTextStyle: GoogleFonts.plusJakartaSans(
+      color: AppColors.darkOnSurface,
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+    ),
+  ),
   cardTheme: CardThemeData(
+    color: AppColors.darkSurfaceContainer,
+    elevation: 0,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(_borderRadius),
+      borderRadius: BorderRadius.circular(_borderRadius * 2),
+      side: const BorderSide(color: AppColors.darkOutlineVariant, width: 1),
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -192,20 +155,23 @@ final ThemeData darkTheme = ThemeData(
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_borderRadius),
-      borderSide: const BorderSide(color: _darkOutlineVariant),
+      borderSide: const BorderSide(color: AppColors.darkOutlineVariant),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(_borderRadius),
-      borderSide: const BorderSide(color: _darkPrimary, width: 2),
+      borderSide: const BorderSide(color: AppColors.darkPrimary, width: 2),
     ),
   ),
-  dividerTheme: const DividerThemeData(color: _darkOutlineVariant),
+  dividerTheme: const DividerThemeData(color: AppColors.darkOutlineVariant),
   popupMenuTheme: PopupMenuThemeData(
-    color: _darkSurface,
+    color: AppColors.darkSurface,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
-      side: BorderSide(color: _darkOutlineVariant.withOpacity(0.3), width: 1),
+      side: BorderSide(
+        color: AppColors.darkOutlineVariant.withOpacity(0.3),
+        width: 1,
+      ),
     ),
   ),
 );

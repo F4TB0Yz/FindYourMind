@@ -60,28 +60,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return FeatureLayout(
       scrollable: !_isLoading && _currentUser != null,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: EdgeInsets.zero,
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentUser == null
               ? const Center(child: Text('No hay usuario autenticado'))
               : Column(
                   children: [
-                    // Avatar
-                    _buildAvatar(cs),
-                    const SizedBox(height: 16),
-                    // Nombre/Email
-                    _buildUserInfo(cs),
-                    const SizedBox(height: 32),
-                    // Información de la cuenta
-                    _buildAccountSection(cs),
-                    const SizedBox(height: 16),
-                    // Configuración
-                    _buildSettingsSection(cs),
-                    const SizedBox(height: 32),
-                    // Botón de cerrar sesión
-                    _buildSignOutButton(cs),
-                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      child: Column(
+                        children: [
+                          // Avatar
+                          _buildAvatar(cs),
+                          const SizedBox(height: 16),
+                          // Nombre/Email
+                          _buildUserInfo(cs),
+                          const SizedBox(height: 32),
+                          // Información de la cuenta
+                          _buildAccountSection(cs),
+                          const SizedBox(height: 16),
+                          // Configuración
+                          _buildSettingsSection(cs),
+                          const SizedBox(height: 32),
+                          // Botón de cerrar sesión
+                          _buildSignOutButton(cs),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
     );
@@ -200,7 +207,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
           ),
-          _buildThemeTile(cs),
           _buildSettingsTile(
             icon: Icons.notifications_outlined,
             title: 'Notificaciones',
@@ -270,28 +276,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildThemeTile(ColorScheme cs) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.themeMode == ThemeMode.dark;
-
-    return ListTile(
-      leading: Icon(
-        isDark ? Icons.mode_night_outlined : Icons.wb_sunny_outlined,
-        color: cs.onSurfaceVariant,
-      ),
-      title: Text(
-        'Tema Oscuro',
-        style: TextStyle(fontSize: 16, color: cs.onSurface),
-      ),
-      trailing: Switch(
-        value: isDark,
-        activeColor: cs.primary,
-        onChanged: (value) {
-          themeProvider.toggleTheme();
-        },
-      ),
-    );
-  }
 
   Widget _buildSignOutButton(ColorScheme cs) {
     return Padding(
