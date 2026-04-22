@@ -33,7 +33,7 @@ void main() {
 
   setUpAll(() {
     // Registrar fallback para HabitEntity para que mocktail sepa manejarlo en any()
-    registerFallbackValue(HabitEntity(
+    registerFallbackValue(const HabitEntity(
       id: '', userId: '', title: '', description: '', icon: '',
       type: TypeHabit.none, dailyGoal: 0, initialDate: '', progress: []
     ));
@@ -66,7 +66,7 @@ void main() {
   );
 
   // Hábito de prueba base
-  final tHabit = HabitEntity(
+  const tHabit = HabitEntity(
     id: '1',
     userId: 'user123',
     title: 'Drink Water',
@@ -130,7 +130,7 @@ void main() {
           .thenAnswer((invocation) async => Right((invocation.namedArguments[#habit] as HabitEntity).id));
 
       // --- ACT (Ejecución) ---
-      final resultId = await provider.createHabit(tHabit);
+      final resultId = provider.createHabit(tHabit);
 
       // --- ASSERT (Verificación Optimista) ---
       // Verificamos que se agregó a la lista INMEDIATAMENTE (antes de que la operación de base de datos se complete)

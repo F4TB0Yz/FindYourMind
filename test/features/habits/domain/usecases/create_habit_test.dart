@@ -16,7 +16,7 @@ void main() {
 
   setUpAll(() {
     // Registrar fallback para que mocktail sepa manejar el tipo HabitEntity en any()
-    registerFallbackValue(HabitEntity(
+    registerFallbackValue(const HabitEntity(
       id: '', userId: '', title: '', description: '', icon: '',
       type: TypeHabit.none, dailyGoal: 0, initialDate: '', progress: []
     ));
@@ -29,7 +29,7 @@ void main() {
   });
 
   // Hábito de prueba base válido
-  final tHabit = HabitEntity(
+  const tHabit = HabitEntity(
     id: '1',
     userId: 'user123',
     title: 'Drink Water',

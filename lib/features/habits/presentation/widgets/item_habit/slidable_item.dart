@@ -1,6 +1,5 @@
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
-import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/habit_detail_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/delete_habit_dialog.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/item_habit/gesture_card.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 
 class SlidableItem extends StatefulWidget {
   final HabitEntity habit;

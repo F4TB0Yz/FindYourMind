@@ -13,7 +13,7 @@ void main() {
   late MockHabitRepository mockRepository;
 
   setUpAll(() {
-    registerFallbackValue(HabitProgress(
+    registerFallbackValue(const HabitProgress(
       id: '', habitId: '', date: '', dailyGoal: 0, dailyCounter: 0
     ));
   });
@@ -23,7 +23,7 @@ void main() {
     usecase = SaveHabitProgressUseCase(mockRepository);
   });
 
-  final tProgressNew = HabitProgress(
+  const tProgressNew = HabitProgress(
     id: 'p1',
     habitId: 'h1',
     date: '2025-01-01',
@@ -31,7 +31,7 @@ void main() {
     dailyCounter: 1,
   );
 
-  final tProgressUpdate = HabitProgress(
+  const tProgressUpdate = HabitProgress(
     id: 'p1',
     habitId: 'h1',
     date: '2025-01-01',

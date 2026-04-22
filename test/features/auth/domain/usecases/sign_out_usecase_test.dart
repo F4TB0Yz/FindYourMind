@@ -25,7 +25,7 @@ void main() {
 
   test('should clear local tables and sign out from repository', () async {
     // Arrange
-    when(() => mockDatabaseHelper.clearAllTables()).thenAnswer((_) async => null);
+    when(() => mockDatabaseHelper.clearAllTables()).thenAnswer((_) async {});
     when(() => mockRepository.signOut()).thenAnswer((_) async => const Right(null));
 
     // Act
@@ -61,7 +61,7 @@ void main() {
 
   test('should return ServerFailure when repository fails to sign out', () async {
     // Arrange
-    when(() => mockDatabaseHelper.clearAllTables()).thenAnswer((_) async => null);
+    when(() => mockDatabaseHelper.clearAllTables()).thenAnswer((_) async {});
     const tErrorMessage = 'Connection error during logout';
     when(() => mockRepository.signOut())
         .thenAnswer((_) async => Left(ServerFailure(message: tErrorMessage)));

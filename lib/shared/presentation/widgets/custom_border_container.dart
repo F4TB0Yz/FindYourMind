@@ -1,6 +1,4 @@
-import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class CustomBorderContainer extends StatelessWidget {
   final Widget child;

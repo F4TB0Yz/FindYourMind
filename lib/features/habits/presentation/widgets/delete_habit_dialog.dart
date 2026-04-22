@@ -6,8 +6,6 @@ class DeleteHabitDialog {
   /// 
   /// Retorna `true` si el usuario confirma, `false` si cancela
   static Future<bool> show(BuildContext context, String habitTitle) async {
-    final cs = Theme.of(context).colorScheme;
-
     return await showDialog<bool>(
       context: context,
       barrierDismissible: false,
