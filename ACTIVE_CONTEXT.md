@@ -2,17 +2,22 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-04-24 — Inicialización del sistema de memoria_
+_Última actualización: 2026-04-24 — Migración sqflite → Drift completada_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: Inicialización del Sistema de Memoria Basado en Documentación (Context Engineering).
+**Feature/Tarea**: Migración sqflite → Drift (NativeDatabase, typed queries).
 
-**Descripción**: Se creó la estructura jerárquica de archivos de contexto (`CLAUDE.md`, `AGENTS.md`, `PROJECT_CONTEXT.md`, `ARCHITECTURAL_DECISIONS.md`, `ACTIVE_CONTEXT.md`, `PROGRESS_LOG.md`) para permitir que agentes de IA carguen el estado del proyecto sin necesidad de analizar el código fuente completo.
+**Descripción**: Reemplazo completo de sqflite raw queries por Drift DSL tipado:
+- Eliminadas dependencias: `sqflite`, `sqflite_common_ffi`, `drift_sqflite`
+- Nueva: `AppDatabase` con 3 tablas tipadas (Habits, HabitProgress, PendingSync) → `app_database.g.dart` generado
+- Reescritos: `HabitsLocalDatasourceImpl` (queries tipadas), `SyncService` (Drift DSL)
+- Actualizado: DI usa `AppDatabase` directo (eliminado typedef shim `database_helper.dart`)
+- Test: `SignOutUseCase` ahora mockea `AppDatabase`
 
-**Estado**: Completo. Pendiente validación y primer uso real en sesión de desarrollo.
+**Estado**: ✅ Completo. `flutter analyze`: 0 errores. Commit: `50f396a`
 
 ---
 
@@ -40,7 +45,7 @@ _Ninguno conocido al momento de inicialización._
 ## Decisiones Pendientes
 
 - [ ] Definir threshold de `retry_count` en `SyncService` antes de abandonar un item de sync.
-- [ ] Decidir si migrar queries de `sqflite` a `drift` puro (ADR-005 está parcialmente activo).
+- [x] ✅ Migrar queries de `sqflite` a `drift` puro — Completado 2026-04-24 (commit `50f396a`).
 - [ ] Evaluar implementación de `home_widget` (dependencia instalada pero sin uso visible).
 - [ ] Definir diseño de features Notes y Tasks (no hay spec).
 
@@ -51,7 +56,7 @@ _Ninguno conocido al momento de inicialización._
 Ordenados por prioridad:
 
 1. **Verificar sync service**: Revisar `lib/core/services/sync_service.dart` — confirmar que retry_count tiene lógica de backoff y límite definido.
-2. **Completar migración a Drift**: Identificar queries directas de sqflite en `habits_local_datasource.dart` que no usan Drift todavía.
+2. ~~**Completar migración a Drift**~~ — ✅ Completado 2026-04-24.
 3. **Aumentar cobertura de tests**: DataSources local y remoto no tienen tests. Agregar tests para `HabitsLocalDatasourceImpl`.
 4. **Implementar feature Notes o Tasks**: Elegir una para el próximo sprint. Seguir estructura de `habits/` como template.
 5. **Profile screen**: Conectar con datos reales del usuario via `GetCurrentUserUseCase`.
@@ -60,13 +65,13 @@ Ordenados por prioridad:
 
 ## Contexto Técnico Activo
 
-- **Branch actual**: `claude/serene-raman-c4291f`
-- **Último commit significativo**: `14e8f01` — unificación de navegación global y rediseño del MainFab
-- **Archivos con cambios recientes** (según git log):
-  - Navegación global (`app_shell.dart`, bottom nav, `main_fab.dart`)
-  - Layout refactor (`feature_layout.dart`)
-  - Fix de lints en tests
-  - Integración de auth real (eliminó constantes hardcodeadas)
+- **Branch actual**: `main`
+- **Último commit**: `50f396a` — Migración sqflite → Drift (2026-04-24)
+- **Archivos modificados** (commit `50f396a`):
+  - Nueva: `lib/core/database/app_database.dart` (Drift + NativeDatabase)
+  - Reescritos: `habits_local_datasource.dart`, `sync_service.dart` (Drift DSL)
+  - Eliminado: `lib/core/config/database_helper.dart` (typedef shim)
+  - Actualizado: DI, auth tests, pubspec.yaml
 
 ---
 
@@ -74,4 +79,4 @@ Ordenados por prioridad:
 
 _Usar esta sección para notas temporales de la sesión actual. Limpiar al finalizar._
 
-- Sistema de memoria inicializado. Próxima sesión: leer este archivo y `AGENTS.md` primero.
+- **Sesión 2026-04-24**: Migración sqflite → Drift completada. Aprendizaje: trabajé en worktree sin darlo cuenta. Próxima: verificar `pwd` y branch al inicio. Preferencia: editar directo en `main/`, no en worktrees.
