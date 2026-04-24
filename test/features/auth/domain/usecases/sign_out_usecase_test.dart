@@ -1,13 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:find_your_mind/core/config/database_helper.dart';
+import 'package:find_your_mind/core/database/app_database.dart';
 import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/sign_out_usecase.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
-class MockDatabaseHelper extends Mock implements DatabaseHelper {}
+class MockDatabaseHelper extends Mock implements AppDatabase {}
 
 void main() {
   late SignOutUseCase usecase;

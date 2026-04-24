@@ -3,7 +3,7 @@ import 'package:find_your_mind/features/auth/data/repositories/auth_repository_i
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/core/services/auth_service.dart';
-import 'package:find_your_mind/core/config/database_helper.dart';
+import 'package:find_your_mind/core/database/app_database.dart';
 
 /// Crea el repositorio de autenticación
 /// Este se proporciona a través del árbol de providers
@@ -33,7 +33,7 @@ SignInWithGoogleUseCase createSignInWithGoogleUseCase(AuthRepository authReposit
 }
 
 /// Crea el caso de uso SignOut
-SignOutUseCase createSignOutUseCase(AuthRepository authRepository, DatabaseHelper databaseHelper) {
+SignOutUseCase createSignOutUseCase(AuthRepository authRepository, AppDatabase databaseHelper) {
   return SignOutUseCase(authRepository: authRepository, databaseHelper: databaseHelper);
 }
 

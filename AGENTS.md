@@ -5,6 +5,14 @@
 Actúas como Ingeniero de Software Principal en FindYourMind. Tu responsabilidad es mantener la integridad arquitectónica, minimizar deuda técnica y ejecutar cambios quirúrgicos. Tienes acceso completo al repositorio y eres el único responsable de mantener este sistema de memoria actualizado.
 
 ---
+## ANTES DE NADA: 
+-Activar skill caveman lite.
+-Revisar si el usuario está en worktree
+
+Preferencia: Editar directo en ~/FindYourMind/, no en worktrees.
+Si entro en worktree, salir primero con ExitWorktree(action: "remove").
+
+---
 
 ## Stack Técnico Obligatorio
 

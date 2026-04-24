@@ -1,4 +1,4 @@
-import 'package:find_your_mind/core/config/database_helper.dart';
+import 'package:find_your_mind/core/database/app_database.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/network/network_info.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
@@ -26,7 +26,7 @@ class DependencyInjection {
   bool _isInitialized = false;
 
   // Dependencias compartidas
-  late final DatabaseHelper _databaseHelper;
+  late final AppDatabase _databaseHelper;
   late final NetworkInfo _networkInfo;
   late final SupabaseClient _supabaseClient;
 
@@ -69,10 +69,9 @@ class DependencyInjection {
     if (_isInitialized) return;
 
     // 1. Inicializar dependencias base
-    _databaseHelper = DatabaseHelper();
+    _databaseHelper = AppDatabase();
 
-    // Inicializar sqflite_ffi primero
-    DatabaseHelper.initializeFfi();
+    AppDatabase.initializeFfi();
 
     // Si se solicita reset, eliminar la base de datos
     if (forceResetDatabase) {
@@ -84,15 +83,14 @@ class DependencyInjection {
       }
     }
 
-    // Asegurar que la BD esté lista
+    // Asegurar que la BD esté lista (Drift abre lazily en el primer query)
     try {
-      await _databaseHelper.database;
+      await _databaseHelper.customSelect('SELECT 1').getSingle();
     } catch (e) {
       AppLogger.w('Error al abrir la base de datos. Intentando recrear...', error: e);
-      // Si hay error, eliminar y recrear la base de datos
       try {
         await _databaseHelper.deleteDatabaseFile();
-        await _databaseHelper.database;
+        await _databaseHelper.customSelect('SELECT 1').getSingle();
       } catch (e2) {
         AppLogger.e('Error crítico al inicializar la base de datos', error: e2);
         rethrow;
@@ -167,7 +165,7 @@ class DependencyInjection {
   // Getters para acceder a las dependencias
   HabitRepository get habitRepository => _habitRepository;
   AuthRepository get authRepository => _authRepository;
-  DatabaseHelper get databaseHelper => _databaseHelper;
+  AppDatabase get databaseHelper => _databaseHelper;
   NetworkInfo get networkInfo => _networkInfo;
   SyncService get syncService => _syncService;
   AuthService get authService => _authService;

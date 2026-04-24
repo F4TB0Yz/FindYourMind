@@ -1,5 +1,5 @@
 import 'package:find_your_mind/core/services/auth_service.dart';
-import 'package:find_your_mind/core/config/database_helper.dart';
+import 'package:find_your_mind/core/database/app_database.dart';
 import 'package:find_your_mind/features/auth/data/datasources/users_remote_datasource.dart';
 import 'package:find_your_mind/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
@@ -12,7 +12,7 @@ class AuthServiceLocator {
 
   late AuthService _authService;
   late UsersRemoteDataSource _usersDataSource;
-  late DatabaseHelper _databaseHelper;
+  late AppDatabase _databaseHelper;
   late AuthRepository _authRepository;
   late SignInWithEmailUseCase _signInWithEmailUseCase;
   late SignUpWithEmailUseCase _signUpWithEmailUseCase;
@@ -26,12 +26,12 @@ class AuthServiceLocator {
 
   AuthServiceLocator._internal();
 
-  /// Inicializa el localizador con el AuthService, UsersRemoteDataSource y DatabaseHelper
+  /// Inicializa el localizador con el AuthService, UsersRemoteDataSource y AppDatabase
   /// Debe ser llamado en main() antes de usar cualquier caso de uso
   void setup(
     AuthService authService,
     UsersRemoteDataSource usersDataSource,
-    DatabaseHelper databaseHelper,
+    AppDatabase databaseHelper,
   ) {
     _authService = authService;
     _usersDataSource = usersDataSource;
