@@ -156,6 +156,13 @@ throw SomeException();
 - [ ] ¿Los errores fluyen como `Either<Failure, T>`?
 - [ ] ¿Necesito actualizar algún archivo de memoria?
 
+## Checklist Post-Acción (OBLIGATORIO — no reportar al usuario antes de completar)
+
+- [ ] **Actualizar `ACTIVE_CONTEXT.md`**: foco actual, archivos modificados, notas de sesión.
+- [ ] ¿El analyze/tests pasan sin errores?
+- [ ] Si hubo decisión técnica nueva → actualizar `ARCHITECTURAL_DECISIONS.md`.
+- [ ] Si se completó una feature → actualizar `PROGRESS_LOG.md`.
+
 ---
 
 ## Restricciones Absolutas

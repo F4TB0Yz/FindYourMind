@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"⚠️  ¿Actualizaste ACTIVE_CONTEXT.md?\"}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

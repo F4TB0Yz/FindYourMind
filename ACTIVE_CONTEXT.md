@@ -2,22 +2,22 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-04-24 — Migración sqflite → Drift completada_
+_Última actualización: 2026-04-24 — Rediseño SoonWidget al estilo appbar/navbar_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: Migración sqflite → Drift (NativeDatabase, typed queries).
+**Feature/Tarea**: UI polish — rediseño de `SoonWidget`.
 
-**Descripción**: Reemplazo completo de sqflite raw queries por Drift DSL tipado:
-- Eliminadas dependencias: `sqflite`, `sqflite_common_ffi`, `drift_sqflite`
-- Nueva: `AppDatabase` con 3 tablas tipadas (Habits, HabitProgress, PendingSync) → `app_database.g.dart` generado
-- Reescritos: `HabitsLocalDatasourceImpl` (queries tipadas), `SyncService` (Drift DSL)
-- Actualizado: DI usa `AppDatabase` directo (eliminado typedef shim `database_helper.dart`)
-- Test: `SignOutUseCase` ahora mockea `AppDatabase`
+**Descripción**: Reemplazo del widget placeholder "Próximamente" (lime/yellow hardcodeado, código muerto `_AnimatedContainer`) por diseño coherente con appbar/navbar:
+- Container `cs.surfaceContainer` + borde `cs.outlineVariant` (1.5px)
+- Ícono `LucideIcons.clock` en círculo con `cs.primary` al 12% opacidad
+- Tipografía via `AppTextStyles.h2` + `AppTextStyles.labelSmall`
+- Sin colores hardcodeados, sin sombras pesadas
+- Eliminado: clase `_AnimatedContainer` (código muerto)
 
-**Estado**: ✅ Completo. `flutter analyze`: 0 errores. Commit: `50f396a`
+**Estado**: ✅ Completo. `flutter analyze`: 0 errores.
 
 ---
 
@@ -67,11 +67,8 @@ Ordenados por prioridad:
 
 - **Branch actual**: `main`
 - **Último commit**: `50f396a` — Migración sqflite → Drift (2026-04-24)
-- **Archivos modificados** (commit `50f396a`):
-  - Nueva: `lib/core/database/app_database.dart` (Drift + NativeDatabase)
-  - Reescritos: `habits_local_datasource.dart`, `sync_service.dart` (Drift DSL)
-  - Eliminado: `lib/core/config/database_helper.dart` (typedef shim)
-  - Actualizado: DI, auth tests, pubspec.yaml
+- **Cambio en sesión** (sin commit aún):
+  - Reescrito: `lib/shared/presentation/widgets/soon_widget.dart` (rediseño UI)
 
 ---
 
@@ -79,4 +76,5 @@ Ordenados por prioridad:
 
 _Usar esta sección para notas temporales de la sesión actual. Limpiar al finalizar._
 
-- **Sesión 2026-04-24**: Migración sqflite → Drift completada. Aprendizaje: trabajé en worktree sin darlo cuenta. Próxima: verificar `pwd` y branch al inicio. Preferencia: editar directo en `main/`, no en worktrees.
+- **Sesión 2026-04-24 (1)**: Migración sqflite → Drift completada. Aprendizaje: trabajé en worktree sin darlo cuenta. Próxima: verificar `pwd` y branch al inicio. Preferencia: editar directo en `main/`, no en worktrees.
+- **Sesión 2026-04-24 (2)**: Rediseño SoonWidget al estilo appbar/navbar. Aprendizaje: actualizar ACTIVE_CONTEXT.md al final de cada cambio significativo — no omitirlo.
