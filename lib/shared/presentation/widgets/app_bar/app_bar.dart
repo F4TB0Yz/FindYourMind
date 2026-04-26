@@ -2,13 +2,19 @@ import 'package:find_your_mind/config/theme/app_colors.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isProfileActive;
+  final int currentIndex;
 
-  const MainAppBar({super.key, this.isProfileActive = false});
+  const MainAppBar({
+    super.key,
+    this.isProfileActive = false,
+    this.currentIndex = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +26,13 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             ProfileButton(isProfileActive: isProfileActive),
 
+            Expanded(
+              child: _ScreenHeader(
+                currentIndex: currentIndex,
+                showHeader: _shouldShowHeader(context),
+              ),
+            ),
+
             // Icono de tema
             const ThemeToggleButton(),
           ],
@@ -30,6 +43,69 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(80);
+
+  bool _shouldShowHeader(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    return location == '/habits' ||
+        location == '/tasks' ||
+        location == '/notes' ||
+        location == '/profile';
+  }
+}
+
+class _ScreenHeader extends StatelessWidget {
+  final int currentIndex;
+  final bool showHeader;
+
+  const _ScreenHeader({required this.currentIndex, required this.showHeader});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!showHeader) {
+      return const SizedBox.shrink();
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final (title, subtitle) = switch (currentIndex) {
+      0 => ('Hábitos', 'Construye consistencia diaria'),
+      1 => ('Tareas', 'Organiza tu dia con intencion'),
+      2 => ('Notas', 'Captura ideas y reflexiones'),
+      3 => ('Perfil', 'Tu espacio personal'),
+      _ => ('', ''),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.fraunces(
+              textStyle: textTheme.titleLarge,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ProfileButton extends StatefulWidget {

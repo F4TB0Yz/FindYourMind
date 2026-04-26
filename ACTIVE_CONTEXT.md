@@ -2,22 +2,23 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-04-24 — Rediseño SoonWidget al estilo appbar/navbar_
+_Última actualización: 2026-04-26 — Fraunces aplicada al título del MainAppBar_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: UI polish — rediseño de `SoonWidget`.
+**Feature/Tarea**: UI polish — texto central dinámico en `MainAppBar`.
 
-**Descripción**: Reemplazo del widget placeholder "Próximamente" (lime/yellow hardcodeado, código muerto `_AnimatedContainer`) por diseño coherente con appbar/navbar:
-- Container `cs.surfaceContainer` + borde `cs.outlineVariant` (1.5px)
-- Ícono `LucideIcons.clock` en círculo con `cs.primary` al 12% opacidad
-- Tipografía via `AppTextStyles.h2` + `AppTextStyles.labelSmall`
-- Sin colores hardcodeados, sin sombras pesadas
-- Eliminado: clase `_AnimatedContainer` (código muerto)
+**Descripción**: Implementado encabezado (título + subtítulo) según pantalla activa del shell:
+- Hábitos: "Habitos" / "Construye consistencia diaria"
+- Tareas: "Tareas" / "Organiza tu dia con intencion"
+- Notas: "Notas" / "Captura ideas y reflexiones"
+- Perfil: "Perfil" / "Tu espacio personal"
+- Regla de visibilidad: oculto en rutas hijas (`/habits/new`, `/habits/:id`, etc.), visible solo en rutas raíz del shell.
+- Tipografía: título ahora usa Fraunces (vía `google_fonts`), subtítulo mantiene tipografía actual.
 
-**Estado**: ✅ Completo. `flutter analyze`: 0 errores.
+**Estado**: ✅ Completo. `flutter analyze` en archivos tocados: 0 errores.
 
 ---
 
@@ -68,7 +69,9 @@ Ordenados por prioridad:
 - **Branch actual**: `main`
 - **Último commit**: `50f396a` — Migración sqflite → Drift (2026-04-24)
 - **Cambio en sesión** (sin commit aún):
-  - Reescrito: `lib/shared/presentation/widgets/soon_widget.dart` (rediseño UI)
+  - Editado: `lib/shared/presentation/widgets/app_bar/app_bar.dart` (header dinámico por pantalla)
+  - Editado: `lib/shared/presentation/widgets/app_shell.dart` (pasa `currentIndex` al app bar)
+  - Editado: `lib/shared/presentation/widgets/app_bar/app_bar.dart` (Fraunces solo en título)
 
 ---
 
@@ -78,3 +81,5 @@ _Usar esta sección para notas temporales de la sesión actual. Limpiar al final
 
 - **Sesión 2026-04-24 (1)**: Migración sqflite → Drift completada. Aprendizaje: trabajé en worktree sin darlo cuenta. Próxima: verificar `pwd` y branch al inicio. Preferencia: editar directo en `main/`, no en worktrees.
 - **Sesión 2026-04-24 (2)**: Rediseño SoonWidget al estilo appbar/navbar. Aprendizaje: actualizar ACTIVE_CONTEXT.md al final de cada cambio significativo — no omitirlo.
+- **Sesión 2026-04-26 (1)**: MainAppBar ahora muestra título/subtítulo por módulo y los oculta en rutas hijas. Verificado con `flutter analyze` en archivos tocados (0 issues).
+- **Sesión 2026-04-26 (2)**: Ajuste tipográfico solicitado: Fraunces aplicada únicamente al título de AppBar; descripción sin cambios.

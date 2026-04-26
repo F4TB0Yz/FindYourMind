@@ -27,7 +27,10 @@ class AppShell extends StatelessWidget {
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
-        appBar: MainAppBar(isProfileActive: shell.currentIndex == 3),
+        appBar: MainAppBar(
+          isProfileActive: shell.currentIndex == 3,
+          currentIndex: shell.currentIndex,
+        ),
         body: shell,
         bottomNavigationBar: CustomBottomBar(shell: shell),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
