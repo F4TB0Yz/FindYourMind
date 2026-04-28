@@ -14,7 +14,7 @@ abstract class AppColors {
   static const Color darkError = Color(0xFFEF4444);
 
   // ── Paleta Light ─────────────────────────────────────────────────────────────
-  static const Color lightSurface = Color(0xFFedfeff);
+  static const Color lightSurface = Color.fromARGB(255, 186, 232, 234);
   static const Color lightSurfaceContainer = Color(0xFFFFFFFF);
   static const Color lightOnSurface = Color(0xFF0F172A);
   static const Color lightOnSurfaceVariant = Color(0xFF475569);
@@ -48,6 +48,12 @@ abstract class AppColors {
 
   /// Fondo del botón de cambio de tema en modo claro.
   static const Color themeToggleLightFill = Color(0xFFf5feff);
+
+  /// Color base del contenedor para hábitos de una sola vez.
+  static Color oneTimeHabitCardColor(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? const Color(0xFF0D2027) : const Color(0xFFCBEBED);
+  }
 }
 
 /// Paletas de gradientes para los hábitos.

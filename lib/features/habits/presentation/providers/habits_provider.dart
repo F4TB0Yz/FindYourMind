@@ -110,18 +110,99 @@ class HabitsProvider extends ChangeNotifier {
 
   /// Calcula el progreso global de hoy (porcentaje de todos los objetivos)
   double get globalTodayProgress {
-    if (_habits.isEmpty) return 0.0;
-    
+    return todayProgressSummary.progress;
+  }
+
+  /// Resumen agregado del progreso diario para UI de dashboard.
+  TodayProgressSummary get todayProgressSummary {
+    if (_habits.isEmpty) {
+      return const TodayProgressSummary(
+        completedHabits: 0,
+        totalHabits: 0,
+        progress: 0.0,
+      );
+    }
+
+    final String today = DateInfoUtils.todayString();
+    int completedHabits = 0;
     int totalGoal = 0;
     int totalCount = 0;
-    
+
     for (final habit in _habits) {
+      final int todayIndex = habit.progress.indexWhere(
+        (progress) => progress.date == today,
+      );
+      final int todayCount = todayIndex == -1
+          ? 0
+          : habit.progress[todayIndex].dailyCounter;
+
       totalGoal += habit.dailyGoal;
-      totalCount += getTodayCount(habit.id);
+      totalCount += todayCount;
+
+      if (habit.dailyGoal > 0 && todayCount >= habit.dailyGoal) {
+        completedHabits++;
+      }
     }
-    
-    if (totalGoal == 0) return 0.0;
-    return (totalCount / totalGoal).clamp(0.0, 1.0);
+
+    final double progress = totalGoal == 0
+        ? 0.0
+        : (totalCount / totalGoal).clamp(0.0, 1.0);
+
+    return TodayProgressSummary(
+      completedHabits: completedHabits,
+      totalHabits: _habits.length,
+      progress: progress,
+    );
+  }
+
+  /// Resumen agregado de hábitos completados por día para la semana actual.
+  /// El orden es lunes-domingo.
+  WeeklyHabitsStatsSummary get weeklyHabitsStatsSummary {
+    final DateTime now = DateTime.now();
+    final int todayIndex = now.weekday - 1;
+
+    if (_habits.isEmpty) {
+      return WeeklyHabitsStatsSummary(
+        completedHabitsByDay: List<int>.filled(7, 0),
+        todayIndex: todayIndex,
+      );
+    }
+
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final DateTime monday = today.subtract(Duration(days: now.weekday - 1));
+    final List<String> weekDates = List.generate(7, (index) {
+      return monday
+          .add(Duration(days: index))
+          .toIso8601String()
+          .substring(0, 10);
+    });
+
+    final List<int> completedHabitsByDay = List<int>.filled(7, 0);
+
+    for (int dayIndex = 0; dayIndex < weekDates.length; dayIndex++) {
+      final String date = weekDates[dayIndex];
+      int completedCount = 0;
+
+      for (final habit in _habits) {
+        final int progressIndex = habit.progress.indexWhere(
+          (progress) => progress.date == date,
+        );
+
+        if (progressIndex == -1) continue;
+
+        final int count = habit.progress[progressIndex].dailyCounter;
+        if (habit.dailyGoal > 0 && count >= habit.dailyGoal) {
+          completedCount++;
+        }
+      }
+
+      completedHabitsByDay[dayIndex] = completedCount;
+    }
+
+    return WeeklyHabitsStatsSummary(
+      completedHabitsByDay: completedHabitsByDay,
+      todayIndex: todayIndex,
+    );
   }
 
   /// Verifica si un hábito puede ser incrementado (no ha alcanzado la meta diaria)
@@ -703,4 +784,51 @@ class HabitsProvider extends ChangeNotifier {
       return false;
     }
   }
+}
+
+class TodayProgressSummary {
+  final int completedHabits;
+  final int totalHabits;
+  final double progress;
+
+  const TodayProgressSummary({
+    required this.completedHabits,
+    required this.totalHabits,
+    required this.progress,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is TodayProgressSummary &&
+        other.completedHabits == completedHabits &&
+        other.totalHabits == totalHabits &&
+        other.progress == progress;
+  }
+
+  @override
+  int get hashCode => completedHabits.hashCode ^ totalHabits.hashCode ^ progress.hashCode;
+}
+
+class WeeklyHabitsStatsSummary {
+  final List<int> completedHabitsByDay;
+  final int todayIndex;
+
+  const WeeklyHabitsStatsSummary({
+    required this.completedHabitsByDay,
+    required this.todayIndex,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is WeeklyHabitsStatsSummary &&
+        other.todayIndex == todayIndex &&
+        listEquals(other.completedHabitsByDay, completedHabitsByDay);
+  }
+
+  @override
+  int get hashCode => Object.hash(todayIndex, Object.hashAll(completedHabitsByDay));
 }

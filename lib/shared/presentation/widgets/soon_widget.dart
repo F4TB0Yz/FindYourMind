@@ -11,55 +11,49 @@ class SoonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainer,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: cs.outlineVariant, width: 1.5),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: cs.primary.withValues(alpha: 0.12),
-                  border: Border.all(
-                    color: cs.primary.withValues(alpha: 0.3),
-                    width: 1.5,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainer,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: cs.outlineVariant, width: 1.5),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: cs.primary.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: cs.primary.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Icon(LucideIcons.clock, color: cs.primary, size: 26),
+                ),
+                const SizedBox(height: 20),
+                Text(nameFeature, style: AppTextStyles.h2(context)),
+                const SizedBox(height: 8),
+                Text(
+                  'PRÓXIMAMENTE',
+                  style: AppTextStyles.labelSmall(context).copyWith(
+                    color: cs.primary,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
                 ),
-                child: Icon(
-                  LucideIcons.clock,
-                  color: cs.primary,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                nameFeature,
-                style: AppTextStyles.h2(context),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'PRÓXIMAMENTE',
-                style: AppTextStyles.labelSmall(context).copyWith(
-                  color: cs.primary,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
