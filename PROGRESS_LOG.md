@@ -49,8 +49,8 @@ Tipos válidos: `Feature`, `Bugfix`, `Refactor`, `Infra`, `Test`, `Docs`
 [2026-04-24] - Refactor: Eliminación de constantes de auth hardcodeadas, integración con sistema de auth real — Archivos: `lib/core/services/auth_service.dart`, `lib/core/services/supabase_auth_service.dart`, `lib/features/auth/presentation/providers/auth_providers.dart`
 
 ---
-
-[2026-04-24] - Eliminiación: Remoción de documentos obsoletos — (ver commit `2404ac7`)
+ 
+ [2026-04-30] - Housekeeping: ADR-009 eliminando columna 'synced' en Drift; migración a schema v3; limpieza de SQL legacy y widgets; refs: ADR-009.md, ARCHITECTURAL_DECISIONS.md; Archivos: lib/core/database/app_database.dart, lib/core/services/sync_service.dart, lib/features/habits/data/datasources/habits_local_datasource.dart; ARCHITECTURAL_DECISIONS.md actualizado
 
 ---
 

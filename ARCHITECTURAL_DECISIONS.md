@@ -192,6 +192,14 @@ Migrations:
 
 ---
 
+### ADR-009: Eliminación de la columna 'synced' en Drift
+
+- Estado: Aceptado
+- Contexto: La cola pending_sync es la fuente de verdad; la columna 'synced' era ruido y no se lee en consultas. Se propone migrar a schema v3 y limpiar código.
+- Decisión: Eliminar 'synced' de HabitsTable y HabitLogsTable, migrar a schemaVersion 3, regenerar Drift, y actualizar tests. Documentar en ADR-009.
+- Consecuencias: Menor superficie de mantenimiento; tests actualizados; migración DB necesaria; ADR registrado.
+- Verificación: build, analyze y tests; revisar la ausencia de referencias a 'synced'.
+
 ## Convenciones de Nomenclatura
 
 ### Archivos (snake_case)

@@ -76,3 +76,9 @@ _Ninguno conocido al momento de inicialización._
 
  - **Sesión 2026-04-29**: Fase 1 (SQL) + Fase 2 (Tests). Schema v2 sin synced, RLS, migrations. Repository tests (27) pasando, sync tests (14/17) con 3 failures menores en nuevos grupos (markPendingSync upsert, dependency chain).
  - **Sesión 2026-04-29b**: Abstracción `SupabaseClientWrapper` creada. Tests remote datasource (17/17) pasando. decoupling de postgREST.
+
+---
+## Notas de Actualización
+- ADR-009 documentado para justificar la eliminación de la columna 'synced' y migración a schema v3.
+- Archivos actualizados: `lib/core/database/app_database.dart`, `lib/core/services/sync_service.dart`, `lib/features/habits/data/datasources/habits_local_datasource.dart`, `ADR-009.md`, `ARCHITECTURAL_DECISIONS.md`.
+- Próximo paso: ejecutar build y tests; revisar referencias a 'synced'.
