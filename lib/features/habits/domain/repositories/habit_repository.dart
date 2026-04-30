@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
-import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
 
 /// Repositorio abstracto para las operaciones de hábitos
 /// Define el contrato que debe cumplir la implementación
@@ -24,15 +24,15 @@ abstract class HabitRepository {
 
   /// Actualiza el contador de un hábito
   /// Retorna Right(void) si tuvo éxito, Left(Failure) si falló
-  Future<Either<Failure, void>> updateHabitCounter({
+  Future<Either<Failure, void>> updateHabitLogValue({
     required String habitId,
-    required String progressId,
-    required int newCounter,
+    required String logId,
+    required int value,
   });
 
   /// Crea un nuevo registro de progreso para un hábito
-  Future<Either<Failure, String?>> createHabitProgress({
-    required HabitProgress habitProgress,
+  Future<Either<Failure, String?>> createHabitLog({
+    required HabitLog habitLog,
   });
 
   /// Elimina un hábito y todo su progreso asociado

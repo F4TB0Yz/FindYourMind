@@ -3,7 +3,7 @@ import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -19,7 +19,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0),
+      padding: const EdgeInsets.only(top: 8.0, left: 20.0, right: 20.0, bottom: 8.0),
       child: SafeArea(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,14 +202,14 @@ class _ProfileButtonState extends State<ProfileButton>
                   width: 1.5,
                 ),
               ),
-              child: Icon(
-                LucideIcons.user,
+              child: HugeIcon(
+                icon: HugeIcons.strokeRoundedUser,
                 color: widget.isProfileActive
                     ? Colors.white
                     : (isDark
                           ? AppColors.avatarDarkIcon
                           : AppColors.avatarLightIcon),
-                size: 24,
+                size: 16,
               ),
             ),
           ),
@@ -243,7 +243,7 @@ class ThemeToggleButton extends StatelessWidget {
           border: Border.all(
             color: isDark
                 ? Colors.transparent
-                : colorScheme.primary.withValues(alpha: 0.1),
+                : colorScheme.primary.withValues(alpha: 0.25),
             width: 1,
           ),
         ),
@@ -263,8 +263,10 @@ class ThemeToggleButton extends StatelessWidget {
               ),
             );
           },
-          child: Icon(
-            isDark ? LucideIcons.sun : LucideIcons.moon,
+          child: HugeIcon(
+            icon: isDark
+                ? HugeIcons.strokeRoundedSun01
+                : HugeIcons.strokeRoundedMoon02,
             key: ValueKey(isDark ? 'sun' : 'moon'),
             color: isDark ? AppColors.darkOnSurface : const Color(0xFF0e172a),
             size: 26,

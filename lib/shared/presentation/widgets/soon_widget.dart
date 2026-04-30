@@ -1,6 +1,6 @@
 import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class SoonWidget extends StatelessWidget {
   final String nameFeature;
@@ -35,7 +35,11 @@ class SoonWidget extends StatelessWidget {
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(LucideIcons.clock, color: cs.primary, size: 26),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedClock01,
+                    color: cs.primary,
+                    size: 26,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Text(nameFeature, style: AppTextStyles.h2(context)),

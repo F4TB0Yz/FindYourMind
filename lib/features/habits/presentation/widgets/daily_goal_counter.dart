@@ -1,55 +1,81 @@
+import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 
-/// Control numérico para configurar la meta diaria de un hábito.
-///
-/// Puede operar con el [NewHabitProvider] (pantalla de creación) o con
-/// un valor local y callback [onChanged] (pantalla de edición).
 class DailyGoalCounter extends StatelessWidget {
   final int? initialValue;
   final ValueChanged<int>? onChanged;
   final bool useProvider;
+  final HabitTrackingType? trackingType;
 
   const DailyGoalCounter({
     super.key,
     this.initialValue,
     this.onChanged,
     this.useProvider = true,
+    this.trackingType,
   });
+
+  int _stepFor(HabitTrackingType type) {
+    return switch (type) {
+      HabitTrackingType.single => 1,
+      HabitTrackingType.timed => 60,
+      HabitTrackingType.counter => 1,
+    };
+  }
+
+  String _labelFor(HabitTrackingType type, int value) {
+    return switch (type) {
+      HabitTrackingType.single => '1 vez',
+      HabitTrackingType.counter => '$value repeticiones',
+      HabitTrackingType.timed => '${value ~/ 60} min',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     if (useProvider) {
       final provider = Provider.of<NewHabitProvider>(context);
+      final step = _stepFor(provider.trackingType);
+      final isSingle = provider.trackingType == HabitTrackingType.single;
+
       return _CounterLayout(
-        value: provider.dailyGoal,
-        onDecrement: provider.dailyGoal > 1
-            ? () => provider.setDailyGoal(provider.dailyGoal - 1)
+        valueLabel: _labelFor(provider.trackingType, provider.targetValue),
+        onDecrement: !isSingle && provider.targetValue > step
+            ? () => provider.setTargetValue(provider.targetValue - step)
             : null,
-        onIncrement: () => provider.setDailyGoal(provider.dailyGoal + 1),
+        onIncrement: isSingle
+            ? null
+            : () => provider.setTargetValue(provider.targetValue + step),
       );
     }
 
+    final type = trackingType ?? HabitTrackingType.counter;
     final currentValue = initialValue ?? 1;
+    final step = _stepFor(type);
+    final isSingle = type == HabitTrackingType.single;
+
     return _CounterLayout(
-      value: currentValue,
-      onDecrement: currentValue > 1 && onChanged != null
-          ? () => onChanged!(currentValue - 1)
+      valueLabel: _labelFor(type, currentValue),
+      onDecrement: !isSingle && currentValue > step && onChanged != null
+          ? () => onChanged!(currentValue - step)
           : null,
-      onIncrement: onChanged != null ? () => onChanged!(currentValue + 1) : null,
+      onIncrement: !isSingle && onChanged != null
+          ? () => onChanged!(currentValue + step)
+          : null,
     );
   }
 }
 
-/// Layout del contador: botón menos, valor, botón más.
 class _CounterLayout extends StatelessWidget {
-  final int value;
+  final String valueLabel;
   final VoidCallback? onDecrement;
   final VoidCallback? onIncrement;
 
   const _CounterLayout({
-    required this.value,
+    required this.valueLabel,
     required this.onDecrement,
     required this.onIncrement,
   });
@@ -69,19 +95,19 @@ class _CounterLayout extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _CounterButton(
-            icon: Icons.remove,
+            icon: HugeIcons.strokeRoundedMinusSign,
             onTap: onDecrement,
           ),
           Text(
-            '$value',
+            valueLabel,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.w500,
               color: cs.onSurface,
             ),
           ),
           _CounterButton(
-            icon: Icons.add,
+            icon: HugeIcons.strokeRoundedAdd01,
             onTap: onIncrement,
           ),
         ],
@@ -90,9 +116,8 @@ class _CounterLayout extends StatelessWidget {
   }
 }
 
-/// Botón de incremento o decremento del contador.
 class _CounterButton extends StatelessWidget {
-  final IconData icon;
+  final List<List<dynamic>> icon;
   final VoidCallback? onTap;
 
   const _CounterButton({required this.icon, required this.onTap});
@@ -106,8 +131,8 @@ class _CounterButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.all(10),
-        child: Icon(
-          icon,
+        child: HugeIcon(
+          icon: icon,
           size: 20,
           color: onTap != null ? cs.onSurfaceVariant : cs.outline,
         ),

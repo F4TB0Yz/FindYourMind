@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Helper para mostrar SnackBars de error automáticamente
 class ErrorSnackBarHelper {
@@ -11,8 +12,8 @@ class ErrorSnackBarHelper {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(
-                    Icons.error_outline,
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedAlert01,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -53,8 +54,8 @@ class ErrorSnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            const Icon(
-              Icons.check_circle_outline,
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedCheckmarkCircle01,
               color: Colors.white,
               size: 20,
             ),
@@ -80,8 +81,8 @@ class ErrorSnackBarHelper {
       SnackBar(
         content: Row(
           children: [
-            const Icon(
-              Icons.warning_amber_outlined,
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedAlertDiamond,
               color: Colors.white,
               size: 20,
             ),

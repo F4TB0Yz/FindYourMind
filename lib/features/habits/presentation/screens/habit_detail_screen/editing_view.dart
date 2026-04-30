@@ -1,10 +1,12 @@
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/add_icon.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/daily_goal_counter.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 class EditingView extends StatefulWidget {
@@ -17,7 +19,7 @@ class EditingView extends StatefulWidget {
 }
 
 class _EditingViewState extends State<EditingView> {
-  late int _dailyGoal;
+  late int _targetValue;
   late String _selectedIcon;
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -25,7 +27,7 @@ class _EditingViewState extends State<EditingView> {
   @override
   void initState() {
     super.initState();
-    _dailyGoal = widget.habit.dailyGoal;
+    _targetValue = widget.habit.targetValue;
     _selectedIcon = widget.habit.icon;
     _titleController = TextEditingController(text: widget.habit.title);
     _descriptionController = TextEditingController(text: widget.habit.description);
@@ -47,8 +49,6 @@ class _EditingViewState extends State<EditingView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 12),
-
-        // Selector de icono
         Text(
           'Icono',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -57,7 +57,6 @@ class _EditingViewState extends State<EditingView> {
           ),
         ),
         const SizedBox(height: 12),
-
         Center(
           child: Stack(
             children: [
@@ -74,7 +73,7 @@ class _EditingViewState extends State<EditingView> {
                     setState(() {
                       _selectedIcon = newIcon;
                     });
-                  }, 
+                  },
                   withText: false,
                   initialIcon: _selectedIcon,
                 ),
@@ -89,64 +88,51 @@ class _EditingViewState extends State<EditingView> {
                     shape: BoxShape.circle,
                     border: Border.all(color: cs.surfaceContainerLowest, width: 2),
                   ),
-                  child: Icon(
-                    Icons.edit,
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedPencilEdit01,
                     color: cs.onPrimary,
                     size: 14,
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
-
         const SizedBox(height: 24),
-
-        // Título del hábito
         _LabeledTextField(
           controller: _titleController,
           label: 'Título',
           hint: 'Ej. Leer un libro',
         ),
-
         const SizedBox(height: 20),
-
-        // Descripción
         _LabeledTextField(
           controller: _descriptionController,
-          label: 'Descripción (Opcional)',
+          label: 'Descripción',
           hint: 'Notas adicionales sobre el hábito',
           maxLines: 3,
         ),
-
         const SizedBox(height: 24),
-
-        // Meta Diaria
         Text(
-          'Meta Diaria',
+          'Meta',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: cs.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
         ),
-
         const SizedBox(height: 12),
-
-        // El contador opera en modo local: muestra la meta actual del hábito
-        // y notifica cambios al estado local mediante onChanged.
         DailyGoalCounter(
           useProvider: false,
-          initialValue: _dailyGoal,
-          onChanged: (newGoal) {
-            setState(() {
-              _dailyGoal = newGoal;
-            });
-          },
+          initialValue: _targetValue,
+          trackingType: widget.habit.trackingType,
+          onChanged: widget.habit.trackingType == HabitTrackingType.single
+              ? null
+              : (newValue) {
+                  setState(() {
+                    _targetValue = newValue;
+                  });
+                },
         ),
-
         const SizedBox(height: 48),
-
-        // Botón único principal
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -165,7 +151,7 @@ class _EditingViewState extends State<EditingView> {
               ),
             ),
             child: Text(
-              'Guardar Cambios',
+              'Guardar cambios',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: cs.tertiary,
                 fontWeight: FontWeight.w600,
@@ -173,7 +159,6 @@ class _EditingViewState extends State<EditingView> {
             ),
           ),
         ),
-
         const SizedBox(height: 24),
       ],
     );
@@ -181,53 +166,35 @@ class _EditingViewState extends State<EditingView> {
 
   Future<void> _saveHabit(HabitsProvider habitsProvider) async {
     if (_titleController.text.trim().isEmpty) {
+      CustomToast.showToast(context: context, message: 'El título es requerido');
+      return;
+    }
+
+    final todayCount = habitsProvider.getTodayCount(widget.habit.id);
+    if (_targetValue < todayCount) {
       CustomToast.showToast(
         context: context,
-        message: 'El título es requerido',
+        message: 'La meta no puede ser menor que tu valor de hoy ($todayCount)',
       );
       return;
     }
 
-    // Validar que la nueva meta diaria no sea menor que el progreso de hoy.
-    final int todayCount = habitsProvider.getTodayCount(widget.habit.id);
-    if (_dailyGoal < todayCount) {
-      CustomToast.showToast(
-        context: context,
-        message: 'La meta diaria no puede ser menor que tu progreso de hoy ($todayCount)',
-      );
-      return;
-    }
+    final updatedHabit = widget.habit.copyWith(
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      icon: _selectedIcon,
+      targetValue: _targetValue,
+    );
 
-    try {
-      final updatedHabit = widget.habit.copyWith(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        icon: _selectedIcon,
-        dailyGoal: _dailyGoal,
-      );
+    final success = await habitsProvider.updateHabit(updatedHabit);
+    if (!success || !mounted) return;
 
-      habitsProvider.updateHabit(updatedHabit);
-      habitsProvider.changeIsEditing(false);
-
-      if (!mounted) return;
-
-      CustomToast.showToast(
-        context: context,
-        message: 'Hábito guardado',
-      );
-
-      context.pop();
-    } catch (e) {
-      if (!mounted) return;
-      CustomToast.showToast(
-        context: context,
-        message: 'Error al actualizar',
-      );
-    }
+    habitsProvider.changeIsEditing(false);
+    CustomToast.showToast(context: context, message: 'Hábito guardado');
+    context.pop();
   }
 }
 
-/// Campo de texto de estilo linear, enclosed en un container de fondo.
 class _LabeledTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;

@@ -5,6 +5,7 @@ import 'package:find_your_mind/features/habits/presentation/screens/habit_detail
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class HabitDetailScreen extends StatefulWidget {
   final HabitEntity habit;
@@ -73,8 +74,8 @@ class _HabitDetailHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedArrowLeft01,
               size: 20,
               color: cs.onSurfaceVariant,
             ),

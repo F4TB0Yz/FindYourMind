@@ -1,6 +1,8 @@
-import 'package:find_your_mind/features/habits/data/models/type_habit_model.dart';
+import 'package:find_your_mind/features/habits/data/models/habit_category_model.dart';
+import 'package:find_your_mind/features/habits/data/models/habit_log_model.dart';
+import 'package:find_your_mind/features/habits/data/models/habit_tracking_type_model.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
-import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
 
 class ItemHabitModel {
   final String id;
@@ -9,9 +11,10 @@ class ItemHabitModel {
   final String description;
   final String iconString;
   final DateTime createdAt;
-  final String typeHabit;
-  final int dailyGoal;
-  final List<HabitProgress> progress;
+  final String category;
+  final String trackingType;
+  final int targetValue;
+  final List<HabitLog> logs;
 
   ItemHabitModel({
     required this.id,
@@ -19,25 +22,25 @@ class ItemHabitModel {
     required this.title,
     required this.description,
     required this.createdAt,
-    required this.typeHabit,
+    required this.category,
+    required this.trackingType,
     required this.iconString,
-    required this.dailyGoal,
-    required this.progress
+    required this.targetValue,
+    required this.logs,
   });
 
   HabitEntity toEntity() {
-    final typeHabitEntity = TypeHabitModel.fromString(typeHabit);
-
     return HabitEntity(
       id: id,
       userId: userId,
       title: title,
       description: description,
       icon: iconString,
-      type: typeHabitEntity,
-      dailyGoal: dailyGoal,
+      category: HabitCategoryModel.fromString(category),
+      trackingType: HabitTrackingTypeModel.fromString(trackingType),
+      targetValue: targetValue,
       initialDate: createdAt.toIso8601String(),
-      progress: progress
+      logs: logs,
     );
   }
 
@@ -47,38 +50,33 @@ class ItemHabitModel {
       'title': title,
       'subtitle': description,
       'created_at': createdAt.toIso8601String(),
-      'typeHabit': typeHabit,
+      'category': category,
+      'tracking_type': trackingType,
       'iconString': iconString,
+      'target_value': targetValue,
     };
   }
 
   factory ItemHabitModel.fromJson(Map<String, dynamic> json) {
-// Convertir explícitamente List<dynamic> a List<Map<String, dynamic>>
-    final progressJsonList = (json['progress'] as List<dynamic>?)
+    final logsJsonList = (json['logs'] as List<dynamic>?)
       ?.map((item) => Map<String, dynamic>.from(item as Map))
       .toList() ?? [];
 
-    final List<HabitProgress> progressEntityList = progressJsonList
-      .map(
-        (item) => HabitProgress(
-          id: item['id'],
-          habitId: item['habit_id'],
-          date: item['date'],
-          dailyGoal: item['daily_goal'],
-          dailyCounter: item['daily_counter']
-        )
-      ).toList();
+    final List<HabitLog> logEntityList = logsJsonList
+        .map((item) => HabitLogModel.fromJson(item).toEntity())
+        .toList();
 
     return ItemHabitModel(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      createdAt: DateTime.parse(json['initial_date'] as String),
-      typeHabit: json['type'] as String,
+      createdAt: DateTime.parse((json['created_at'] ?? json['initial_date']) as String),
+      category: (json['category'] ?? 'none') as String,
+      trackingType: (json['tracking_type'] ?? 'single') as String,
       iconString: json['icon'] as String,
-      dailyGoal: json['daily_goal'] as int,
-      progress: progressEntityList
+      targetValue: (json['target_value'] ?? 1) as int,
+      logs: logEntityList,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Diálogo de confirmación para eliminar un hábito
 class DeleteHabitDialog {
@@ -29,8 +30,8 @@ class DeleteHabitDialog {
                   color: cs.error.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.warning_amber_rounded,
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedAlertDiamond,
                   color: cs.error,
                   size: 24,
                 ),
@@ -72,8 +73,8 @@ class DeleteHabitDialog {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.info_outline,
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedInformationCircle,
                       color: cs.outline,
                       size: 18,
                     ),

@@ -47,7 +47,7 @@ abstract class AppColors {
   static const Color themeToggleDarkFill = Color(0xFF162125);
 
   /// Fondo del botón de cambio de tema en modo claro.
-  static const Color themeToggleLightFill = Color(0xFFf5feff);
+  static const Color themeToggleLightFill = Color(0xFFcff6fb);
 
   /// Color base del contenedor para hábitos de una sola vez.
   static Color oneTimeHabitCardColor(BuildContext context) {

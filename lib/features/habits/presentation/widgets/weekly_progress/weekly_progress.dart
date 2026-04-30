@@ -1,13 +1,7 @@
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
-import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/weekly_progress/pulsing_today_indicator.dart';
 import 'package:flutter/material.dart';
 
-/// Muestra el progreso de los 7 días de la semana actual para un hábito.
-///
-/// Días completados: círculo con borde verde. Días fallidos: borde rojo apagado.
-/// Días futuros de la semana: borde sutil gris sin connotación negativa.
-/// El día actual usa un indicador pulsante animado.
 class WeeklyProgress extends StatelessWidget {
   final HabitEntity habit;
 
@@ -26,25 +20,14 @@ class WeeklyProgress extends StatelessWidget {
         final date = startOfWeek.add(Duration(days: index));
         final dateString = date.toIso8601String().substring(0, 10);
         final isFuture = date.isAfter(today) && dateString != todayString;
-
-        final progress = habit.progress.firstWhere(
-          (p) => p.date == dateString,
-          orElse: () => HabitProgress(
-            id: '',
-            habitId: habit.id,
-            date: dateString,
-            dailyGoal: habit.dailyGoal,
-            dailyCounter: 0,
-          ),
+        final isCompleted = habit.logs.any(
+          (log) => log.date == dateString && log.value >= habit.targetValue,
         );
-
-        final isCompleted = progress.dailyCounter >= habit.dailyGoal;
-        final isToday = dateString == todayString;
 
         return _WeekDayColumn(
           label: weekDays[index],
           day: date.day,
-          isToday: isToday,
+          isToday: dateString == todayString,
           isCompleted: isCompleted,
           isFuture: isFuture,
         );
@@ -53,7 +36,6 @@ class WeeklyProgress extends StatelessWidget {
   }
 }
 
-/// Columna con la letra del día y el indicador circular.
 class _WeekDayColumn extends StatelessWidget {
   final String label;
   final int day;
@@ -72,7 +54,7 @@ class _WeekDayColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final Color labelColor = isToday
+    final labelColor = isToday
         ? (isCompleted ? cs.tertiary : cs.error)
         : cs.outline;
 
@@ -95,7 +77,6 @@ class _WeekDayColumn extends StatelessWidget {
   }
 }
 
-/// Círculo indicador para días pasados o futuros (no el día actual).
 class _DayCircle extends StatelessWidget {
   final int day;
   final bool isCompleted;
@@ -111,19 +92,19 @@ class _DayCircle extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    final Color borderColor = isFuture
+    final borderColor = isFuture
         ? cs.outlineVariant
         : isCompleted
             ? cs.tertiary
             : cs.error.withValues(alpha: 0.6);
 
-    final Color bgColor = isFuture
+    final bgColor = isFuture
         ? Colors.transparent
         : isCompleted
             ? cs.tertiary.withValues(alpha: 0.1)
             : Colors.transparent;
 
-    final Color textColor = isFuture
+    final textColor = isFuture
         ? cs.outline
         : isCompleted
             ? cs.tertiary

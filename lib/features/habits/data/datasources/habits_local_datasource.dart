@@ -2,13 +2,13 @@ import 'package:drift/drift.dart';
 import 'package:find_your_mind/core/database/app_database.dart';
 import 'package:find_your_mind/core/error/exceptions.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';
-import 'package:find_your_mind/features/habits/data/models/type_habit_model.dart';
+import 'package:find_your_mind/features/habits/data/models/habit_category_model.dart';
+import 'package:find_your_mind/features/habits/data/models/habit_tracking_type_model.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
-import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class HabitsLocalDatasource {
-  // Users Habits
   Future<List<HabitEntity>> getHabitsByUserId(String userId);
 
   Future<List<HabitEntity>> getHabitsByUserIdPaginated({
@@ -17,27 +17,24 @@ abstract class HabitsLocalDatasource {
     int offset = 0,
   });
 
-  // Habits
   Future<String?> createHabit(HabitEntity habit);
 
   Future<void> updateHabit(HabitEntity habit);
 
   Future<void> deleteHabit(String habitId);
 
-  // Habit Progress
-  Future<String?> createHabitProgress(HabitProgress habitProgress);
+  Future<String?> createHabitLog(HabitLog habitLog);
 
-  Future<void> deleteHabitProgress(String habitId);
+  Future<void> deleteHabitLogs(String habitId);
 
-  Future<void> updateHabitCounter({
+  Future<void> updateHabitLogValue({
     required String habitId,
-    required String progressId,
-    required int newCounter,
+    required String logId,
+    required int value,
   });
 
-  Future<HabitProgress?> getHabitProgressById(String progressId);
+  Future<HabitLog?> getHabitLogById(String logId);
 
-  // Métodos auxiliares para sincronización
   Future<void> deleteHabitPendingSync(String habitId);
 
   Future<void> clearAllHabits(String userId);
@@ -47,18 +44,18 @@ abstract class HabitsLocalDatasource {
 
 class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   final AppDatabase _db;
-  static const int _startupProgressLimitPerHabit = 30;
+  static const int _startupLogsLimitPerHabit = 30;
 
   HabitsLocalDatasourceImpl({required AppDatabase databaseHelper})
       : _db = databaseHelper;
 
-  Future<Map<String, List<HabitProgressTableData>>> _loadProgressByHabitIds(
+  Future<Map<String, List<HabitLogsTableData>>> _loadLogsByHabitIds(
     List<String> habitIds, {
     int? maxPerHabit,
   }) async {
     if (habitIds.isEmpty) return {};
 
-    final rows = await (_db.select(_db.habitProgressTable)
+    final rows = await (_db.select(_db.habitLogsTable)
           ..where((t) => t.habitId.isIn(habitIds))
           ..orderBy([
             (t) => OrderingTerm.asc(t.habitId),
@@ -66,7 +63,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
           ]))
         .get();
 
-    final Map<String, List<HabitProgressTableData>> grouped = {};
+    final Map<String, List<HabitLogsTableData>> grouped = {};
     for (final row in rows) {
       final list = grouped.putIfAbsent(row.habitId, () => []);
       if (maxPerHabit == null || list.length < maxPerHabit) {
@@ -78,7 +75,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
 
   HabitEntity _rowToEntity(
     HabitsTableData row,
-    List<HabitProgressTableData> progress,
+    List<HabitLogsTableData> logs,
   ) {
     return HabitEntity(
       id: row.id,
@@ -86,17 +83,17 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
       title: row.title,
       description: row.description,
       icon: row.icon,
-      type: TypeHabitModel.fromString(row.type),
-      dailyGoal: row.dailyGoal,
+      category: HabitCategoryModel.fromString(row.category),
+      trackingType: HabitTrackingTypeModel.fromString(row.trackingType),
+      targetValue: row.targetValue,
       initialDate: row.initialDate,
-      progress: progress
+      logs: logs
           .map(
-            (p) => HabitProgress(
-              id: p.id,
-              habitId: p.habitId,
-              date: p.date,
-              dailyGoal: p.dailyGoal,
-              dailyCounter: p.dailyCounter,
+            (log) => HabitLog(
+              id: log.id,
+              habitId: log.habitId,
+              date: log.date,
+              value: log.value,
             ),
           )
           .toList(),
@@ -113,15 +110,11 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             ..orderBy([(t) => OrderingTerm.desc(t.initialDate)]))
           .get();
 
-      AppLogger.d(
-        '[LOCAL_DS] getHabitsByUserId - ${habitRows.length} hábitos encontrados',
-      );
-
-      final habitIds = habitRows.map((r) => r.id).toList();
-      final progressByHabit = await _loadProgressByHabitIds(habitIds);
+      final habitIds = habitRows.map((row) => row.id).toList();
+      final logsByHabit = await _loadLogsByHabitIds(habitIds);
 
       return habitRows
-          .map((r) => _rowToEntity(r, progressByHabit[r.id] ?? []))
+          .map((row) => _rowToEntity(row, logsByHabit[row.id] ?? []))
           .toList();
     } catch (e, st) {
       AppLogger.e(
@@ -150,18 +143,14 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             ..limit(limit, offset: offset))
           .get();
 
-      AppLogger.d(
-        '[LOCAL_DS] ${habitRows.length} hábitos encontrados',
-      );
-
-      final habitIds = habitRows.map((r) => r.id).toList();
-      final progressByHabit = await _loadProgressByHabitIds(
+      final habitIds = habitRows.map((row) => row.id).toList();
+      final logsByHabit = await _loadLogsByHabitIds(
         habitIds,
-        maxPerHabit: _startupProgressLimitPerHabit,
+        maxPerHabit: _startupLogsLimitPerHabit,
       );
 
       return habitRows
-          .map((r) => _rowToEntity(r, progressByHabit[r.id] ?? []))
+          .map((row) => _rowToEntity(row, logsByHabit[row.id] ?? []))
           .toList();
     } catch (e, st) {
       AppLogger.e(
@@ -186,8 +175,11 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
               title: Value(habit.title),
               description: Value(habit.description),
               icon: Value(habit.icon),
-              type: Value(habit.type.name),
-              dailyGoal: Value(habit.dailyGoal),
+              category: Value(HabitCategoryModel.toStringValue(habit.category)),
+              trackingType: Value(
+                HabitTrackingTypeModel.toStringValue(habit.trackingType),
+              ),
+              targetValue: Value(habit.targetValue),
               initialDate: Value(habit.initialDate),
               createdAt: Value(now),
               synced: const Value(0),
@@ -205,43 +197,21 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   @override
   Future<void> updateHabit(HabitEntity habit) async {
     try {
-      final today = DateTime.now();
-      final todayString =
-          '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-
-      await _db.transaction(() async {
-        await (_db.update(_db.habitsTable)
-              ..where((t) => t.id.equals(habit.id)))
-            .write(
-          HabitsTableCompanion(
-            title: Value(habit.title),
-            description: Value(habit.description),
-            icon: Value(habit.icon),
-            type: Value(habit.type.name),
-            dailyGoal: Value(habit.dailyGoal),
-            synced: const Value(0),
-            updatedAt: Value(DateTime.now().toIso8601String()),
+      await (_db.update(_db.habitsTable)..where((t) => t.id.equals(habit.id)))
+          .write(
+        HabitsTableCompanion(
+          title: Value(habit.title),
+          description: Value(habit.description),
+          icon: Value(habit.icon),
+          category: Value(HabitCategoryModel.toStringValue(habit.category)),
+          trackingType: Value(
+            HabitTrackingTypeModel.toStringValue(habit.trackingType),
           ),
-        );
-
-        final updatedCount = await (_db.update(_db.habitProgressTable)
-              ..where(
-                (t) =>
-                    t.habitId.equals(habit.id) &
-                    t.date.isBiggerOrEqualValue(todayString),
-              ))
-            .write(
-          HabitProgressTableCompanion(
-            dailyGoal: Value(habit.dailyGoal),
-            synced: const Value(0),
-          ),
-        );
-
-        AppLogger.d(
-          '[LOCAL_DS] Hábito actualizado: ${habit.id} — '
-          'daily_goal sincronizado en $updatedCount registros desde $todayString',
-        );
-      });
+          targetValue: Value(habit.targetValue),
+          synced: const Value(0),
+          updatedAt: Value(DateTime.now().toIso8601String()),
+        ),
+      );
     } catch (e) {
       throw CacheException('Error al actualizar hábito: ${e.toString()}');
     }
@@ -250,8 +220,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   @override
   Future<void> deleteHabit(String habitId) async {
     try {
-      await (_db.delete(_db.habitsTable)
-            ..where((t) => t.id.equals(habitId)))
+      await (_db.delete(_db.habitsTable)..where((t) => t.id.equals(habitId)))
           .go();
     } catch (e) {
       throw CacheException('Error al eliminar hábito: ${e.toString()}');
@@ -259,101 +228,90 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   }
 
   @override
-  Future<String?> createHabitProgress(HabitProgress habitProgress) async {
+  Future<String?> createHabitLog(HabitLog habitLog) async {
     try {
-      final existing = await (_db.select(_db.habitProgressTable)
+      final existing = await (_db.select(_db.habitLogsTable)
             ..where(
               (t) =>
-                  t.habitId.equals(habitProgress.habitId) &
-                  t.date.equals(habitProgress.date),
+                  t.habitId.equals(habitLog.habitId) &
+                  t.date.equals(habitLog.date),
             )
             ..limit(1))
           .getSingleOrNull();
 
       if (existing != null) {
         AppLogger.w(
-          '[LOCAL_DS] Ya existe progreso para ${habitProgress.habitId} '
-          'en ${habitProgress.date} — Retornando ID: ${existing.id}',
+          '[LOCAL_DS] Ya existe log para ${habitLog.habitId} en ${habitLog.date}',
         );
         return existing.id;
       }
 
-      final progressId =
-          habitProgress.id.isNotEmpty ? habitProgress.id : const Uuid().v4();
+      final logId = habitLog.id.isNotEmpty ? habitLog.id : const Uuid().v4();
 
-      await _db.into(_db.habitProgressTable).insert(
-            HabitProgressTableCompanion(
-              id: Value(progressId),
-              habitId: Value(habitProgress.habitId),
-              date: Value(habitProgress.date),
-              dailyCounter: Value(habitProgress.dailyCounter),
-              dailyGoal: Value(habitProgress.dailyGoal),
+      await _db.into(_db.habitLogsTable).insert(
+            HabitLogsTableCompanion(
+              id: Value(logId),
+              habitId: Value(habitLog.habitId),
+              date: Value(habitLog.date),
+              value: Value(habitLog.value),
               synced: const Value(0),
             ),
           );
 
-      AppLogger.d(
-        '[LOCAL_DS] Nuevo progreso creado: $progressId para ${habitProgress.date}',
-      );
-      return progressId;
+      return logId;
     } catch (e) {
-      throw CacheException('Error al crear progreso: ${e.toString()}');
+      throw CacheException('Error al crear log: ${e.toString()}');
     }
   }
 
   @override
-  Future<void> deleteHabitProgress(String habitId) async {
+  Future<void> deleteHabitLogs(String habitId) async {
     try {
-      await (_db.delete(_db.habitProgressTable)
+      await (_db.delete(_db.habitLogsTable)
             ..where((t) => t.habitId.equals(habitId)))
           .go();
     } catch (e) {
-      throw CacheException(
-        'Error al eliminar progresos del hábito: ${e.toString()}',
-      );
+      throw CacheException('Error al eliminar logs del hábito: ${e.toString()}');
     }
   }
 
   @override
-  Future<void> updateHabitCounter({
+  Future<void> updateHabitLogValue({
     required String habitId,
-    required String progressId,
-    required int newCounter,
+    required String logId,
+    required int value,
   }) async {
     try {
-      await (_db.update(_db.habitProgressTable)
-            ..where(
-              (t) => t.habitId.equals(habitId) & t.id.equals(progressId),
-            ))
+      await (_db.update(_db.habitLogsTable)
+            ..where((t) => t.habitId.equals(habitId) & t.id.equals(logId)))
           .write(
-        HabitProgressTableCompanion(
-          dailyCounter: Value(newCounter),
+        HabitLogsTableCompanion(
+          value: Value(value),
           synced: const Value(0),
         ),
       );
     } catch (e) {
-      throw CacheException('Error al actualizar progreso: ${e.toString()}');
+      throw CacheException('Error al actualizar log: ${e.toString()}');
     }
   }
 
   @override
-  Future<HabitProgress?> getHabitProgressById(String progressId) async {
+  Future<HabitLog?> getHabitLogById(String logId) async {
     try {
-      final row = await (_db.select(_db.habitProgressTable)
-            ..where((t) => t.id.equals(progressId)))
+      final row = await (_db.select(_db.habitLogsTable)
+            ..where((t) => t.id.equals(logId)))
           .getSingleOrNull();
 
       if (row == null) return null;
 
-      return HabitProgress(
+      return HabitLog(
         id: row.id,
         habitId: row.habitId,
         date: row.date,
-        dailyGoal: row.dailyGoal,
-        dailyCounter: row.dailyCounter,
+        value: row.value,
       );
     } catch (e) {
-      throw CacheException('Error al obtener progreso: ${e.toString()}');
+      throw CacheException('Error al obtener log: ${e.toString()}');
     }
   }
 
@@ -364,7 +322,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             ..where(
               (t) =>
                   (t.entityType.equals('habit') & t.entityId.equals(habitId)) |
-                  (t.entityType.equals('progress') &
+                  (t.entityType.equals('log') &
                       t.data.like('%"habit_id":"$habitId"%')),
             ))
           .go();
@@ -382,8 +340,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
   @override
   Future<void> clearAllHabits(String userId) async {
     try {
-      await (_db.delete(_db.habitsTable)
-            ..where((t) => t.userId.equals(userId)))
+      await (_db.delete(_db.habitsTable)..where((t) => t.userId.equals(userId)))
           .go();
     } catch (e) {
       throw CacheException('Error al limpiar hábitos: ${e.toString()}');
@@ -404,8 +361,13 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
                   title: Value(habit.title),
                   description: Value(habit.description),
                   icon: Value(habit.icon),
-                  type: Value(habit.type.name),
-                  dailyGoal: Value(habit.dailyGoal),
+                  category: Value(
+                    HabitCategoryModel.toStringValue(habit.category),
+                  ),
+                  trackingType: Value(
+                    HabitTrackingTypeModel.toStringValue(habit.trackingType),
+                  ),
+                  targetValue: Value(habit.targetValue),
                   initialDate: Value(habit.initialDate),
                   createdAt: Value(now),
                   synced: const Value(1),
@@ -413,14 +375,13 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
                 ),
               );
 
-          for (final progress in habit.progress) {
-            await _db.into(_db.habitProgressTable).insertOnConflictUpdate(
-                  HabitProgressTableCompanion(
-                    id: Value(progress.id),
-                    habitId: Value(progress.habitId),
-                    date: Value(progress.date),
-                    dailyGoal: Value(progress.dailyGoal),
-                    dailyCounter: Value(progress.dailyCounter),
+          for (final log in habit.logs) {
+            await _db.into(_db.habitLogsTable).insertOnConflictUpdate(
+                  HabitLogsTableCompanion(
+                    id: Value(log.id),
+                    habitId: Value(log.habitId),
+                    date: Value(log.date),
+                    value: Value(log.value),
                     synced: const Value(1),
                   ),
                 );

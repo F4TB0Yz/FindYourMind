@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 class WeeklyHabitsStatistics extends StatelessWidget {
   const WeeklyHabitsStatistics({super.key});
 
-  static const List<String> _weekLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  static const List<String> _weekLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
   static const int _pillRows = 4;
 
   @override
@@ -43,8 +43,9 @@ class _WeekDayColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color labelColor =
-        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final Color labelColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
 
     return Expanded(
       child: Padding(
@@ -53,23 +54,17 @@ class _WeekDayColumn extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 4,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               child: Text(
                 label,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
-                      color: isToday ? const Color(0xFF155e75) : labelColor,
-                    ),
+                  fontWeight: isToday ? FontWeight.w900 : FontWeight.w600,
+                  color: isToday ? const Color(0xFF155e75) : labelColor,
+                ),
               ),
             ),
             ...List.generate(WeeklyHabitsStatistics._pillRows, (rowIndex) {
-              return _WeeklyPill(
-                dayIndex: dayIndex,
-                rowIndex: rowIndex,
-              );
+              return _WeeklyPill(dayIndex: dayIndex, rowIndex: rowIndex);
             }),
           ],
         ),
@@ -82,10 +77,7 @@ class _WeeklyPill extends StatelessWidget {
   final int dayIndex;
   final int rowIndex;
 
-  const _WeeklyPill({
-    required this.dayIndex,
-    required this.rowIndex,
-  });
+  const _WeeklyPill({required this.dayIndex, required this.rowIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -111,10 +103,7 @@ class _WeeklyPill extends StatelessWidget {
                   ? const LinearGradient(
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
-                      colors: [
-                        Color(0xFF187290),
-                        Color(0xFF1fc067),
-                      ],
+                      colors: [Color(0xFF187290), Color(0xFF1fc067)],
                     )
                   : null,
               color: isActive ? null : inactivePillColor,

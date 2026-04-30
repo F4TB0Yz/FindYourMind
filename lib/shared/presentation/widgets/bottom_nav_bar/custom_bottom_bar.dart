@@ -1,7 +1,7 @@
 import 'package:find_your_mind/shared/presentation/widgets/bottom_nav_bar/custom_item_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Barra de navegación inferior fija.
 /// Desacoplada de ScreensProvider — usa [StatefulNavigationShell] de GoRouter.
@@ -23,14 +23,14 @@ class CustomBottomBar extends StatelessWidget {
         children: [
           CustomItemBar(
             text: "NOTAS",
-            icon: LucideIcons.fileText,
+            icon: HugeIcons.strokeRoundedNote01,
             index: 2, // notes
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(2),
           ),
           CustomItemBar(
             text: "TAREAS",
-            icon: LucideIcons.listChecks,
+            icon: HugeIcons.strokeRoundedTask01,
             index: 1, // tasks
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(1),
@@ -38,14 +38,14 @@ class CustomBottomBar extends StatelessWidget {
           const SizedBox(width: 48), // espacio para el FAB
           CustomItemBar(
             text: "HABITOS",
-            icon: LucideIcons.heartPulse,
+            icon: HugeIcons.strokeRoundedHeartCheck,
             index: 0, // habits
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(0),
           ),
           CustomItemBar(
             text: "PERFIL",
-            icon: LucideIcons.user,
+            icon: HugeIcons.strokeRoundedUser,
             index: 3, // profile
             currentIndex: shell.currentIndex,
             onTap: () => shell.goBranch(3),

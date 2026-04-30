@@ -20,7 +20,6 @@ dependencies:
   home_widget: ^0.8.1
   internet_connection_checker: ^3.0.1
   logger: ^2.5.0
-  lucide_icons: 0.257.0
   path: ^1.9.0
   path_provider: ^2.1.5
   provider: 6.1.5+1
@@ -31,6 +30,8 @@ dependencies:
   go_router: ^14.6.3
   google_fonts: ^6.2.1
   flutter_native_splash: ^2.4.7
+  shimmer: ^3.0.0
+  hugeicons: ^1.1.6
 
 dev_dependencies:
   build_runner: ^2.4.15

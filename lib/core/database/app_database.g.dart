@@ -56,25 +56,41 @@ class $HabitsTableTable extends HabitsTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
   @override
-  late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('none'),
   );
-  static const VerificationMeta _dailyGoalMeta = const VerificationMeta(
-    'dailyGoal',
+  static const VerificationMeta _trackingTypeMeta = const VerificationMeta(
+    'trackingType',
   );
   @override
-  late final GeneratedColumn<int> dailyGoal = GeneratedColumn<int>(
-    'daily_goal',
+  late final GeneratedColumn<String> trackingType = GeneratedColumn<String>(
+    'tracking_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('single'),
+  );
+  static const VerificationMeta _targetValueMeta = const VerificationMeta(
+    'targetValue',
+  );
+  @override
+  late final GeneratedColumn<int> targetValue = GeneratedColumn<int>(
+    'target_value',
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
   );
   static const VerificationMeta _initialDateMeta = const VerificationMeta(
     'initialDate',
@@ -126,8 +142,9 @@ class $HabitsTableTable extends HabitsTable
     title,
     description,
     icon,
-    type,
-    dailyGoal,
+    category,
+    trackingType,
+    targetValue,
     initialDate,
     createdAt,
     synced,
@@ -185,21 +202,29 @@ class $HabitsTableTable extends HabitsTable
     } else if (isInserting) {
       context.missing(_iconMeta);
     }
-    if (data.containsKey('type')) {
+    if (data.containsKey('category')) {
       context.handle(
-        _typeMeta,
-        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
       );
-    } else if (isInserting) {
-      context.missing(_typeMeta);
     }
-    if (data.containsKey('daily_goal')) {
+    if (data.containsKey('tracking_type')) {
       context.handle(
-        _dailyGoalMeta,
-        dailyGoal.isAcceptableOrUnknown(data['daily_goal']!, _dailyGoalMeta),
+        _trackingTypeMeta,
+        trackingType.isAcceptableOrUnknown(
+          data['tracking_type']!,
+          _trackingTypeMeta,
+        ),
       );
-    } else if (isInserting) {
-      context.missing(_dailyGoalMeta);
+    }
+    if (data.containsKey('target_value')) {
+      context.handle(
+        _targetValueMeta,
+        targetValue.isAcceptableOrUnknown(
+          data['target_value']!,
+          _targetValueMeta,
+        ),
+      );
     }
     if (data.containsKey('initial_date')) {
       context.handle(
@@ -263,13 +288,17 @@ class $HabitsTableTable extends HabitsTable
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       )!,
-      type: attachedDatabase.typeMapping.read(
+      category: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}type'],
+        data['${effectivePrefix}category'],
       )!,
-      dailyGoal: attachedDatabase.typeMapping.read(
+      trackingType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tracking_type'],
+      )!,
+      targetValue: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}daily_goal'],
+        data['${effectivePrefix}target_value'],
       )!,
       initialDate: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -302,8 +331,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
   final String title;
   final String description;
   final String icon;
-  final String type;
-  final int dailyGoal;
+  final String category;
+  final String trackingType;
+  final int targetValue;
   final String initialDate;
   final String createdAt;
   final int synced;
@@ -314,8 +344,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     required this.title,
     required this.description,
     required this.icon,
-    required this.type,
-    required this.dailyGoal,
+    required this.category,
+    required this.trackingType,
+    required this.targetValue,
     required this.initialDate,
     required this.createdAt,
     required this.synced,
@@ -329,8 +360,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     map['title'] = Variable<String>(title);
     map['description'] = Variable<String>(description);
     map['icon'] = Variable<String>(icon);
-    map['type'] = Variable<String>(type);
-    map['daily_goal'] = Variable<int>(dailyGoal);
+    map['category'] = Variable<String>(category);
+    map['tracking_type'] = Variable<String>(trackingType);
+    map['target_value'] = Variable<int>(targetValue);
     map['initial_date'] = Variable<String>(initialDate);
     map['created_at'] = Variable<String>(createdAt);
     map['synced'] = Variable<int>(synced);
@@ -345,8 +377,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       title: Value(title),
       description: Value(description),
       icon: Value(icon),
-      type: Value(type),
-      dailyGoal: Value(dailyGoal),
+      category: Value(category),
+      trackingType: Value(trackingType),
+      targetValue: Value(targetValue),
       initialDate: Value(initialDate),
       createdAt: Value(createdAt),
       synced: Value(synced),
@@ -365,8 +398,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String>(json['description']),
       icon: serializer.fromJson<String>(json['icon']),
-      type: serializer.fromJson<String>(json['type']),
-      dailyGoal: serializer.fromJson<int>(json['dailyGoal']),
+      category: serializer.fromJson<String>(json['category']),
+      trackingType: serializer.fromJson<String>(json['trackingType']),
+      targetValue: serializer.fromJson<int>(json['targetValue']),
       initialDate: serializer.fromJson<String>(json['initialDate']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
       synced: serializer.fromJson<int>(json['synced']),
@@ -382,8 +416,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String>(description),
       'icon': serializer.toJson<String>(icon),
-      'type': serializer.toJson<String>(type),
-      'dailyGoal': serializer.toJson<int>(dailyGoal),
+      'category': serializer.toJson<String>(category),
+      'trackingType': serializer.toJson<String>(trackingType),
+      'targetValue': serializer.toJson<int>(targetValue),
       'initialDate': serializer.toJson<String>(initialDate),
       'createdAt': serializer.toJson<String>(createdAt),
       'synced': serializer.toJson<int>(synced),
@@ -397,8 +432,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     String? title,
     String? description,
     String? icon,
-    String? type,
-    int? dailyGoal,
+    String? category,
+    String? trackingType,
+    int? targetValue,
     String? initialDate,
     String? createdAt,
     int? synced,
@@ -409,8 +445,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     title: title ?? this.title,
     description: description ?? this.description,
     icon: icon ?? this.icon,
-    type: type ?? this.type,
-    dailyGoal: dailyGoal ?? this.dailyGoal,
+    category: category ?? this.category,
+    trackingType: trackingType ?? this.trackingType,
+    targetValue: targetValue ?? this.targetValue,
     initialDate: initialDate ?? this.initialDate,
     createdAt: createdAt ?? this.createdAt,
     synced: synced ?? this.synced,
@@ -425,8 +462,13 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           ? data.description.value
           : this.description,
       icon: data.icon.present ? data.icon.value : this.icon,
-      type: data.type.present ? data.type.value : this.type,
-      dailyGoal: data.dailyGoal.present ? data.dailyGoal.value : this.dailyGoal,
+      category: data.category.present ? data.category.value : this.category,
+      trackingType: data.trackingType.present
+          ? data.trackingType.value
+          : this.trackingType,
+      targetValue: data.targetValue.present
+          ? data.targetValue.value
+          : this.targetValue,
       initialDate: data.initialDate.present
           ? data.initialDate.value
           : this.initialDate,
@@ -444,8 +486,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('icon: $icon, ')
-          ..write('type: $type, ')
-          ..write('dailyGoal: $dailyGoal, ')
+          ..write('category: $category, ')
+          ..write('trackingType: $trackingType, ')
+          ..write('targetValue: $targetValue, ')
           ..write('initialDate: $initialDate, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced, ')
@@ -461,8 +504,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     title,
     description,
     icon,
-    type,
-    dailyGoal,
+    category,
+    trackingType,
+    targetValue,
     initialDate,
     createdAt,
     synced,
@@ -477,8 +521,9 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           other.title == this.title &&
           other.description == this.description &&
           other.icon == this.icon &&
-          other.type == this.type &&
-          other.dailyGoal == this.dailyGoal &&
+          other.category == this.category &&
+          other.trackingType == this.trackingType &&
+          other.targetValue == this.targetValue &&
           other.initialDate == this.initialDate &&
           other.createdAt == this.createdAt &&
           other.synced == this.synced &&
@@ -491,8 +536,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
   final Value<String> title;
   final Value<String> description;
   final Value<String> icon;
-  final Value<String> type;
-  final Value<int> dailyGoal;
+  final Value<String> category;
+  final Value<String> trackingType;
+  final Value<int> targetValue;
   final Value<String> initialDate;
   final Value<String> createdAt;
   final Value<int> synced;
@@ -504,8 +550,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     this.icon = const Value.absent(),
-    this.type = const Value.absent(),
-    this.dailyGoal = const Value.absent(),
+    this.category = const Value.absent(),
+    this.trackingType = const Value.absent(),
+    this.targetValue = const Value.absent(),
     this.initialDate = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
@@ -518,8 +565,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     required String title,
     required String description,
     required String icon,
-    required String type,
-    required int dailyGoal,
+    this.category = const Value.absent(),
+    this.trackingType = const Value.absent(),
+    this.targetValue = const Value.absent(),
     required String initialDate,
     required String createdAt,
     this.synced = const Value.absent(),
@@ -530,8 +578,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
        title = Value(title),
        description = Value(description),
        icon = Value(icon),
-       type = Value(type),
-       dailyGoal = Value(dailyGoal),
        initialDate = Value(initialDate),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
@@ -541,8 +587,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     Expression<String>? title,
     Expression<String>? description,
     Expression<String>? icon,
-    Expression<String>? type,
-    Expression<int>? dailyGoal,
+    Expression<String>? category,
+    Expression<String>? trackingType,
+    Expression<int>? targetValue,
     Expression<String>? initialDate,
     Expression<String>? createdAt,
     Expression<int>? synced,
@@ -555,8 +602,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
       if (title != null) 'title': title,
       if (description != null) 'description': description,
       if (icon != null) 'icon': icon,
-      if (type != null) 'type': type,
-      if (dailyGoal != null) 'daily_goal': dailyGoal,
+      if (category != null) 'category': category,
+      if (trackingType != null) 'tracking_type': trackingType,
+      if (targetValue != null) 'target_value': targetValue,
       if (initialDate != null) 'initial_date': initialDate,
       if (createdAt != null) 'created_at': createdAt,
       if (synced != null) 'synced': synced,
@@ -571,8 +619,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     Value<String>? title,
     Value<String>? description,
     Value<String>? icon,
-    Value<String>? type,
-    Value<int>? dailyGoal,
+    Value<String>? category,
+    Value<String>? trackingType,
+    Value<int>? targetValue,
     Value<String>? initialDate,
     Value<String>? createdAt,
     Value<int>? synced,
@@ -585,8 +634,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
       title: title ?? this.title,
       description: description ?? this.description,
       icon: icon ?? this.icon,
-      type: type ?? this.type,
-      dailyGoal: dailyGoal ?? this.dailyGoal,
+      category: category ?? this.category,
+      trackingType: trackingType ?? this.trackingType,
+      targetValue: targetValue ?? this.targetValue,
       initialDate: initialDate ?? this.initialDate,
       createdAt: createdAt ?? this.createdAt,
       synced: synced ?? this.synced,
@@ -613,11 +663,14 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
     }
-    if (type.present) {
-      map['type'] = Variable<String>(type.value);
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
     }
-    if (dailyGoal.present) {
-      map['daily_goal'] = Variable<int>(dailyGoal.value);
+    if (trackingType.present) {
+      map['tracking_type'] = Variable<String>(trackingType.value);
+    }
+    if (targetValue.present) {
+      map['target_value'] = Variable<int>(targetValue.value);
     }
     if (initialDate.present) {
       map['initial_date'] = Variable<String>(initialDate.value);
@@ -645,8 +698,9 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('icon: $icon, ')
-          ..write('type: $type, ')
-          ..write('dailyGoal: $dailyGoal, ')
+          ..write('category: $category, ')
+          ..write('trackingType: $trackingType, ')
+          ..write('targetValue: $targetValue, ')
           ..write('initialDate: $initialDate, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced, ')
@@ -657,12 +711,12 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
   }
 }
 
-class $HabitProgressTableTable extends HabitProgressTable
-    with TableInfo<$HabitProgressTableTable, HabitProgressTableData> {
+class $HabitLogsTableTable extends HabitLogsTable
+    with TableInfo<$HabitLogsTableTable, HabitLogsTableData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $HabitProgressTableTable(this.attachedDatabase, [this._alias]);
+  $HabitLogsTableTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -695,27 +749,15 @@ class $HabitProgressTableTable extends HabitProgressTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _dailyGoalMeta = const VerificationMeta(
-    'dailyGoal',
-  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
-  late final GeneratedColumn<int> dailyGoal = GeneratedColumn<int>(
-    'daily_goal',
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _dailyCounterMeta = const VerificationMeta(
-    'dailyCounter',
-  );
-  @override
-  late final GeneratedColumn<int> dailyCounter = GeneratedColumn<int>(
-    'daily_counter',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
   @override
@@ -728,22 +770,15 @@ class $HabitProgressTableTable extends HabitProgressTable
     defaultValue: const Constant(0),
   );
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    habitId,
-    date,
-    dailyGoal,
-    dailyCounter,
-    synced,
-  ];
+  List<GeneratedColumn> get $columns => [id, habitId, date, value, synced];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'habit_progress';
+  static const String $name = 'habit_logs';
   @override
   VerificationContext validateIntegrity(
-    Insertable<HabitProgressTableData> instance, {
+    Insertable<HabitLogsTableData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -769,24 +804,11 @@ class $HabitProgressTableTable extends HabitProgressTable
     } else if (isInserting) {
       context.missing(_dateMeta);
     }
-    if (data.containsKey('daily_goal')) {
+    if (data.containsKey('value')) {
       context.handle(
-        _dailyGoalMeta,
-        dailyGoal.isAcceptableOrUnknown(data['daily_goal']!, _dailyGoalMeta),
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
       );
-    } else if (isInserting) {
-      context.missing(_dailyGoalMeta);
-    }
-    if (data.containsKey('daily_counter')) {
-      context.handle(
-        _dailyCounterMeta,
-        dailyCounter.isAcceptableOrUnknown(
-          data['daily_counter']!,
-          _dailyCounterMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_dailyCounterMeta);
     }
     if (data.containsKey('synced')) {
       context.handle(
@@ -804,9 +826,9 @@ class $HabitProgressTableTable extends HabitProgressTable
     {habitId, date},
   ];
   @override
-  HabitProgressTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  HabitLogsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return HabitProgressTableData(
+    return HabitLogsTableData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -819,13 +841,9 @@ class $HabitProgressTableTable extends HabitProgressTable
         DriftSqlType.string,
         data['${effectivePrefix}date'],
       )!,
-      dailyGoal: attachedDatabase.typeMapping.read(
+      value: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}daily_goal'],
-      )!,
-      dailyCounter: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}daily_counter'],
+        data['${effectivePrefix}value'],
       )!,
       synced: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -835,25 +853,23 @@ class $HabitProgressTableTable extends HabitProgressTable
   }
 
   @override
-  $HabitProgressTableTable createAlias(String alias) {
-    return $HabitProgressTableTable(attachedDatabase, alias);
+  $HabitLogsTableTable createAlias(String alias) {
+    return $HabitLogsTableTable(attachedDatabase, alias);
   }
 }
 
-class HabitProgressTableData extends DataClass
-    implements Insertable<HabitProgressTableData> {
+class HabitLogsTableData extends DataClass
+    implements Insertable<HabitLogsTableData> {
   final String id;
   final String habitId;
   final String date;
-  final int dailyGoal;
-  final int dailyCounter;
+  final int value;
   final int synced;
-  const HabitProgressTableData({
+  const HabitLogsTableData({
     required this.id,
     required this.habitId,
     required this.date,
-    required this.dailyGoal,
-    required this.dailyCounter,
+    required this.value,
     required this.synced,
   });
   @override
@@ -862,34 +878,31 @@ class HabitProgressTableData extends DataClass
     map['id'] = Variable<String>(id);
     map['habit_id'] = Variable<String>(habitId);
     map['date'] = Variable<String>(date);
-    map['daily_goal'] = Variable<int>(dailyGoal);
-    map['daily_counter'] = Variable<int>(dailyCounter);
+    map['value'] = Variable<int>(value);
     map['synced'] = Variable<int>(synced);
     return map;
   }
 
-  HabitProgressTableCompanion toCompanion(bool nullToAbsent) {
-    return HabitProgressTableCompanion(
+  HabitLogsTableCompanion toCompanion(bool nullToAbsent) {
+    return HabitLogsTableCompanion(
       id: Value(id),
       habitId: Value(habitId),
       date: Value(date),
-      dailyGoal: Value(dailyGoal),
-      dailyCounter: Value(dailyCounter),
+      value: Value(value),
       synced: Value(synced),
     );
   }
 
-  factory HabitProgressTableData.fromJson(
+  factory HabitLogsTableData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return HabitProgressTableData(
+    return HabitLogsTableData(
       id: serializer.fromJson<String>(json['id']),
       habitId: serializer.fromJson<String>(json['habitId']),
       date: serializer.fromJson<String>(json['date']),
-      dailyGoal: serializer.fromJson<int>(json['dailyGoal']),
-      dailyCounter: serializer.fromJson<int>(json['dailyCounter']),
+      value: serializer.fromJson<int>(json['value']),
       synced: serializer.fromJson<int>(json['synced']),
     );
   }
@@ -900,105 +913,89 @@ class HabitProgressTableData extends DataClass
       'id': serializer.toJson<String>(id),
       'habitId': serializer.toJson<String>(habitId),
       'date': serializer.toJson<String>(date),
-      'dailyGoal': serializer.toJson<int>(dailyGoal),
-      'dailyCounter': serializer.toJson<int>(dailyCounter),
+      'value': serializer.toJson<int>(value),
       'synced': serializer.toJson<int>(synced),
     };
   }
 
-  HabitProgressTableData copyWith({
+  HabitLogsTableData copyWith({
     String? id,
     String? habitId,
     String? date,
-    int? dailyGoal,
-    int? dailyCounter,
+    int? value,
     int? synced,
-  }) => HabitProgressTableData(
+  }) => HabitLogsTableData(
     id: id ?? this.id,
     habitId: habitId ?? this.habitId,
     date: date ?? this.date,
-    dailyGoal: dailyGoal ?? this.dailyGoal,
-    dailyCounter: dailyCounter ?? this.dailyCounter,
+    value: value ?? this.value,
     synced: synced ?? this.synced,
   );
-  HabitProgressTableData copyWithCompanion(HabitProgressTableCompanion data) {
-    return HabitProgressTableData(
+  HabitLogsTableData copyWithCompanion(HabitLogsTableCompanion data) {
+    return HabitLogsTableData(
       id: data.id.present ? data.id.value : this.id,
       habitId: data.habitId.present ? data.habitId.value : this.habitId,
       date: data.date.present ? data.date.value : this.date,
-      dailyGoal: data.dailyGoal.present ? data.dailyGoal.value : this.dailyGoal,
-      dailyCounter: data.dailyCounter.present
-          ? data.dailyCounter.value
-          : this.dailyCounter,
+      value: data.value.present ? data.value.value : this.value,
       synced: data.synced.present ? data.synced.value : this.synced,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('HabitProgressTableData(')
+    return (StringBuffer('HabitLogsTableData(')
           ..write('id: $id, ')
           ..write('habitId: $habitId, ')
           ..write('date: $date, ')
-          ..write('dailyGoal: $dailyGoal, ')
-          ..write('dailyCounter: $dailyCounter, ')
+          ..write('value: $value, ')
           ..write('synced: $synced')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, habitId, date, dailyGoal, dailyCounter, synced);
+  int get hashCode => Object.hash(id, habitId, date, value, synced);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is HabitProgressTableData &&
+      (other is HabitLogsTableData &&
           other.id == this.id &&
           other.habitId == this.habitId &&
           other.date == this.date &&
-          other.dailyGoal == this.dailyGoal &&
-          other.dailyCounter == this.dailyCounter &&
+          other.value == this.value &&
           other.synced == this.synced);
 }
 
-class HabitProgressTableCompanion
-    extends UpdateCompanion<HabitProgressTableData> {
+class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
   final Value<String> id;
   final Value<String> habitId;
   final Value<String> date;
-  final Value<int> dailyGoal;
-  final Value<int> dailyCounter;
+  final Value<int> value;
   final Value<int> synced;
   final Value<int> rowid;
-  const HabitProgressTableCompanion({
+  const HabitLogsTableCompanion({
     this.id = const Value.absent(),
     this.habitId = const Value.absent(),
     this.date = const Value.absent(),
-    this.dailyGoal = const Value.absent(),
-    this.dailyCounter = const Value.absent(),
+    this.value = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  HabitProgressTableCompanion.insert({
+  HabitLogsTableCompanion.insert({
     required String id,
     required String habitId,
     required String date,
-    required int dailyGoal,
-    required int dailyCounter,
+    this.value = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        habitId = Value(habitId),
-       date = Value(date),
-       dailyGoal = Value(dailyGoal),
-       dailyCounter = Value(dailyCounter);
-  static Insertable<HabitProgressTableData> custom({
+       date = Value(date);
+  static Insertable<HabitLogsTableData> custom({
     Expression<String>? id,
     Expression<String>? habitId,
     Expression<String>? date,
-    Expression<int>? dailyGoal,
-    Expression<int>? dailyCounter,
+    Expression<int>? value,
     Expression<int>? synced,
     Expression<int>? rowid,
   }) {
@@ -1006,28 +1003,25 @@ class HabitProgressTableCompanion
       if (id != null) 'id': id,
       if (habitId != null) 'habit_id': habitId,
       if (date != null) 'date': date,
-      if (dailyGoal != null) 'daily_goal': dailyGoal,
-      if (dailyCounter != null) 'daily_counter': dailyCounter,
+      if (value != null) 'value': value,
       if (synced != null) 'synced': synced,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  HabitProgressTableCompanion copyWith({
+  HabitLogsTableCompanion copyWith({
     Value<String>? id,
     Value<String>? habitId,
     Value<String>? date,
-    Value<int>? dailyGoal,
-    Value<int>? dailyCounter,
+    Value<int>? value,
     Value<int>? synced,
     Value<int>? rowid,
   }) {
-    return HabitProgressTableCompanion(
+    return HabitLogsTableCompanion(
       id: id ?? this.id,
       habitId: habitId ?? this.habitId,
       date: date ?? this.date,
-      dailyGoal: dailyGoal ?? this.dailyGoal,
-      dailyCounter: dailyCounter ?? this.dailyCounter,
+      value: value ?? this.value,
       synced: synced ?? this.synced,
       rowid: rowid ?? this.rowid,
     );
@@ -1045,11 +1039,8 @@ class HabitProgressTableCompanion
     if (date.present) {
       map['date'] = Variable<String>(date.value);
     }
-    if (dailyGoal.present) {
-      map['daily_goal'] = Variable<int>(dailyGoal.value);
-    }
-    if (dailyCounter.present) {
-      map['daily_counter'] = Variable<int>(dailyCounter.value);
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
     }
     if (synced.present) {
       map['synced'] = Variable<int>(synced.value);
@@ -1062,12 +1053,11 @@ class HabitProgressTableCompanion
 
   @override
   String toString() {
-    return (StringBuffer('HabitProgressTableCompanion(')
+    return (StringBuffer('HabitLogsTableCompanion(')
           ..write('id: $id, ')
           ..write('habitId: $habitId, ')
           ..write('date: $date, ')
-          ..write('dailyGoal: $dailyGoal, ')
-          ..write('dailyCounter: $dailyCounter, ')
+          ..write('value: $value, ')
           ..write('synced: $synced, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1536,8 +1526,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $HabitsTableTable habitsTable = $HabitsTableTable(this);
-  late final $HabitProgressTableTable habitProgressTable =
-      $HabitProgressTableTable(this);
+  late final $HabitLogsTableTable habitLogsTable = $HabitLogsTableTable(this);
   late final $PendingSyncTableTable pendingSyncTable = $PendingSyncTableTable(
     this,
   );
@@ -1547,7 +1536,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     habitsTable,
-    habitProgressTable,
+    habitLogsTable,
     pendingSyncTable,
   ];
   @override
@@ -1557,7 +1546,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'habits',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('habit_progress', kind: UpdateKind.delete)],
+      result: [TableUpdate('habit_logs', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -1569,8 +1558,9 @@ typedef $$HabitsTableTableCreateCompanionBuilder =
       required String title,
       required String description,
       required String icon,
-      required String type,
-      required int dailyGoal,
+      Value<String> category,
+      Value<String> trackingType,
+      Value<int> targetValue,
       required String initialDate,
       required String createdAt,
       Value<int> synced,
@@ -1584,8 +1574,9 @@ typedef $$HabitsTableTableUpdateCompanionBuilder =
       Value<String> title,
       Value<String> description,
       Value<String> icon,
-      Value<String> type,
-      Value<int> dailyGoal,
+      Value<String> category,
+      Value<String> trackingType,
+      Value<int> targetValue,
       Value<String> initialDate,
       Value<String> createdAt,
       Value<int> synced,
@@ -1597,28 +1588,22 @@ final class $$HabitsTableTableReferences
     extends BaseReferences<_$AppDatabase, $HabitsTableTable, HabitsTableData> {
   $$HabitsTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<
-    $HabitProgressTableTable,
-    List<HabitProgressTableData>
-  >
-  _habitProgressTableRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.habitProgressTable,
-        aliasName: $_aliasNameGenerator(
-          db.habitsTable.id,
-          db.habitProgressTable.habitId,
-        ),
-      );
+  static MultiTypedResultKey<$HabitLogsTableTable, List<HabitLogsTableData>>
+  _habitLogsTableRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.habitLogsTable,
+    aliasName: $_aliasNameGenerator(
+      db.habitsTable.id,
+      db.habitLogsTable.habitId,
+    ),
+  );
 
-  $$HabitProgressTableTableProcessedTableManager get habitProgressTableRefs {
-    final manager = $$HabitProgressTableTableTableManager(
+  $$HabitLogsTableTableProcessedTableManager get habitLogsTableRefs {
+    final manager = $$HabitLogsTableTableTableManager(
       $_db,
-      $_db.habitProgressTable,
+      $_db.habitLogsTable,
     ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<String>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(
-      _habitProgressTableRefsTable($_db),
-    );
+    final cache = $_typedResult.readTableOrNull(_habitLogsTableRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1659,13 +1644,18 @@ class $$HabitsTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get type => $composableBuilder(
-    column: $table.type,
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get dailyGoal => $composableBuilder(
-    column: $table.dailyGoal,
+  ColumnFilters<String> get trackingType => $composableBuilder(
+    column: $table.trackingType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetValue => $composableBuilder(
+    column: $table.targetValue,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1689,22 +1679,22 @@ class $$HabitsTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  Expression<bool> habitProgressTableRefs(
-    Expression<bool> Function($$HabitProgressTableTableFilterComposer f) f,
+  Expression<bool> habitLogsTableRefs(
+    Expression<bool> Function($$HabitLogsTableTableFilterComposer f) f,
   ) {
-    final $$HabitProgressTableTableFilterComposer composer = $composerBuilder(
+    final $$HabitLogsTableTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
-      referencedTable: $db.habitProgressTable,
+      referencedTable: $db.habitLogsTable,
       getReferencedColumn: (t) => t.habitId,
       builder:
           (
             joinBuilder, {
             $addJoinBuilderToRootComposer,
             $removeJoinBuilderFromRootComposer,
-          }) => $$HabitProgressTableTableFilterComposer(
+          }) => $$HabitLogsTableTableFilterComposer(
             $db: $db,
-            $table: $db.habitProgressTable,
+            $table: $db.habitLogsTable,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1749,13 +1739,18 @@ class $$HabitsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get type => $composableBuilder(
-    column: $table.type,
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get dailyGoal => $composableBuilder(
-    column: $table.dailyGoal,
+  ColumnOrderings<String> get trackingType => $composableBuilder(
+    column: $table.trackingType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetValue => $composableBuilder(
+    column: $table.targetValue,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1806,11 +1801,18 @@ class $$HabitsTableTableAnnotationComposer
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
-  GeneratedColumn<String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 
-  GeneratedColumn<int> get dailyGoal =>
-      $composableBuilder(column: $table.dailyGoal, builder: (column) => column);
+  GeneratedColumn<String> get trackingType => $composableBuilder(
+    column: $table.trackingType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get targetValue => $composableBuilder(
+    column: $table.targetValue,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get initialDate => $composableBuilder(
     column: $table.initialDate,
@@ -1826,29 +1828,28 @@ class $$HabitsTableTableAnnotationComposer
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  Expression<T> habitProgressTableRefs<T extends Object>(
-    Expression<T> Function($$HabitProgressTableTableAnnotationComposer a) f,
+  Expression<T> habitLogsTableRefs<T extends Object>(
+    Expression<T> Function($$HabitLogsTableTableAnnotationComposer a) f,
   ) {
-    final $$HabitProgressTableTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.habitProgressTable,
-          getReferencedColumn: (t) => t.habitId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
+    final $$HabitLogsTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitLogsTable,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitLogsTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habitLogsTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
                 $removeJoinBuilderFromRootComposer,
-              }) => $$HabitProgressTableTableAnnotationComposer(
-                $db: $db,
-                $table: $db.habitProgressTable,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
+          ),
+    );
     return f(composer);
   }
 }
@@ -1866,7 +1867,7 @@ class $$HabitsTableTableTableManager
           $$HabitsTableTableUpdateCompanionBuilder,
           (HabitsTableData, $$HabitsTableTableReferences),
           HabitsTableData,
-          PrefetchHooks Function({bool habitProgressTableRefs})
+          PrefetchHooks Function({bool habitLogsTableRefs})
         > {
   $$HabitsTableTableTableManager(_$AppDatabase db, $HabitsTableTable table)
     : super(
@@ -1886,8 +1887,9 @@ class $$HabitsTableTableTableManager
                 Value<String> title = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<String> icon = const Value.absent(),
-                Value<String> type = const Value.absent(),
-                Value<int> dailyGoal = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> trackingType = const Value.absent(),
+                Value<int> targetValue = const Value.absent(),
                 Value<String> initialDate = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
                 Value<int> synced = const Value.absent(),
@@ -1899,8 +1901,9 @@ class $$HabitsTableTableTableManager
                 title: title,
                 description: description,
                 icon: icon,
-                type: type,
-                dailyGoal: dailyGoal,
+                category: category,
+                trackingType: trackingType,
+                targetValue: targetValue,
                 initialDate: initialDate,
                 createdAt: createdAt,
                 synced: synced,
@@ -1914,8 +1917,9 @@ class $$HabitsTableTableTableManager
                 required String title,
                 required String description,
                 required String icon,
-                required String type,
-                required int dailyGoal,
+                Value<String> category = const Value.absent(),
+                Value<String> trackingType = const Value.absent(),
+                Value<int> targetValue = const Value.absent(),
                 required String initialDate,
                 required String createdAt,
                 Value<int> synced = const Value.absent(),
@@ -1927,8 +1931,9 @@ class $$HabitsTableTableTableManager
                 title: title,
                 description: description,
                 icon: icon,
-                type: type,
-                dailyGoal: dailyGoal,
+                category: category,
+                trackingType: trackingType,
+                targetValue: targetValue,
                 initialDate: initialDate,
                 createdAt: createdAt,
                 synced: synced,
@@ -1943,30 +1948,30 @@ class $$HabitsTableTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({habitProgressTableRefs = false}) {
+          prefetchHooksCallback: ({habitLogsTableRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (habitProgressTableRefs) db.habitProgressTable,
+                if (habitLogsTableRefs) db.habitLogsTable,
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
-                  if (habitProgressTableRefs)
+                  if (habitLogsTableRefs)
                     await $_getPrefetchedData<
                       HabitsTableData,
                       $HabitsTableTable,
-                      HabitProgressTableData
+                      HabitLogsTableData
                     >(
                       currentTable: table,
                       referencedTable: $$HabitsTableTableReferences
-                          ._habitProgressTableRefsTable(db),
+                          ._habitLogsTableRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $$HabitsTableTableReferences(
                             db,
                             table,
                             p0,
-                          ).habitProgressTableRefs,
+                          ).habitLogsTableRefs,
                       referencedItemsForCurrentItem: (item, referencedItems) =>
                           referencedItems.where((e) => e.habitId == item.id),
                       typedResults: items,
@@ -1991,37 +1996,35 @@ typedef $$HabitsTableTableProcessedTableManager =
       $$HabitsTableTableUpdateCompanionBuilder,
       (HabitsTableData, $$HabitsTableTableReferences),
       HabitsTableData,
-      PrefetchHooks Function({bool habitProgressTableRefs})
+      PrefetchHooks Function({bool habitLogsTableRefs})
     >;
-typedef $$HabitProgressTableTableCreateCompanionBuilder =
-    HabitProgressTableCompanion Function({
+typedef $$HabitLogsTableTableCreateCompanionBuilder =
+    HabitLogsTableCompanion Function({
       required String id,
       required String habitId,
       required String date,
-      required int dailyGoal,
-      required int dailyCounter,
+      Value<int> value,
       Value<int> synced,
       Value<int> rowid,
     });
-typedef $$HabitProgressTableTableUpdateCompanionBuilder =
-    HabitProgressTableCompanion Function({
+typedef $$HabitLogsTableTableUpdateCompanionBuilder =
+    HabitLogsTableCompanion Function({
       Value<String> id,
       Value<String> habitId,
       Value<String> date,
-      Value<int> dailyGoal,
-      Value<int> dailyCounter,
+      Value<int> value,
       Value<int> synced,
       Value<int> rowid,
     });
 
-final class $$HabitProgressTableTableReferences
+final class $$HabitLogsTableTableReferences
     extends
         BaseReferences<
           _$AppDatabase,
-          $HabitProgressTableTable,
-          HabitProgressTableData
+          $HabitLogsTableTable,
+          HabitLogsTableData
         > {
-  $$HabitProgressTableTableReferences(
+  $$HabitLogsTableTableReferences(
     super.$_db,
     super.$_table,
     super.$_typedResult,
@@ -2029,7 +2032,7 @@ final class $$HabitProgressTableTableReferences
 
   static $HabitsTableTable _habitIdTable(_$AppDatabase db) =>
       db.habitsTable.createAlias(
-        $_aliasNameGenerator(db.habitProgressTable.habitId, db.habitsTable.id),
+        $_aliasNameGenerator(db.habitLogsTable.habitId, db.habitsTable.id),
       );
 
   $$HabitsTableTableProcessedTableManager get habitId {
@@ -2047,9 +2050,9 @@ final class $$HabitProgressTableTableReferences
   }
 }
 
-class $$HabitProgressTableTableFilterComposer
-    extends Composer<_$AppDatabase, $HabitProgressTableTable> {
-  $$HabitProgressTableTableFilterComposer({
+class $$HabitLogsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $HabitLogsTableTable> {
+  $$HabitLogsTableTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2066,13 +2069,8 @@ class $$HabitProgressTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get dailyGoal => $composableBuilder(
-    column: $table.dailyGoal,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get dailyCounter => $composableBuilder(
-    column: $table.dailyCounter,
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2105,9 +2103,9 @@ class $$HabitProgressTableTableFilterComposer
   }
 }
 
-class $$HabitProgressTableTableOrderingComposer
-    extends Composer<_$AppDatabase, $HabitProgressTableTable> {
-  $$HabitProgressTableTableOrderingComposer({
+class $$HabitLogsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $HabitLogsTableTable> {
+  $$HabitLogsTableTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2124,13 +2122,8 @@ class $$HabitProgressTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get dailyGoal => $composableBuilder(
-    column: $table.dailyGoal,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get dailyCounter => $composableBuilder(
-    column: $table.dailyCounter,
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2163,9 +2156,9 @@ class $$HabitProgressTableTableOrderingComposer
   }
 }
 
-class $$HabitProgressTableTableAnnotationComposer
-    extends Composer<_$AppDatabase, $HabitProgressTableTable> {
-  $$HabitProgressTableTableAnnotationComposer({
+class $$HabitLogsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HabitLogsTableTable> {
+  $$HabitLogsTableTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -2178,13 +2171,8 @@ class $$HabitProgressTableTableAnnotationComposer
   GeneratedColumn<String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
-  GeneratedColumn<int> get dailyGoal =>
-      $composableBuilder(column: $table.dailyGoal, builder: (column) => column);
-
-  GeneratedColumn<int> get dailyCounter => $composableBuilder(
-    column: $table.dailyCounter,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
 
   GeneratedColumn<int> get synced =>
       $composableBuilder(column: $table.synced, builder: (column) => column);
@@ -2213,52 +2201,47 @@ class $$HabitProgressTableTableAnnotationComposer
   }
 }
 
-class $$HabitProgressTableTableTableManager
+class $$HabitLogsTableTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $HabitProgressTableTable,
-          HabitProgressTableData,
-          $$HabitProgressTableTableFilterComposer,
-          $$HabitProgressTableTableOrderingComposer,
-          $$HabitProgressTableTableAnnotationComposer,
-          $$HabitProgressTableTableCreateCompanionBuilder,
-          $$HabitProgressTableTableUpdateCompanionBuilder,
-          (HabitProgressTableData, $$HabitProgressTableTableReferences),
-          HabitProgressTableData,
+          $HabitLogsTableTable,
+          HabitLogsTableData,
+          $$HabitLogsTableTableFilterComposer,
+          $$HabitLogsTableTableOrderingComposer,
+          $$HabitLogsTableTableAnnotationComposer,
+          $$HabitLogsTableTableCreateCompanionBuilder,
+          $$HabitLogsTableTableUpdateCompanionBuilder,
+          (HabitLogsTableData, $$HabitLogsTableTableReferences),
+          HabitLogsTableData,
           PrefetchHooks Function({bool habitId})
         > {
-  $$HabitProgressTableTableTableManager(
+  $$HabitLogsTableTableTableManager(
     _$AppDatabase db,
-    $HabitProgressTableTable table,
+    $HabitLogsTableTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$HabitProgressTableTableFilterComposer($db: db, $table: table),
+              $$HabitLogsTableTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$HabitProgressTableTableOrderingComposer($db: db, $table: table),
+              $$HabitLogsTableTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$HabitProgressTableTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+              $$HabitLogsTableTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> habitId = const Value.absent(),
                 Value<String> date = const Value.absent(),
-                Value<int> dailyGoal = const Value.absent(),
-                Value<int> dailyCounter = const Value.absent(),
+                Value<int> value = const Value.absent(),
                 Value<int> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => HabitProgressTableCompanion(
+              }) => HabitLogsTableCompanion(
                 id: id,
                 habitId: habitId,
                 date: date,
-                dailyGoal: dailyGoal,
-                dailyCounter: dailyCounter,
+                value: value,
                 synced: synced,
                 rowid: rowid,
               ),
@@ -2267,16 +2250,14 @@ class $$HabitProgressTableTableTableManager
                 required String id,
                 required String habitId,
                 required String date,
-                required int dailyGoal,
-                required int dailyCounter,
+                Value<int> value = const Value.absent(),
                 Value<int> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => HabitProgressTableCompanion.insert(
+              }) => HabitLogsTableCompanion.insert(
                 id: id,
                 habitId: habitId,
                 date: date,
-                dailyGoal: dailyGoal,
-                dailyCounter: dailyCounter,
+                value: value,
                 synced: synced,
                 rowid: rowid,
               ),
@@ -2284,7 +2265,7 @@ class $$HabitProgressTableTableTableManager
               .map(
                 (e) => (
                   e.readTable(table),
-                  $$HabitProgressTableTableReferences(db, table, e),
+                  $$HabitLogsTableTableReferences(db, table, e),
                 ),
               )
               .toList(),
@@ -2313,11 +2294,10 @@ class $$HabitProgressTableTableTableManager
                           state.withJoin(
                                 currentTable: table,
                                 currentColumn: table.habitId,
-                                referencedTable:
-                                    $$HabitProgressTableTableReferences
-                                        ._habitIdTable(db),
+                                referencedTable: $$HabitLogsTableTableReferences
+                                    ._habitIdTable(db),
                                 referencedColumn:
-                                    $$HabitProgressTableTableReferences
+                                    $$HabitLogsTableTableReferences
                                         ._habitIdTable(db)
                                         .id,
                               )
@@ -2335,18 +2315,18 @@ class $$HabitProgressTableTableTableManager
       );
 }
 
-typedef $$HabitProgressTableTableProcessedTableManager =
+typedef $$HabitLogsTableTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $HabitProgressTableTable,
-      HabitProgressTableData,
-      $$HabitProgressTableTableFilterComposer,
-      $$HabitProgressTableTableOrderingComposer,
-      $$HabitProgressTableTableAnnotationComposer,
-      $$HabitProgressTableTableCreateCompanionBuilder,
-      $$HabitProgressTableTableUpdateCompanionBuilder,
-      (HabitProgressTableData, $$HabitProgressTableTableReferences),
-      HabitProgressTableData,
+      $HabitLogsTableTable,
+      HabitLogsTableData,
+      $$HabitLogsTableTableFilterComposer,
+      $$HabitLogsTableTableOrderingComposer,
+      $$HabitLogsTableTableAnnotationComposer,
+      $$HabitLogsTableTableCreateCompanionBuilder,
+      $$HabitLogsTableTableUpdateCompanionBuilder,
+      (HabitLogsTableData, $$HabitLogsTableTableReferences),
+      HabitLogsTableData,
       PrefetchHooks Function({bool habitId})
     >;
 typedef $$PendingSyncTableTableCreateCompanionBuilder =
@@ -2603,8 +2583,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$HabitsTableTableTableManager get habitsTable =>
       $$HabitsTableTableTableManager(_db, _db.habitsTable);
-  $$HabitProgressTableTableTableManager get habitProgressTable =>
-      $$HabitProgressTableTableTableManager(_db, _db.habitProgressTable);
+  $$HabitLogsTableTableTableManager get habitLogsTable =>
+      $$HabitLogsTableTableTableManager(_db, _db.habitLogsTable);
   $$PendingSyncTableTableTableManager get pendingSyncTable =>
       $$PendingSyncTableTableTableManager(_db, _db.pendingSyncTable);
 }

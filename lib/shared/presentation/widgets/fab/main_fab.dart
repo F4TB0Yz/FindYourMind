@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class MainFab extends StatefulWidget {
   final VoidCallback? onPressed;
@@ -93,8 +93,8 @@ class _MainFabState extends State<MainFab> with SingleTickerProviderStateMixin {
                     ],
                   ),
                 ),
-                child: const Icon(
-                  LucideIcons.plus,
+                child: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedAdd01,
                   color: Colors.white,
                   size: 40, // Icono más grande
                 ),

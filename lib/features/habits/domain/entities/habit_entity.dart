@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:find_your_mind/features/habits/domain/entities/habit_progress.dart';
-import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_category.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 
 class HabitEntity extends Equatable {
   final String id;
@@ -8,10 +9,11 @@ class HabitEntity extends Equatable {
   final String title;
   final String description;
   final String icon;
-  final TypeHabit type;
-  final int dailyGoal;
+  final HabitCategory category;
+  final HabitTrackingType trackingType;
+  final int targetValue;
   final String initialDate;
-  final List<HabitProgress> progress;
+  final List<HabitLog> logs;
 
   const HabitEntity({
     required this.id,
@@ -19,10 +21,11 @@ class HabitEntity extends Equatable {
     required this.title,
     required this.description,
     required this.icon,
-    required this.type,
-    required this.dailyGoal,
+    required this.category,
+    required this.trackingType,
+    required this.targetValue,
     required this.initialDate,
-    required this.progress,
+    required this.logs,
   });
 
   HabitEntity copyWith({
@@ -31,10 +34,11 @@ class HabitEntity extends Equatable {
     String? title,
     String? description,
     String? icon,
-    TypeHabit? type,
-    int? dailyGoal,
+    HabitCategory? category,
+    HabitTrackingType? trackingType,
+    int? targetValue,
     String? initialDate,
-    List<HabitProgress>? progress,
+    List<HabitLog>? logs,
   }) {
     return HabitEntity(
       id: id ?? this.id,
@@ -42,10 +46,11 @@ class HabitEntity extends Equatable {
       title: title ?? this.title,
       description: description ?? this.description,
       icon: icon ?? this.icon,
-      type: type ?? this.type,
-      dailyGoal: dailyGoal ?? this.dailyGoal,
+      category: category ?? this.category,
+      trackingType: trackingType ?? this.trackingType,
+      targetValue: targetValue ?? this.targetValue,
       initialDate: initialDate ?? this.initialDate,
-      progress: progress ?? this.progress,
+      logs: logs ?? this.logs,
     );
   }
 
@@ -119,6 +124,57 @@ class HabitEntity extends Equatable {
     }
   }
 
+  HabitLog? get todayLog {
+    final now = DateTime.now();
+    final date =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    for (final log in logs) {
+      if (log.date.startsWith(date)) {
+        return log;
+      }
+    }
+
+    return null;
+  }
+
+  int get todayValue => todayLog?.value ?? 0;
+
+  bool get isCompletedToday => todayValue >= targetValue;
+
+  int get streak {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    String format(DateTime date) {
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    }
+
+    bool completedOn(DateTime date) {
+      final expectedDate = format(date);
+
+      for (final log in logs) {
+        if (log.date.startsWith(expectedDate)) {
+          return log.value >= targetValue;
+        }
+      }
+
+      return false;
+    }
+
+    int count = 0;
+    final start = completedOn(today) ? 0 : 1;
+
+    for (int i = start; i <= logs.length; i++) {
+      if (!completedOn(today.subtract(Duration(days: i)))) {
+        break;
+      }
+      count++;
+    }
+
+    return count;
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -126,9 +182,10 @@ class HabitEntity extends Equatable {
     title,
     description,
     icon,
-    type,
-    dailyGoal,
+    category,
+    trackingType,
+    targetValue,
     initialDate,
-    progress,
+    logs,
   ];
 }

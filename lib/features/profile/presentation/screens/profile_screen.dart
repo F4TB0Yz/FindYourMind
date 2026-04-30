@@ -8,6 +8,7 @@ import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
@@ -163,20 +164,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           _buildInfoTile(
-            icon: Icons.email_outlined,
+            icon: HugeIcons.strokeRoundedMail01,
             title: 'Email',
             subtitle: _currentUser?.email ?? '',
             cs: cs,
           ),
           _buildInfoTile(
-            icon: Icons.calendar_today_outlined,
+            icon: HugeIcons.strokeRoundedCalendar01,
             title: 'Miembro desde',
             subtitle: _formatDate(_currentUser?.createdAt),
             cs: cs,
           ),
           if (_currentUser?.lastSignInAt != null)
             _buildInfoTile(
-              icon: Icons.login_outlined,
+              icon: HugeIcons.strokeRoundedLogin01,
               title: 'Último acceso',
               subtitle: _formatDate(_currentUser?.lastSignInAt),
               cs: cs,
@@ -212,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           _buildSettingsTile(
-            icon: Icons.notifications_outlined,
+            icon: HugeIcons.strokeRoundedNotification01,
             title: 'Notificaciones',
             onTap: () {
               CustomToast.showToast(context: context, message: 'Próximamente');
@@ -220,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             cs: cs,
           ),
           _buildSettingsTile(
-            icon: Icons.lock_outline,
+            icon: HugeIcons.strokeRoundedLock,
             title: 'Privacidad',
             onTap: () {
               CustomToast.showToast(context: context, message: 'Próximamente');
@@ -228,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             cs: cs,
           ),
           _buildSettingsTile(
-            icon: Icons.help_outline,
+            icon: HugeIcons.strokeRoundedHelpCircle,
             title: 'Ayuda y soporte',
             onTap: () {
               CustomToast.showToast(context: context, message: 'Próximamente');
@@ -241,13 +242,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildInfoTile({
-    required IconData icon,
+    required List<List<dynamic>> icon,
     required String title,
     required String subtitle,
     required ColorScheme cs,
   }) {
     return ListTile(
-      leading: Icon(icon, color: cs.onSurfaceVariant),
+      leading: HugeIcon(icon: icon, color: cs.onSurfaceVariant),
       title: Text(
         title,
         style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
@@ -264,15 +265,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSettingsTile({
-    required IconData icon,
+    required List<List<dynamic>> icon,
     required String title,
     required VoidCallback onTap,
     required ColorScheme cs,
   }) {
     return ListTile(
-      leading: Icon(icon, color: cs.onSurfaceVariant),
+      leading: HugeIcon(icon: icon, color: cs.onSurfaceVariant),
       title: Text(title, style: TextStyle(fontSize: 16, color: cs.onSurface)),
-      trailing: Icon(Icons.chevron_right, color: cs.outline),
+      trailing: HugeIcon(
+        icon: HugeIcons.strokeRoundedArrowRight01,
+        color: cs.outline,
+      ),
       onTap: onTap,
     );
   }

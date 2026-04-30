@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';
@@ -22,8 +24,11 @@ class HabitsTable extends Table {
   TextColumn get title => text()();
   TextColumn get description => text()();
   TextColumn get icon => text()();
-  TextColumn get type => text()();
-  IntColumn get dailyGoal => integer().named('daily_goal')();
+  TextColumn get category => text().withDefault(const Constant('none'))();
+  TextColumn get trackingType =>
+      text().named('tracking_type').withDefault(const Constant('single'))();
+  IntColumn get targetValue =>
+      integer().named('target_value').withDefault(const Constant(1))();
   TextColumn get initialDate => text().named('initial_date')();
   TextColumn get createdAt => text().named('created_at')();
   IntColumn get synced => integer().withDefault(const Constant(0))();
@@ -33,17 +38,16 @@ class HabitsTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-class HabitProgressTable extends Table {
+class HabitLogsTable extends Table {
   @override
-  String get tableName => 'habit_progress';
+  String get tableName => 'habit_logs';
 
   TextColumn get id => text()();
   TextColumn get habitId => text()
       .named('habit_id')
       .references(HabitsTable, #id, onDelete: KeyAction.cascade)();
   TextColumn get date => text()();
-  IntColumn get dailyGoal => integer().named('daily_goal')();
-  IntColumn get dailyCounter => integer().named('daily_counter')();
+  IntColumn get value => integer().withDefault(const Constant(0))();
   IntColumn get synced => integer().withDefault(const Constant(0))();
 
   @override
@@ -74,11 +78,14 @@ class PendingSyncTable extends Table {
 // Database
 // ---------------------------------------------------------------------------
 
-@DriftDatabase(tables: [HabitsTable, HabitProgressTable, PendingSyncTable])
+@DriftDatabase(tables: [HabitsTable, HabitLogsTable, PendingSyncTable])
 class AppDatabase extends _$AppDatabase {
   static AppDatabase? _instance;
 
   AppDatabase._internal() : super(_openConnection());
+
+  @visibleForTesting
+  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   factory AppDatabase() {
     _instance ??= AppDatabase._internal();
@@ -86,7 +93,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -94,6 +101,12 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
           await _createIndexes();
           AppLogger.i('✅ [DB] AppDatabase inicializada');
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await _recreateAllTables(m);
+            await _createIndexes();
+          }
         },
         beforeOpen: (_) async {
           await customStatement('PRAGMA foreign_keys = ON');
@@ -106,12 +119,12 @@ class AppDatabase extends _$AppDatabase {
       'ON habits(user_id, initial_date DESC)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_habit_progress_habit_id '
-      'ON habit_progress(habit_id)',
+      'CREATE INDEX IF NOT EXISTS idx_habit_logs_habit_id '
+      'ON habit_logs(habit_id)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_habit_progress_date '
-      'ON habit_progress(date)',
+      'CREATE INDEX IF NOT EXISTS idx_habit_logs_date '
+      'ON habit_logs(date)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_pending_sync_entity '
@@ -121,9 +134,23 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> clearAllTables() async {
     await delete(pendingSyncTable).go();
-    await delete(habitProgressTable).go();
+    await delete(habitLogsTable).go();
     await delete(habitsTable).go();
     AppLogger.i('✅ [DB] Tablas limpiadas');
+  }
+
+  Future<void> _recreateAllTables(Migrator migrator) async {
+    await customStatement('DROP TABLE IF EXISTS pending_sync');
+    await customStatement('DROP TABLE IF EXISTS habit_logs');
+    await customStatement('DROP TABLE IF EXISTS habit_progress');
+    await customStatement('DROP TABLE IF EXISTS habits');
+    await customStatement('DROP INDEX IF EXISTS idx_habits_user_initial_date');
+    await customStatement('DROP INDEX IF EXISTS idx_habit_logs_habit_id');
+    await customStatement('DROP INDEX IF EXISTS idx_habit_logs_date');
+    await customStatement('DROP INDEX IF EXISTS idx_habit_progress_habit_id');
+    await customStatement('DROP INDEX IF EXISTS idx_habit_progress_date');
+    await customStatement('DROP INDEX IF EXISTS idx_pending_sync_entity');
+    await migrator.createAll();
   }
 
   Future<void> deleteDatabaseFile() async {

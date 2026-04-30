@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Widget que muestra un banner de error cuando hay errores en HabitsProvider
 class ErrorBannerWidget extends StatelessWidget {
@@ -25,8 +26,8 @@ class ErrorBannerWidget extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.error_outline,
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert01,
                 color: Colors.red.shade700,
                 size: 24,
               ),
@@ -67,8 +68,11 @@ class ErrorBannerWidget extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close),
-                color: Colors.red.shade700,
+                icon: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCancel01,
+                  size: 20,
+                  color: Colors.red.shade700,
+                ),
                 iconSize: 20,
                 onPressed: () => provider.clearError(),
                 padding: EdgeInsets.zero,

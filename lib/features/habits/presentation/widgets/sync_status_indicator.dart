@@ -1,6 +1,7 @@
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Widget que muestra el estado de sincronización y permite sincronizar manualmente
 /// 
@@ -32,7 +33,10 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
           SnackBar(
             content: const Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                  color: Colors.white,
+                ),
                 SizedBox(width: 8),
                 Text('✅ Sincronizado correctamente'),
               ],
@@ -51,7 +55,10 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
           SnackBar(
             content: const Row(
               children: [
-                Icon(Icons.info, color: Colors.white),
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedInformationCircle,
+                  color: Colors.white,
+                ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text('No hay cambios pendientes o sin conexión'),
@@ -75,7 +82,10 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.error, color: Colors.white),
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedAlert01,
+                color: Colors.white,
+              ),
               const SizedBox(width: 8),
               Expanded(child: Text('Error al sincronizar: $e')),
             ],
@@ -116,11 +126,11 @@ class _SyncStatusIndicatorState extends State<SyncStatusIndicator> {
                         ),
                       ),
                     )
-                  : Icon(
-                      Icons.cloud_sync,
-                      color: pendingCount > 0 
-                        ? Colors.orange 
-                        : Theme.of(context).iconTheme.color,
+                  : HugeIcon(
+                      icon: HugeIcons.strokeRoundedCloudUpload,
+                      color: pendingCount > 0
+                          ? Colors.orange
+                          : Theme.of(context).iconTheme.color,
                     ),
             ),
             

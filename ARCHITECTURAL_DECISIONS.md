@@ -1,6 +1,6 @@
 # ARCHITECTURAL_DECISIONS.md — Contrato Técnico
 
-_Última actualización: 2026-04-24_
+_Última actualización: 2026-04-29_
 
 ---
 
@@ -73,11 +73,11 @@ SQLite/Supabase → DataSource → Either<Exception, Model> → RepositoryImpl �
 **Implementación**:
 - Toda escritura va primero a SQLite → UI responde inmediatamente.
 - `SyncService` procesa cola `pending_sync` en background al recuperar conexión.
-- Cola FIFO estricta: si un `habit` falla el sync, sus `habit_progress` dependientes se bloquean.
-- Retry con conteo (`retry_count`). Threshold de abandono: definir en `SyncService`.
+- Cola FIFO estricta: si un `habit` falla el sync, sus `habit_logs` dependientes se bloquean.
+- Retry con conteo (`retry_count`). Threshold de abandono: `maxRetryCount = 5`.
 
 **Archivos clave**:
-- `lib/core/config/database_helper.dart` — esquema SQLite + migraciones
+- `lib/core/database/app_database.dart` — esquema SQLite + migraciones
 - `lib/core/services/sync_service.dart` — lógica de cola y retry
 - `lib/features/habits/data/datasources/habits_local_datasource.dart`
 - `lib/shared/presentation/providers/sync_provider.dart`
@@ -121,6 +121,47 @@ SQLite/Supabase → DataSource → Either<Exception, Model> → RepositoryImpl �
 **Decisión**: Usar `drift ^2.23.0` para definir el esquema SQLite con tipos Dart en lugar de SQL strings manuales.
 
 **Estado actual**: Drift instalado y configurado. `sqflite` aún se usa para algunas queries directas. La migración a Drift puro es deuda técnica controlada.
+
+---
+
+## ADR-006: Iconografia HugeIcons + Emojis en Habitos
+
+**Estado**: ACTIVO
+
+**Decisión**: Unificar iconografia con `hugeicons` (Stroke Rounded). Para categorias de habitos, usar emojis nativos del SO en lugar de SVGs.
+
+**Razones**:
+- Consistencia visual y menor mantenimiento (sin assets SVG por categoria).
+- HugeIcons ofrece estilo stroke-rounded alineado a UI actual.
+- Emojis permiten seleccion libre desde teclado del SO y simplifican persistencia.
+
+**Implementación**:
+- Iconos UI: `HugeIcon(icon: HugeIcons.strokeRounded... )`.
+- `HabitEntity.icon` guarda string emoji (fallback `🧠` cuando vacio).
+- `assets/icons/` mantiene solo `google.svg` (marca).
+
+---
+
+## ADR-007: Schema de Hábitos Unificado por Tracking Type
+
+**Estado**: ACTIVO
+
+**Decisión**: Separar semánticas de categoría y tracking. `habits` ahora guarda `category`, `tracking_type` y `target_value`; `habit_logs` reemplaza `habit_progress` y usa un único campo `value`.
+
+**Razones**:
+- `daily_goal` y `daily_counter` mezclaban segundos y conteos sin contexto explícito.
+- Duplicar `daily_goal` en progreso era denormalización innecesaria y complicaba sync/migraciones.
+- `isCompleted` debe depender siempre de `log.value >= habit.targetValue`, sin ramas por schema.
+
+**Implementación**:
+- `HabitEntity`: `category`, `trackingType`, `targetValue`, `logs`.
+- `HabitLog`: `id`, `habitId`, `date`, `value`.
+- `HabitsProvider` expone `updateHabitCounter` para `single/counter` y `setHabitLogValue` para `timed`.
+- Migración local `schemaVersion = 2` recrea tablas porque data previa era de prueba.
+
+**Impacto**:
+- Supabase y SQLite deben compartir mismo contrato (`habits` + `habit_logs`).
+- Tests y payloads de sync pasan de `progress`/`daily_*` a `logs`/`value`.
 
 ---
 

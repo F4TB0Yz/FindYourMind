@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Banner informativo que se muestra cuando hay cambios sin sincronizar
 /// 
@@ -40,8 +41,8 @@ class OfflineModeBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.cloud_off,
+          const HugeIcon(
+            icon: HugeIcons.strokeRoundedCloudOff,
             color: Colors.white,
             size: 24,
           ),
@@ -73,7 +74,11 @@ class OfflineModeBanner extends StatelessWidget {
           if (onSyncPressed != null)
             TextButton.icon(
               onPressed: onSyncPressed,
-              icon: const Icon(Icons.sync, color: Colors.white, size: 18),
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedRefresh,
+                color: Colors.white,
+                size: 18,
+              ),
               label: const Text(
                 'Sincronizar',
                 style: TextStyle(color: Colors.white, fontSize: 12),

@@ -1,7 +1,5 @@
 import 'package:find_your_mind/shared/presentation/widgets/icon_picker/icon_picker.dart';
-import 'package:find_your_mind/shared/utils/icons_svg.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class AddIcon extends StatefulWidget {
   final ValueChanged<String> saveIcon;
@@ -23,11 +21,12 @@ class AddIcon extends StatefulWidget {
 
 class _AddIconState extends State<AddIcon> {
   late String selectedIcon;
+  static const String _defaultEmoji = '🧠';
 
   @override
   void initState() {
     super.initState();
-    selectedIcon = widget.initialIcon ?? 'assets/icons/mind.svg';
+    selectedIcon = widget.initialIcon ?? _defaultEmoji;
   }
 
   @override
@@ -44,11 +43,10 @@ class _AddIconState extends State<AddIcon> {
                 child: child,
               );
             },
-            child: SvgPicture.asset(
-              selectedIcon,
-              key: ValueKey<String>(selectedIcon), // Para que detecte el cambio
-              width: widget.size,
-              height: widget.size,
+            child: Text(
+              selectedIcon.isEmpty ? _defaultEmoji : selectedIcon,
+              key: ValueKey<String>(selectedIcon),
+              style: TextStyle(fontSize: widget.size),
             ),
           ),
         ),
@@ -72,11 +70,11 @@ class _AddIconState extends State<AddIcon> {
   }
 
   void _onTapChangeIcon({required BuildContext context}) async {
-    final icons = await loadSvgIcons();
-    // Verificar si el contexto esta montado (por el async)
+    final String? selectedIcon = await IconPicker.showEmojiPicker(
+      context: context,
+      initialEmoji: this.selectedIcon,
+    );
     if (!context.mounted) return;
-    
-    final String? selectedIcon = await IconPicker.showSvgIconPicker(context: context, icons: icons);
     if (selectedIcon != null) {
       setState(() {
         this.selectedIcon = selectedIcon;

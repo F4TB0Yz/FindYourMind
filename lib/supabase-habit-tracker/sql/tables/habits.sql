@@ -1,13 +1,14 @@
 CREATE TABLE habits (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    icon VARCHAR(255),
-    type VARCHAR(50) NOT NULL,
-    daily_goal INT NOT NULL,
-    initial_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'none',
+    tracking_type TEXT NOT NULL DEFAULT 'single',
+    target_value INTEGER NOT NULL DEFAULT 1,
+    initial_date TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    synced INTEGER NOT NULL DEFAULT 0
 );
-
-CREATE INDEX idx_habits_title ON habits(title);

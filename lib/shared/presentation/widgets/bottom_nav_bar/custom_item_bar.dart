@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Ítem individual del bottom navigation bar.
 /// Estado activo indicado por color del ícono y punto azul debajo.
 /// Desacoplado de ScreensProvider — recibe [index] y [currentIndex].
 class CustomItemBar extends StatelessWidget {
   final String text;
-  final IconData icon;
+  final List<List<dynamic>> icon;
   final int index;
   final int currentIndex;
   final VoidCallback onTap;
@@ -34,8 +35,8 @@ class CustomItemBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
+            HugeIcon(
+              icon: icon,
               size: 24,
               color: isSelected ? cs.primary : cs.onSurfaceVariant,
             ),

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class IconPicker {
-  static Future<String?> showSvgIconPicker({
+  static Future<String?> showEmojiPicker({
     required BuildContext context,
-    required List<String> icons,
+    String? initialEmoji,
   }) async {
+    final TextEditingController controller = TextEditingController(
+      text: initialEmoji ?? '',
+    );
+
     return showDialog<String>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.6),
@@ -30,7 +34,7 @@ class IconPicker {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Selecciona un ícono',
+                        'Selecciona un emoji',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -48,40 +52,72 @@ class IconPicker {
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: cs.outlineVariant, width: 1),
                           ),
-                          child: Icon(Icons.close, size: 16, color: cs.onSurfaceVariant),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedCancel01,
+                            size: 16,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Flexible(
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 32),
+                    decoration: InputDecoration(
+                      hintText: 'Ej: 🧠',
+                      hintStyle: TextStyle(color: cs.outline),
+                      filled: true,
+                      fillColor: cs.surfaceContainerLowest,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: cs.outlineVariant, width: 1),
                       ),
-                      itemCount: icons.length,
-                      itemBuilder: (context, index) {
-                        final iconPath = icons[index];
-                        return GestureDetector(
-                          onTap: () => Navigator.of(context).pop(iconPath),
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: cs.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: cs.outlineVariant, width: 1),
-                            ),
-                            padding: const EdgeInsets.all(12),
-                            child: SvgPicture.asset(
-                              iconPath,
-                            ),
-                          ),
-                        );
-                      },
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: cs.outlineVariant, width: 1),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: cs.primary, width: 1),
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(color: cs.onSurfaceVariant),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          final value = controller.text.trim();
+                          Navigator.of(context).pop(value.isEmpty ? null : value);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: cs.primary,
+                          foregroundColor: cs.onPrimary,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Guardar'),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -1,13 +1,9 @@
-import 'package:find_your_mind/features/habits/domain/entities/type_habit.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_category.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/card_option_custom.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-/// Selector de tipo de hábito: Salud, Personal y Productividad.
-///
-/// Solo permite seleccionar un tipo a la vez. El estado seleccionado
-/// se comunica visualmente mediante borde y color del [CardOptionCustom].
 class TypeHabitSelector extends StatelessWidget {
   const TypeHabitSelector({super.key});
 
@@ -18,7 +14,7 @@ class TypeHabitSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tipo de Hábito',
+          'Categoría',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -29,11 +25,11 @@ class TypeHabitSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: _TypeHabitButton(label: 'Salud', type: TypeHabit.health)),
+            Expanded(child: _TypeHabitButton(label: 'Salud', type: HabitCategory.health)),
             SizedBox(width: 8),
-            Expanded(child: _TypeHabitButton(label: 'Personal', type: TypeHabit.personal)),
+            Expanded(child: _TypeHabitButton(label: 'Personal', type: HabitCategory.personal)),
             SizedBox(width: 8),
-            Expanded(child: _TypeHabitButton(label: 'Productividad', type: TypeHabit.productivity)),
+            Expanded(child: _TypeHabitButton(label: 'Productividad', type: HabitCategory.productivity)),
           ],
         ),
       ],
@@ -41,18 +37,17 @@ class TypeHabitSelector extends StatelessWidget {
   }
 }
 
-/// Botón de tipo de hábito individual con estado seleccionado/disponible/deshabilitado.
 class _TypeHabitButton extends StatelessWidget {
   final String label;
-  final TypeHabit type;
+  final HabitCategory type;
 
   const _TypeHabitButton({required this.label, required this.type});
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<NewHabitProvider>(context);
-    final bool isSelected = provider.typeHabitSelected == type;
-    final bool hasSelection = provider.isSelectedTypeHabit;
+    final isSelected = provider.selectedCategory == type;
+    final hasSelection = provider.hasSelectedCategory;
 
     return CardOptionCustom(
       title: label,
@@ -60,9 +55,9 @@ class _TypeHabitButton extends StatelessWidget {
       canBeSelected: !hasSelection || isSelected,
       onTap: () {
         if (isSelected) {
-          provider.clearTypeHabit();
+          provider.clearCategory();
         } else {
-          provider.setTypeHabit(type);
+          provider.setCategory(type);
         }
       },
     );

@@ -18,6 +18,18 @@ Tipos válidos: `Feature`, `Bugfix`, `Refactor`, `Infra`, `Test`, `Docs`
 
 ---
 
+[2026-04-29] - Feature: Migración de hábitos a tracking unificado, nueva iconografía y robustez de sync — Archivos: `lib/core/database/app_database.dart`, `lib/core/services/sync_service.dart`, `lib/features/habits/*`, `lib/shared/presentation/widgets/*`, `pubspec.yaml`, `test/core/services/sync_service_test.dart`, `test/features/habits/data/datasources/habits_local_datasource_test.dart`
+
+---
+
+[2026-04-29] - Feature: Undo de completitud para hábitos `single` desde `OneTimeHabitItemCard` — Archivos: `lib/features/habits/presentation/widgets/habits/one_time_habit_item_card/complete_button.dart`, `lib/features/habits/presentation/screens/habits_redesign_screen.dart`, `test/features/habits/presentation/providers/habits_provider_test.dart`
+
+---
+
+[2026-04-29] - Refactor: Rediseño completo de hábitos con schema unificado para `single`, `timed` y `counter` — Archivos: `lib/core/database/app_database.dart`, `lib/features/habits/domain/entities/habit_entity.dart`, `lib/features/habits/data/repositories/habit_repository_impl.dart`, `lib/features/habits/presentation/providers/habits_provider.dart`, `lib/features/habits/presentation/screens/habits_redesign_screen.dart`, `lib/supabase-habit-tracker/sql/init.sql`, `test/features/habits/**/*_test.dart`
+
+---
+
 [2026-04-24] - Docs: Inicialización del Sistema de Memoria (Context Engineering) — Archivos: `CLAUDE.md`, `AGENTS.md`, `PROJECT_CONTEXT.md`, `ARCHITECTURAL_DECISIONS.md`, `ACTIVE_CONTEXT.md`, `PROGRESS_LOG.md`
 
 ---

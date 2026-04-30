@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 /// Capa: Presentation → Widgets
 /// Campo de texto reutilizable para los formularios de autenticación.
@@ -86,10 +87,10 @@ class _AuthInputFieldState extends State<AuthInputField> {
             errorMaxLines: 2,
             suffixIcon: widget.isPassword
                 ? IconButton(
-                    icon: Icon(
-                      _obscureText
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
+                    icon: HugeIcon(
+                      icon: _obscureText
+                          ? HugeIcons.strokeRoundedViewOffSlash
+                          : HugeIcons.strokeRoundedView,
                       color: const Color(0xFF8b949e),
                       size: 18,
                     ),

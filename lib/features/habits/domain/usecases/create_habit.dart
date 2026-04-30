@@ -35,7 +35,7 @@ class CreateHabitUseCase {
       return Left(ValidationFailure('El título del hábito no puede estar vacío'));
     }
 
-    if (habit.dailyGoal < 1) {
+    if (habit.targetValue < 1) {
       return Left(ValidationFailure('La meta diaria debe ser al menos 1'));
     }
 
@@ -50,13 +50,13 @@ class CreateHabitUseCase {
       (failure) => Left(failure),
       (_) async {
         // 3. Extraer el progreso inicial pre-construido y persistirlo
-        if (habit.progress.isEmpty) {
+        if (habit.logs.isEmpty) {
           return Right(habit.id);
         }
 
-        final initialProgress = habit.progress.first;
-        final progressResult = await _repository.createHabitProgress(
-          habitProgress: initialProgress,
+        final initialProgress = habit.logs.first;
+        final progressResult = await _repository.createHabitLog(
+          habitLog: initialProgress,
         );
 
         return progressResult.fold(

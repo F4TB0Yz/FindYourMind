@@ -45,7 +45,7 @@ class UpdateHabitUseCase {
     }
 
     // Validación: Meta diaria válida
-    if (habit.dailyGoal < 1) {
+    if (habit.targetValue < 1) {
       return Left(
         ValidationFailure('La meta diaria debe ser al menos 1'),
       );
