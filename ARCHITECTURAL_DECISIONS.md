@@ -165,6 +165,33 @@ SQLite/Supabase → DataSource → Either<Exception, Model> → RepositoryImpl �
 
 ---
 
+## ADR-008: Supabase Schema v2 y Persistencia Remota
+
+**Estado**: ACTIVO
+
+**Decisión**: Schema v2 de Supabase sin columna `synced`, con RLS habilitado en ambas tablas.
+
+**Razones**:
+- `synced` es estado local-only; Supabase no necesita saber qué está sincronizado.
+- RLS nativo en PostgreSQL: seguridad por usuario sin lógica adicional en app.
+- Ownership transitiva en `habit_logs` via JOIN a `habits` (evita duplicar `user_id`).
+
+**Implementación**:
+
+SQLs actualizados en `lib/supabase-habit-tracker/sql/`:
+- `init.sql`: schema v2 sin `synced` + políticas RLS.
+- `tables/habits.sql`: sin columna `synced`.
+- `tables/habit_logs.sql`: sin columna `synced`.
+- `functions/get_habits_with_logs.sql`: filtrable por `p_user_id`.
+
+Migrations:
+- `migrations/v1_to_v2_migration.sql`: idempotente, adiciona columns, drop synced, crea policies.
+- `migrations/v2_rollback.sql`: restore estado v1.
+
+**Nota**: Aplicar `v1_to_v2_migration.sql` en Supabase real antes de usar sync en producción.
+
+---
+
 ## Convenciones de Nomenclatura
 
 ### Archivos (snake_case)

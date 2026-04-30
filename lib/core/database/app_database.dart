@@ -31,7 +31,6 @@ class HabitsTable extends Table {
       integer().named('target_value').withDefault(const Constant(1))();
   TextColumn get initialDate => text().named('initial_date')();
   TextColumn get createdAt => text().named('created_at')();
-  IntColumn get synced => integer().withDefault(const Constant(0))();
   TextColumn get updatedAt => text().named('updated_at')();
 
   @override
@@ -48,7 +47,6 @@ class HabitLogsTable extends Table {
       .references(HabitsTable, #id, onDelete: KeyAction.cascade)();
   TextColumn get date => text()();
   IntColumn get value => integer().withDefault(const Constant(0))();
-  IntColumn get synced => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -93,7 +91,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -103,8 +101,11 @@ class AppDatabase extends _$AppDatabase {
           AppLogger.i('✅ [DB] AppDatabase inicializada');
         },
         onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            await _recreateAllTables(m);
+          // Phase 5: remove 'synced' column (from v2 to v3)
+          if (from < 3) {
+            // Drop the now-unused column from both tables
+            await customStatement('ALTER TABLE habits DROP COLUMN synced');
+            await customStatement('ALTER TABLE habit_logs DROP COLUMN synced');
             await _createIndexes();
           }
         },

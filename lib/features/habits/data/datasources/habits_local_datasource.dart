@@ -182,7 +182,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
               targetValue: Value(habit.targetValue),
               initialDate: Value(habit.initialDate),
               createdAt: Value(now),
-              synced: const Value(0),
               updatedAt: Value(now),
             ),
           );
@@ -208,7 +207,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             HabitTrackingTypeModel.toStringValue(habit.trackingType),
           ),
           targetValue: Value(habit.targetValue),
-          synced: const Value(0),
           updatedAt: Value(DateTime.now().toIso8601String()),
         ),
       );
@@ -254,7 +252,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
               habitId: Value(habitLog.habitId),
               date: Value(habitLog.date),
               value: Value(habitLog.value),
-              synced: const Value(0),
             ),
           );
 
@@ -287,7 +284,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
           .write(
         HabitLogsTableCompanion(
           value: Value(value),
-          synced: const Value(0),
         ),
       );
     } catch (e) {
@@ -354,7 +350,7 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
 
       await _db.transaction(() async {
         for (final habit in habits) {
-          await _db.into(_db.habitsTable).insertOnConflictUpdate(
+              await _db.into(_db.habitsTable).insertOnConflictUpdate(
                 HabitsTableCompanion(
                   id: Value(habit.id),
                   userId: Value(habit.userId),
@@ -370,7 +366,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
                   targetValue: Value(habit.targetValue),
                   initialDate: Value(habit.initialDate),
                   createdAt: Value(now),
-                  synced: const Value(1),
                   updatedAt: Value(now),
                 ),
               );
@@ -382,7 +377,6 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
                     habitId: Value(log.habitId),
                     date: Value(log.date),
                     value: Value(log.value),
-                    synced: const Value(1),
                   ),
                 );
           }

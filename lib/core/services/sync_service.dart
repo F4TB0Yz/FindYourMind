@@ -127,6 +127,11 @@ class SyncService {
     }
   }
 
+  // Backward-compat: _markAsSynced is no longer required (synced column removed).
+  Future<void> _markAsSynced(String entityType, String entityId) async {
+    // no-op
+  }
+
   String _resolveHabitId({
     required String entityType,
     required String entityId,
@@ -216,23 +221,7 @@ class SyncService {
     }
   }
 
-  Future<void> _markAsSynced(String entityType, String entityId) async {
-    if (entityType == 'habit') {
-      await (_db.update(_db.habitsTable)..where((t) => t.id.equals(entityId)))
-          .write(
-        HabitsTableCompanion(
-          synced: const Value(1),
-          updatedAt: Value(DateTime.now().toIso8601String()),
-        ),
-      );
-      return;
-    }
-
-    if (entityType == 'log') {
-      await (_db.update(_db.habitLogsTable)..where((t) => t.id.equals(entityId)))
-          .write(const HabitLogsTableCompanion(synced: Value(1)));
-    }
-  }
+  // Removed: _markAsSynced column no longer exists (synced dropped).
 
   Future<int> getPendingCount() async {
     try {

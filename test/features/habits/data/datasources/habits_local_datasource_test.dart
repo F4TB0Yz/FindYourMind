@@ -80,7 +80,7 @@ void main() {
       expect(habits.first.logs.length, 1);
     });
 
-    test('updateHabitLogValue should update log and reset synced flag', () async {
+    test('updateHabitLogValue should update log', () async {
       await datasource.createHabit(tHabit);
       await datasource.createHabitLog(tLog);
 
@@ -93,8 +93,7 @@ void main() {
       final habits = await datasource.getHabitsByUserId('u1');
       expect(habits.first.logs.first.value, 5);
       
-      final logRow = await db.select(db.habitLogsTable).getSingle();
-      expect(logRow.synced, 0);
+      // No more 'synced' column; ensure value updated
     });
 
     test('deleteHabit should remove habit and its logs (cascade)', () async {
@@ -110,7 +109,7 @@ void main() {
       expect(logs.isEmpty, true);
     });
 
-    test('saveHabits should perform batch upsert and set synced=1', () async {
+    test('saveHabits should perform batch upsert', () async {
       final habitsToSave = [
         tHabit.copyWith(logs: [tLog]),
       ];
@@ -122,10 +121,9 @@ void main() {
       expect(habits.first.logs.length, 1);
 
       final habitRow = await db.select(db.habitsTable).getSingle();
-      expect(habitRow.synced, 1);
-
+      // No 'synced' column to assert on
       final logRow = await db.select(db.habitLogsTable).getSingle();
-      expect(logRow.synced, 1);
+      // No 'synced' column to assert on
     });
   });
 }

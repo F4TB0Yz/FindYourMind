@@ -9,6 +9,5 @@ CREATE TABLE habits (
     target_value INTEGER NOT NULL DEFAULT 1,
     initial_date TEXT NOT NULL,
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    synced INTEGER NOT NULL DEFAULT 0
+    updated_at TEXT NOT NULL
 );

@@ -218,4 +218,281 @@ void main() {
       expect(remaining.first.entityId, '1');
     });
   });
+
+  group('markPendingSync', () {
+    test('inserts new pending sync item', () async {
+      await syncService.markPendingSync(
+        entityType: 'habit',
+        entityId: 'h1',
+        action: 'create',
+        data: {'id': 'h1', 'title': 'Test'},
+      );
+
+      final pending = await db.select(db.pendingSyncTable).get();
+      expect(pending.length, 1);
+      expect(pending.first.entityId, 'h1');
+      expect(pending.first.actionType, 'create');
+    });
+
+    test('upserts when entity already pending', () async {
+      await syncService.markPendingSync(
+        entityType: 'habit',
+        entityId: 'h1',
+        action: 'create',
+        data: {'id': 'h1', 'title': 'Test'},
+      );
+
+      await syncService.markPendingSync(
+        entityType: 'habit',
+        entityId: 'h1',
+        action: 'update',
+        data: {'id': 'h1', 'title': 'Updated'},
+      );
+
+      final pending = await db.select(db.pendingSyncTable).get();
+      expect(pending.length, 1);
+      expect(pending.first.actionType, 'update');
+    });
+  });
+
+  group('syncPendingChanges full flow', () {
+    test('habit create success: removes from queue', () async {
+      final habitJson = jsonEncode({
+        'id': 'h1',
+        'user_id': 'u1',
+        'title': 'Test',
+        'description': 'Desc',
+        'icon': 'icon',
+        'category': 'none',
+        'tracking_type': 'single',
+        'target_value': 1,
+        'initial_date': '2025-01-01',
+      });
+
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'create',
+              data: habitJson,
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      when(() => mockRemoteDataSource.createHabit(any()))
+          .thenAnswer((_) async => 'h1');
+
+      final result = await syncService.syncPendingChanges();
+
+      expect(result.success, 1);
+      final pending = await db.select(db.pendingSyncTable).get();
+      expect(pending.isEmpty, true);
+    });
+
+    test('habit update success', () async {
+      final habitJson = jsonEncode({
+        'id': 'h1',
+        'user_id': 'u1',
+        'title': 'Updated',
+      });
+
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'update',
+              data: habitJson,
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      when(() => mockRemoteDataSource.updateHabit(any()))
+          .thenAnswer((_) async {});
+
+      final result = await syncService.syncPendingChanges();
+
+      expect(result.success, 1);
+    });
+
+    test('habit delete success', () async {
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'delete',
+              data: '{"id": "h1"}',
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      when(() => mockRemoteDataSource.deleteHabit(any()))
+          .thenAnswer((_) async {});
+
+      final result = await syncService.syncPendingChanges();
+
+      expect(result.success, 1);
+      final pending = await db.select(db.pendingSyncTable).get();
+      expect(pending.isEmpty, true);
+    });
+
+    test('log create success', () async {
+      final logJson = jsonEncode({
+        'id': 'l1',
+        'habit_id': 'h1',
+        'date': '2025-01-15',
+        'value': 1,
+      });
+
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'log',
+              entityId: 'l1',
+              actionType: 'create',
+              data: logJson,
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      when(() => mockRemoteDataSource.createHabitLog(any()))
+          .thenAnswer((_) async => 'l1');
+
+      final result = await syncService.syncPendingChanges();
+
+      expect(result.success, 1);
+    });
+
+    test('log update success', () async {
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'log',
+              entityId: 'l1',
+              actionType: 'update',
+              data: '{"id": "l1", "habit_id": "h1", "value": 5}',
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      when(() => mockRemoteDataSource.updateHabitLogValue(
+        habitId: any(named: 'habitId'),
+        logId: any(named: 'logId'),
+        value: any(named: 'value'),
+      )).thenAnswer((_) async {});
+
+      final result = await syncService.syncPendingChanges();
+
+      expect(result.success, 1);
+    });
+  });
+
+  group('dependency chain', () {
+    test('habit create fails: logs blocked (retryCount incremented)', () async {
+      final habitJson = jsonEncode({
+        'id': 'h1',
+        'user_id': 'u1',
+        'title': 'Test',
+      });
+      final logJson = jsonEncode({
+        'id': 'l1',
+        'habit_id': 'h1',
+        'date': '2025-01-15',
+        'value': 1,
+      });
+
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'create',
+              data: habitJson,
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'log',
+              entityId: 'l1',
+              actionType: 'create',
+              data: logJson,
+              createdAt: DateTime.now().toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      when(() => mockRemoteDataSource.createHabit(any()))
+          .thenThrow(Exception('Remote error'));
+
+      await syncService.syncPendingChanges();
+
+      final pending = await db.select(db.pendingSyncTable).get();
+      expect(pending.length, 2);
+      final habitPending = pending.firstWhere((p) => p.entityType == 'habit');
+      expect(habitPending.retryCount, 1);
+    });
+  });
+
+  group('clearPendingSync', () {
+    test('clears entire queue', () async {
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'create',
+              data: '{}',
+              createdAt: DateTime.now().toIso8601String(),
+            ),
+          );
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'log',
+              entityId: 'l1',
+              actionType: 'create',
+              data: '{}',
+              createdAt: DateTime.now().toIso8601String(),
+            ),
+          );
+
+      await syncService.clearPendingSync();
+
+      final pending = await db.select(db.pendingSyncTable).get();
+      expect(pending.isEmpty, true);
+    });
+  });
+
+  group('getPendingCount', () {
+    test('returns correct count', () async {
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'create',
+              data: '{}',
+              createdAt: DateTime.now().toIso8601String(),
+            ),
+          );
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'log',
+              entityId: 'l1',
+              actionType: 'create',
+              data: '{}',
+              createdAt: DateTime.now().toIso8601String(),
+            ),
+          );
+
+      final count = await syncService.getPendingCount();
+
+      expect(count, 2);
+    });
+
+    test('returns 0 when empty', () async {
+      final count = await syncService.getPendingCount();
+      expect(count, 0);
+    });
+  });
 }

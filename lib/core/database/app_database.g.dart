@@ -114,16 +114,6 @@ class $HabitsTableTable extends HabitsTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
-  @override
-  late final GeneratedColumn<int> synced = GeneratedColumn<int>(
-    'synced',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -147,7 +137,6 @@ class $HabitsTableTable extends HabitsTable
     targetValue,
     initialDate,
     createdAt,
-    synced,
     updatedAt,
   ];
   @override
@@ -245,12 +234,6 @@ class $HabitsTableTable extends HabitsTable
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
-    if (data.containsKey('synced')) {
-      context.handle(
-        _syncedMeta,
-        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
-      );
-    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -308,10 +291,6 @@ class $HabitsTableTable extends HabitsTable
         DriftSqlType.string,
         data['${effectivePrefix}created_at'],
       )!,
-      synced: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}synced'],
-      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}updated_at'],
@@ -336,7 +315,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
   final int targetValue;
   final String initialDate;
   final String createdAt;
-  final int synced;
   final String updatedAt;
   const HabitsTableData({
     required this.id,
@@ -349,7 +327,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     required this.targetValue,
     required this.initialDate,
     required this.createdAt,
-    required this.synced,
     required this.updatedAt,
   });
   @override
@@ -365,7 +342,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     map['target_value'] = Variable<int>(targetValue);
     map['initial_date'] = Variable<String>(initialDate);
     map['created_at'] = Variable<String>(createdAt);
-    map['synced'] = Variable<int>(synced);
     map['updated_at'] = Variable<String>(updatedAt);
     return map;
   }
@@ -382,7 +358,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       targetValue: Value(targetValue),
       initialDate: Value(initialDate),
       createdAt: Value(createdAt),
-      synced: Value(synced),
       updatedAt: Value(updatedAt),
     );
   }
@@ -403,7 +378,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       targetValue: serializer.fromJson<int>(json['targetValue']),
       initialDate: serializer.fromJson<String>(json['initialDate']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
-      synced: serializer.fromJson<int>(json['synced']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
     );
   }
@@ -421,7 +395,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       'targetValue': serializer.toJson<int>(targetValue),
       'initialDate': serializer.toJson<String>(initialDate),
       'createdAt': serializer.toJson<String>(createdAt),
-      'synced': serializer.toJson<int>(synced),
       'updatedAt': serializer.toJson<String>(updatedAt),
     };
   }
@@ -437,7 +410,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     int? targetValue,
     String? initialDate,
     String? createdAt,
-    int? synced,
     String? updatedAt,
   }) => HabitsTableData(
     id: id ?? this.id,
@@ -450,7 +422,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     targetValue: targetValue ?? this.targetValue,
     initialDate: initialDate ?? this.initialDate,
     createdAt: createdAt ?? this.createdAt,
-    synced: synced ?? this.synced,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   HabitsTableData copyWithCompanion(HabitsTableCompanion data) {
@@ -473,7 +444,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           ? data.initialDate.value
           : this.initialDate,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      synced: data.synced.present ? data.synced.value : this.synced,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -491,7 +461,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           ..write('targetValue: $targetValue, ')
           ..write('initialDate: $initialDate, ')
           ..write('createdAt: $createdAt, ')
-          ..write('synced: $synced, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -509,7 +478,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     targetValue,
     initialDate,
     createdAt,
-    synced,
     updatedAt,
   );
   @override
@@ -526,7 +494,6 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           other.targetValue == this.targetValue &&
           other.initialDate == this.initialDate &&
           other.createdAt == this.createdAt &&
-          other.synced == this.synced &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -541,7 +508,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
   final Value<int> targetValue;
   final Value<String> initialDate;
   final Value<String> createdAt;
-  final Value<int> synced;
   final Value<String> updatedAt;
   final Value<int> rowid;
   const HabitsTableCompanion({
@@ -555,7 +521,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     this.targetValue = const Value.absent(),
     this.initialDate = const Value.absent(),
     this.createdAt = const Value.absent(),
-    this.synced = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -570,7 +535,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     this.targetValue = const Value.absent(),
     required String initialDate,
     required String createdAt,
-    this.synced = const Value.absent(),
     required String updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -592,7 +556,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     Expression<int>? targetValue,
     Expression<String>? initialDate,
     Expression<String>? createdAt,
-    Expression<int>? synced,
     Expression<String>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -607,7 +570,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
       if (targetValue != null) 'target_value': targetValue,
       if (initialDate != null) 'initial_date': initialDate,
       if (createdAt != null) 'created_at': createdAt,
-      if (synced != null) 'synced': synced,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -624,7 +586,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     Value<int>? targetValue,
     Value<String>? initialDate,
     Value<String>? createdAt,
-    Value<int>? synced,
     Value<String>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -639,7 +600,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
       targetValue: targetValue ?? this.targetValue,
       initialDate: initialDate ?? this.initialDate,
       createdAt: createdAt ?? this.createdAt,
-      synced: synced ?? this.synced,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -678,9 +638,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     if (createdAt.present) {
       map['created_at'] = Variable<String>(createdAt.value);
     }
-    if (synced.present) {
-      map['synced'] = Variable<int>(synced.value);
-    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<String>(updatedAt.value);
     }
@@ -703,7 +660,6 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
           ..write('targetValue: $targetValue, ')
           ..write('initialDate: $initialDate, ')
           ..write('createdAt: $createdAt, ')
-          ..write('synced: $synced, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -759,18 +715,8 @@ class $HabitLogsTableTable extends HabitLogsTable
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _syncedMeta = const VerificationMeta('synced');
   @override
-  late final GeneratedColumn<int> synced = GeneratedColumn<int>(
-    'synced',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, habitId, date, value, synced];
+  List<GeneratedColumn> get $columns => [id, habitId, date, value];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -810,12 +756,6 @@ class $HabitLogsTableTable extends HabitLogsTable
         value.isAcceptableOrUnknown(data['value']!, _valueMeta),
       );
     }
-    if (data.containsKey('synced')) {
-      context.handle(
-        _syncedMeta,
-        synced.isAcceptableOrUnknown(data['synced']!, _syncedMeta),
-      );
-    }
     return context;
   }
 
@@ -845,10 +785,6 @@ class $HabitLogsTableTable extends HabitLogsTable
         DriftSqlType.int,
         data['${effectivePrefix}value'],
       )!,
-      synced: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}synced'],
-      )!,
     );
   }
 
@@ -864,13 +800,11 @@ class HabitLogsTableData extends DataClass
   final String habitId;
   final String date;
   final int value;
-  final int synced;
   const HabitLogsTableData({
     required this.id,
     required this.habitId,
     required this.date,
     required this.value,
-    required this.synced,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -879,7 +813,6 @@ class HabitLogsTableData extends DataClass
     map['habit_id'] = Variable<String>(habitId);
     map['date'] = Variable<String>(date);
     map['value'] = Variable<int>(value);
-    map['synced'] = Variable<int>(synced);
     return map;
   }
 
@@ -889,7 +822,6 @@ class HabitLogsTableData extends DataClass
       habitId: Value(habitId),
       date: Value(date),
       value: Value(value),
-      synced: Value(synced),
     );
   }
 
@@ -903,7 +835,6 @@ class HabitLogsTableData extends DataClass
       habitId: serializer.fromJson<String>(json['habitId']),
       date: serializer.fromJson<String>(json['date']),
       value: serializer.fromJson<int>(json['value']),
-      synced: serializer.fromJson<int>(json['synced']),
     );
   }
   @override
@@ -914,7 +845,6 @@ class HabitLogsTableData extends DataClass
       'habitId': serializer.toJson<String>(habitId),
       'date': serializer.toJson<String>(date),
       'value': serializer.toJson<int>(value),
-      'synced': serializer.toJson<int>(synced),
     };
   }
 
@@ -923,13 +853,11 @@ class HabitLogsTableData extends DataClass
     String? habitId,
     String? date,
     int? value,
-    int? synced,
   }) => HabitLogsTableData(
     id: id ?? this.id,
     habitId: habitId ?? this.habitId,
     date: date ?? this.date,
     value: value ?? this.value,
-    synced: synced ?? this.synced,
   );
   HabitLogsTableData copyWithCompanion(HabitLogsTableCompanion data) {
     return HabitLogsTableData(
@@ -937,7 +865,6 @@ class HabitLogsTableData extends DataClass
       habitId: data.habitId.present ? data.habitId.value : this.habitId,
       date: data.date.present ? data.date.value : this.date,
       value: data.value.present ? data.value.value : this.value,
-      synced: data.synced.present ? data.synced.value : this.synced,
     );
   }
 
@@ -947,14 +874,13 @@ class HabitLogsTableData extends DataClass
           ..write('id: $id, ')
           ..write('habitId: $habitId, ')
           ..write('date: $date, ')
-          ..write('value: $value, ')
-          ..write('synced: $synced')
+          ..write('value: $value')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, habitId, date, value, synced);
+  int get hashCode => Object.hash(id, habitId, date, value);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -962,8 +888,7 @@ class HabitLogsTableData extends DataClass
           other.id == this.id &&
           other.habitId == this.habitId &&
           other.date == this.date &&
-          other.value == this.value &&
-          other.synced == this.synced);
+          other.value == this.value);
 }
 
 class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
@@ -971,14 +896,12 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
   final Value<String> habitId;
   final Value<String> date;
   final Value<int> value;
-  final Value<int> synced;
   final Value<int> rowid;
   const HabitLogsTableCompanion({
     this.id = const Value.absent(),
     this.habitId = const Value.absent(),
     this.date = const Value.absent(),
     this.value = const Value.absent(),
-    this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HabitLogsTableCompanion.insert({
@@ -986,7 +909,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
     required String habitId,
     required String date,
     this.value = const Value.absent(),
-    this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        habitId = Value(habitId),
@@ -996,7 +918,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
     Expression<String>? habitId,
     Expression<String>? date,
     Expression<int>? value,
-    Expression<int>? synced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1004,7 +925,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
       if (habitId != null) 'habit_id': habitId,
       if (date != null) 'date': date,
       if (value != null) 'value': value,
-      if (synced != null) 'synced': synced,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1014,7 +934,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
     Value<String>? habitId,
     Value<String>? date,
     Value<int>? value,
-    Value<int>? synced,
     Value<int>? rowid,
   }) {
     return HabitLogsTableCompanion(
@@ -1022,7 +941,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
       habitId: habitId ?? this.habitId,
       date: date ?? this.date,
       value: value ?? this.value,
-      synced: synced ?? this.synced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1042,9 +960,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
     if (value.present) {
       map['value'] = Variable<int>(value.value);
     }
-    if (synced.present) {
-      map['synced'] = Variable<int>(synced.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1058,7 +973,6 @@ class HabitLogsTableCompanion extends UpdateCompanion<HabitLogsTableData> {
           ..write('habitId: $habitId, ')
           ..write('date: $date, ')
           ..write('value: $value, ')
-          ..write('synced: $synced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1563,7 +1477,6 @@ typedef $$HabitsTableTableCreateCompanionBuilder =
       Value<int> targetValue,
       required String initialDate,
       required String createdAt,
-      Value<int> synced,
       required String updatedAt,
       Value<int> rowid,
     });
@@ -1579,7 +1492,6 @@ typedef $$HabitsTableTableUpdateCompanionBuilder =
       Value<int> targetValue,
       Value<String> initialDate,
       Value<String> createdAt,
-      Value<int> synced,
       Value<String> updatedAt,
       Value<int> rowid,
     });
@@ -1666,11 +1578,6 @@ class $$HabitsTableTableFilterComposer
 
   ColumnFilters<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get synced => $composableBuilder(
-    column: $table.synced,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1764,11 +1671,6 @@ class $$HabitsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get synced => $composableBuilder(
-    column: $table.synced,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -1821,9 +1723,6 @@ class $$HabitsTableTableAnnotationComposer
 
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<int> get synced =>
-      $composableBuilder(column: $table.synced, builder: (column) => column);
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -1892,7 +1791,6 @@ class $$HabitsTableTableTableManager
                 Value<int> targetValue = const Value.absent(),
                 Value<String> initialDate = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
-                Value<int> synced = const Value.absent(),
                 Value<String> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitsTableCompanion(
@@ -1906,7 +1804,6 @@ class $$HabitsTableTableTableManager
                 targetValue: targetValue,
                 initialDate: initialDate,
                 createdAt: createdAt,
-                synced: synced,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -1922,7 +1819,6 @@ class $$HabitsTableTableTableManager
                 Value<int> targetValue = const Value.absent(),
                 required String initialDate,
                 required String createdAt,
-                Value<int> synced = const Value.absent(),
                 required String updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => HabitsTableCompanion.insert(
@@ -1936,7 +1832,6 @@ class $$HabitsTableTableTableManager
                 targetValue: targetValue,
                 initialDate: initialDate,
                 createdAt: createdAt,
-                synced: synced,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -2004,7 +1899,6 @@ typedef $$HabitLogsTableTableCreateCompanionBuilder =
       required String habitId,
       required String date,
       Value<int> value,
-      Value<int> synced,
       Value<int> rowid,
     });
 typedef $$HabitLogsTableTableUpdateCompanionBuilder =
@@ -2013,7 +1907,6 @@ typedef $$HabitLogsTableTableUpdateCompanionBuilder =
       Value<String> habitId,
       Value<String> date,
       Value<int> value,
-      Value<int> synced,
       Value<int> rowid,
     });
 
@@ -2074,11 +1967,6 @@ class $$HabitLogsTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get synced => $composableBuilder(
-    column: $table.synced,
-    builder: (column) => ColumnFilters(column),
-  );
-
   $$HabitsTableTableFilterComposer get habitId {
     final $$HabitsTableTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2127,11 +2015,6 @@ class $$HabitLogsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get synced => $composableBuilder(
-    column: $table.synced,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   $$HabitsTableTableOrderingComposer get habitId {
     final $$HabitsTableTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2173,9 +2056,6 @@ class $$HabitLogsTableTableAnnotationComposer
 
   GeneratedColumn<int> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
-
-  GeneratedColumn<int> get synced =>
-      $composableBuilder(column: $table.synced, builder: (column) => column);
 
   $$HabitsTableTableAnnotationComposer get habitId {
     final $$HabitsTableTableAnnotationComposer composer = $composerBuilder(
@@ -2235,14 +2115,12 @@ class $$HabitLogsTableTableTableManager
                 Value<String> habitId = const Value.absent(),
                 Value<String> date = const Value.absent(),
                 Value<int> value = const Value.absent(),
-                Value<int> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitLogsTableCompanion(
                 id: id,
                 habitId: habitId,
                 date: date,
                 value: value,
-                synced: synced,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2251,14 +2129,12 @@ class $$HabitLogsTableTableTableManager
                 required String habitId,
                 required String date,
                 Value<int> value = const Value.absent(),
-                Value<int> synced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitLogsTableCompanion.insert(
                 id: id,
                 habitId: habitId,
                 date: date,
                 value: value,
-                synced: synced,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
