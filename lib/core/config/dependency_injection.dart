@@ -1,6 +1,7 @@
 import 'package:find_your_mind/core/database/app_database.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/network/network_info.dart';
+import 'package:find_your_mind/core/network/supabase_client_wrapper.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
 import 'package:find_your_mind/features/auth/data/datasources/users_remote_datasource.dart';
 import 'package:find_your_mind/features/auth/data/repositories/auth_repository_impl.dart';
@@ -29,6 +30,7 @@ class DependencyInjection {
   late final AppDatabase _databaseHelper;
   late final NetworkInfo _networkInfo;
   late final SupabaseClient _supabaseClient;
+  late final SupabaseClientWrapper _supabaseClientWrapper;
 
   // Datasources
   late final HabitsRemoteDataSource _remoteDataSource;
@@ -99,6 +101,7 @@ class DependencyInjection {
 
     _networkInfo = NetworkInfoImpl(InternetConnectionChecker.instance);
     _supabaseClient = Supabase.instance.client;
+    _supabaseClientWrapper = SupabaseClientWrapperImpl(client: _supabaseClient);
 
     // Inicializar servicio de autenticación
     _authService = SupabaseAuthService(_supabaseClient);
@@ -134,7 +137,7 @@ class DependencyInjection {
     );
 
     // 2. Inicializar datasources
-    _remoteDataSource = HabitsRemoteDataSourceImpl(client: _supabaseClient);
+    _remoteDataSource = HabitsRemoteDataSourceImpl(client: _supabaseClientWrapper);
     _localDataSource = HabitsLocalDatasourceImpl(
       databaseHelper: _databaseHelper,
     );
