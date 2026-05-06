@@ -20,7 +20,7 @@ class CreateHabitButton extends StatelessWidget {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          isScrollControlled: false,
+          isScrollControlled: true,
           useSafeArea: false,
           useRootNavigator: true,
           showDragHandle: false,
@@ -29,15 +29,21 @@ class CreateHabitButton extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF00495c).withValues(alpha: 0.8)
-                        : const Color(0xFFF2F0CD).withValues(alpha: 0.8),
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(24)),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
-                  child: const CreateHabitSheet(),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.85,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF00495c).withValues(alpha: 0.8)
+                          : const Color(0xFFF2F0CD).withValues(alpha: 0.8),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    child: const CreateHabitSheet(),
+                  ),
                 ),
               ),
             ),

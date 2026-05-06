@@ -14,6 +14,8 @@ class ItemHabitModel {
   final String category;
   final String trackingType;
   final int targetValue;
+  final String color;
+  final String? unit;
   final List<HabitLog> logs;
 
   ItemHabitModel({
@@ -26,6 +28,8 @@ class ItemHabitModel {
     required this.trackingType,
     required this.iconString,
     required this.targetValue,
+    required this.color,
+    this.unit,
     required this.logs,
   });
 
@@ -40,6 +44,8 @@ class ItemHabitModel {
       trackingType: HabitTrackingTypeModel.fromString(trackingType),
       targetValue: targetValue,
       initialDate: createdAt.toIso8601String(),
+      color: color,
+      unit: unit,
       logs: logs,
     );
   }
@@ -54,6 +60,8 @@ class ItemHabitModel {
       'tracking_type': trackingType,
       'iconString': iconString,
       'target_value': targetValue,
+      'color': color,
+      'unit': unit,
     };
   }
 
@@ -76,6 +84,8 @@ class ItemHabitModel {
       trackingType: (json['tracking_type'] ?? 'single') as String,
       iconString: json['icon'] as String,
       targetValue: (json['target_value'] ?? 1) as int,
+      color: (json['color'] as String?) ?? 'random',
+      unit: json['unit'] as String?,
       logs: logEntityList,
     );
   }

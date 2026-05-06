@@ -11,7 +11,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_ty
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockHabitsRemoteDataSource extends Mock implements HabitsRemoteDataSource {}
+class MockHabitsRemoteDataSource extends Mock
+    implements HabitsRemoteDataSource {}
 
 void main() {
   late AppDatabase db;
@@ -20,7 +21,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(
-      HabitEntity(
+      const HabitEntity(
         id: 'fallback-habit',
         userId: 'fallback-user',
         title: 'Fallback',
@@ -30,11 +31,11 @@ void main() {
         trackingType: HabitTrackingType.single,
         targetValue: 1,
         initialDate: '2025-01-01',
-        logs: const [],
+        logs: [],
       ),
     );
     registerFallbackValue(
-      HabitLog(
+      const HabitLog(
         id: 'fallback-log',
         habitId: 'fallback-habit',
         date: '2025-01-01',
@@ -71,7 +72,9 @@ void main() {
 
     test('should include items with retryCount < maxRetryCount', () async {
       // Arrange
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: '1',
@@ -97,8 +100,9 @@ void main() {
         ),
       );
 
-      when(() => mockRemoteDataSource.createHabit(any()))
-          .thenAnswer((_) async => 'remote_1');
+      when(
+        () => mockRemoteDataSource.createHabit(any()),
+      ).thenAnswer((_) async => 'remote_1');
 
       // Act
       final result = await syncService.syncPendingChanges();
@@ -111,7 +115,9 @@ void main() {
 
     test('should exclude items with retryCount >= maxRetryCount', () async {
       // Arrange
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: '1',
@@ -134,7 +140,9 @@ void main() {
 
     test('should increment retryCount on failure', () async {
       // Arrange
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: '1',
@@ -145,8 +153,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.createHabit(any()))
-          .thenAnswer((_) async => null); // Failure
+      when(
+        () => mockRemoteDataSource.createHabit(any()),
+      ).thenAnswer((_) async => null); // Failure
 
       // Act
       await syncService.syncPendingChanges();
@@ -158,7 +167,9 @@ void main() {
 
     test('should increment retryCount on exception', () async {
       // Arrange
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: '1',
@@ -169,8 +180,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.createHabit(any()))
-          .thenThrow(Exception('Network error'));
+      when(
+        () => mockRemoteDataSource.createHabit(any()),
+      ).thenThrow(Exception('Network error'));
 
       // Act
       await syncService.syncPendingChanges();
@@ -180,68 +192,82 @@ void main() {
       expect(pending.retryCount, 1);
     });
 
-    test('getFailedItems returns only items with retryCount >= maxRetryCount', () async {
-      // Arrange
-      await db.into(db.pendingSyncTable).insert(
-            PendingSyncTableCompanion.insert(
-              entityType: 'habit',
-              entityId: '1',
-              actionType: 'create',
-              data: '{}',
-              createdAt: DateTime.now().toIso8601String(),
-              retryCount: const Value(0),
-            ),
-          );
-      await db.into(db.pendingSyncTable).insert(
-            PendingSyncTableCompanion.insert(
-              entityType: 'habit',
-              entityId: '2',
-              actionType: 'create',
-              data: '{}',
-              createdAt: DateTime.now().toIso8601String(),
-              retryCount: const Value(SyncService.maxRetryCount),
-            ),
-          );
+    test(
+      'getFailedItems returns only items with retryCount >= maxRetryCount',
+      () async {
+        // Arrange
+        await db
+            .into(db.pendingSyncTable)
+            .insert(
+              PendingSyncTableCompanion.insert(
+                entityType: 'habit',
+                entityId: '1',
+                actionType: 'create',
+                data: '{}',
+                createdAt: DateTime.now().toIso8601String(),
+                retryCount: const Value(0),
+              ),
+            );
+        await db
+            .into(db.pendingSyncTable)
+            .insert(
+              PendingSyncTableCompanion.insert(
+                entityType: 'habit',
+                entityId: '2',
+                actionType: 'create',
+                data: '{}',
+                createdAt: DateTime.now().toIso8601String(),
+                retryCount: const Value(SyncService.maxRetryCount),
+              ),
+            );
 
-      // Act
-      final failed = await syncService.getFailedItems();
+        // Act
+        final failed = await syncService.getFailedItems();
 
-      // Assert
-      expect(failed.length, 1);
-      expect(failed.first.entityId, '2');
-    });
+        // Assert
+        expect(failed.length, 1);
+        expect(failed.first.entityId, '2');
+      },
+    );
 
-    test('purgeFailedItems removes only items with retryCount >= maxRetryCount', () async {
-      // Arrange
-      await db.into(db.pendingSyncTable).insert(
-            PendingSyncTableCompanion.insert(
-              entityType: 'habit',
-              entityId: '1',
-              actionType: 'create',
-              data: '{}',
-              createdAt: DateTime.now().toIso8601String(),
-              retryCount: const Value(0),
-            ),
-          );
-      await db.into(db.pendingSyncTable).insert(
-            PendingSyncTableCompanion.insert(
-              entityType: 'habit',
-              entityId: '2',
-              actionType: 'create',
-              data: '{}',
-              createdAt: DateTime.now().toIso8601String(),
-              retryCount: const Value(SyncService.maxRetryCount),
-            ),
-          );
+    test(
+      'purgeFailedItems removes only items with retryCount >= maxRetryCount',
+      () async {
+        // Arrange
+        await db
+            .into(db.pendingSyncTable)
+            .insert(
+              PendingSyncTableCompanion.insert(
+                entityType: 'habit',
+                entityId: '1',
+                actionType: 'create',
+                data: '{}',
+                createdAt: DateTime.now().toIso8601String(),
+                retryCount: const Value(0),
+              ),
+            );
+        await db
+            .into(db.pendingSyncTable)
+            .insert(
+              PendingSyncTableCompanion.insert(
+                entityType: 'habit',
+                entityId: '2',
+                actionType: 'create',
+                data: '{}',
+                createdAt: DateTime.now().toIso8601String(),
+                retryCount: const Value(SyncService.maxRetryCount),
+              ),
+            );
 
-      // Act
-      await syncService.purgeFailedItems();
+        // Act
+        await syncService.purgeFailedItems();
 
-      // Assert
-      final remaining = await db.select(db.pendingSyncTable).get();
-      expect(remaining.length, 1);
-      expect(remaining.first.entityId, '1');
-    });
+        // Assert
+        final remaining = await db.select(db.pendingSyncTable).get();
+        expect(remaining.length, 1);
+        expect(remaining.first.entityId, '1');
+      },
+    );
   });
 
   group('markPendingSync', () {
@@ -294,7 +320,9 @@ void main() {
         'initial_date': '2025-01-01',
       });
 
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: 'h1',
@@ -305,8 +333,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.createHabit(any()))
-          .thenAnswer((_) async => 'h1');
+      when(
+        () => mockRemoteDataSource.createHabit(any()),
+      ).thenAnswer((_) async => 'h1');
 
       final result = await syncService.syncPendingChanges();
 
@@ -328,7 +357,9 @@ void main() {
         'initial_date': '2025-01-01',
       });
 
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: 'h1',
@@ -339,8 +370,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.updateHabit(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockRemoteDataSource.updateHabit(any()),
+      ).thenAnswer((_) async {});
 
       final result = await syncService.syncPendingChanges();
 
@@ -348,7 +380,9 @@ void main() {
     });
 
     test('habit delete success', () async {
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: 'h1',
@@ -359,8 +393,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.deleteHabit(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockRemoteDataSource.deleteHabit(any()),
+      ).thenAnswer((_) async {});
 
       final result = await syncService.syncPendingChanges();
 
@@ -377,7 +412,9 @@ void main() {
         'value': 1,
       });
 
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'log',
               entityId: 'l1',
@@ -388,8 +425,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.createHabitLog(any()))
-          .thenAnswer((_) async => 'l1');
+      when(
+        () => mockRemoteDataSource.createHabitLog(any()),
+      ).thenAnswer((_) async => 'l1');
 
       final result = await syncService.syncPendingChanges();
 
@@ -397,7 +435,9 @@ void main() {
     });
 
     test('log update success', () async {
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'log',
               entityId: 'l1',
@@ -408,11 +448,13 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.updateHabitLogValue(
-        habitId: any(named: 'habitId'),
-        logId: any(named: 'logId'),
-        value: any(named: 'value'),
-      )).thenAnswer((_) async {});
+      when(
+        () => mockRemoteDataSource.updateHabitLogValue(
+          habitId: any(named: 'habitId'),
+          logId: any(named: 'logId'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
 
       final result = await syncService.syncPendingChanges();
 
@@ -434,7 +476,9 @@ void main() {
         'value': 1,
       });
 
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: 'h1',
@@ -444,7 +488,9 @@ void main() {
               retryCount: const Value(0),
             ),
           );
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'log',
               entityId: 'l1',
@@ -455,8 +501,9 @@ void main() {
             ),
           );
 
-      when(() => mockRemoteDataSource.createHabit(any()))
-          .thenThrow(Exception('Remote error'));
+      when(
+        () => mockRemoteDataSource.createHabit(any()),
+      ).thenThrow(Exception('Remote error'));
 
       await syncService.syncPendingChanges();
 
@@ -469,7 +516,9 @@ void main() {
 
   group('clearPendingSync', () {
     test('clears entire queue', () async {
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: 'h1',
@@ -478,7 +527,9 @@ void main() {
               createdAt: DateTime.now().toIso8601String(),
             ),
           );
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'log',
               entityId: 'l1',
@@ -495,9 +546,11 @@ void main() {
     });
   });
 
-group('getPendingCount', () {
+  group('getPendingCount', () {
     test('returns correct count', () async {
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'habit',
               entityId: 'h1',
@@ -506,7 +559,9 @@ group('getPendingCount', () {
               createdAt: DateTime.now().toIso8601String(),
             ),
           );
-      await db.into(db.pendingSyncTable).insert(
+      await db
+          .into(db.pendingSyncTable)
+          .insert(
             PendingSyncTableCompanion.insert(
               entityType: 'log',
               entityId: 'l1',
@@ -529,68 +584,77 @@ group('getPendingCount', () {
   });
 
   group('FIFO ordering', () {
-    test('syncs items in createdAt ASC order regardless of insert order', () async {
-      final earlierTime = DateTime(2025, 1, 1, 10, 0);
-      final laterTime = DateTime(2025, 1, 1, 11, 0);
+    test(
+      'syncs items in createdAt ASC order regardless of insert order',
+      () async {
+        final earlierTime = DateTime(2025, 1, 1, 10, 0);
+        final laterTime = DateTime(2025, 1, 1, 11, 0);
 
-      final habitLaterJson = jsonEncode({
-        'id': 'h2',
-        'user_id': 'u1',
-        'title': 'Later',
-        'description': '',
-        'icon': 'icon',
-        'category': 'none',
-        'tracking_type': 'single',
-        'target_value': 1,
-        'initial_date': '2025-01-01',
-      });
+        final habitLaterJson = jsonEncode({
+          'id': 'h2',
+          'user_id': 'u1',
+          'title': 'Later',
+          'description': '',
+          'icon': 'icon',
+          'category': 'none',
+          'tracking_type': 'single',
+          'target_value': 1,
+          'initial_date': '2025-01-01',
+        });
 
-      final habitEarlierJson = jsonEncode({
-        'id': 'h1',
-        'user_id': 'u1',
-        'title': 'Earlier',
-        'description': '',
-        'icon': 'icon',
-        'category': 'none',
-        'tracking_type': 'single',
-        'target_value': 1,
-        'initial_date': '2025-01-01',
-      });
+        final habitEarlierJson = jsonEncode({
+          'id': 'h1',
+          'user_id': 'u1',
+          'title': 'Earlier',
+          'description': '',
+          'icon': 'icon',
+          'category': 'none',
+          'tracking_type': 'single',
+          'target_value': 1,
+          'initial_date': '2025-01-01',
+        });
 
-      // Insert later item first in DB
-      await db.into(db.pendingSyncTable).insert(
-            PendingSyncTableCompanion.insert(
-              entityType: 'habit',
-              entityId: 'h2',
-              actionType: 'create',
-              data: habitLaterJson,
-              createdAt: laterTime.toIso8601String(),
-              retryCount: const Value(0),
-            ),
-          );
+        // Insert later item first in DB
+        await db
+            .into(db.pendingSyncTable)
+            .insert(
+              PendingSyncTableCompanion.insert(
+                entityType: 'habit',
+                entityId: 'h2',
+                actionType: 'create',
+                data: habitLaterJson,
+                createdAt: laterTime.toIso8601String(),
+                retryCount: const Value(0),
+              ),
+            );
 
-      // Insert earlier item second in DB
-      await db.into(db.pendingSyncTable).insert(
-            PendingSyncTableCompanion.insert(
-              entityType: 'habit',
-              entityId: 'h1',
-              actionType: 'create',
-              data: habitEarlierJson,
-              createdAt: earlierTime.toIso8601String(),
-              retryCount: const Value(0),
-            ),
-          );
+        // Insert earlier item second in DB
+        await db
+            .into(db.pendingSyncTable)
+            .insert(
+              PendingSyncTableCompanion.insert(
+                entityType: 'habit',
+                entityId: 'h1',
+                actionType: 'create',
+                data: habitEarlierJson,
+                createdAt: earlierTime.toIso8601String(),
+                retryCount: const Value(0),
+              ),
+            );
 
-      final callOrder = <String>[];
-      when(() => mockRemoteDataSource.createHabit(any())).thenAnswer((inv) async {
-        final habit = inv.positionalArguments[0] as HabitEntity;
-        callOrder.add(habit.id);
-        return habit.id;
-      });
+        final callOrder = <String>[];
+        when(() => mockRemoteDataSource.createHabit(any())).thenAnswer((
+          inv,
+        ) async {
+          final habit = inv.positionalArguments[0] as HabitEntity;
+          callOrder.add(habit.id);
+          return habit.id;
+        });
 
-      await syncService.syncPendingChanges();
+        await syncService.syncPendingChanges();
 
-      expect(callOrder, ['h1', 'h2']);
-    });
+        expect(callOrder, ['h1', 'h2']);
+      },
+    );
   });
 }

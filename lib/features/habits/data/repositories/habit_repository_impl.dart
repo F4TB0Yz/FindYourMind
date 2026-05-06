@@ -361,6 +361,8 @@ class HabitRepositoryImpl implements HabitRepository {
       'category': habit.category.name,
       'tracking_type': habit.trackingType.name,
       'target_value': habit.targetValue,
+      'color': habit.color,
+      'unit': habit.unit,
       'initial_date': habit.initialDate,
       'logs': habit.logs
           .map(

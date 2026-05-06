@@ -24,9 +24,9 @@ void main() {
   group('HabitsRemoteDataSource', () {
     group('createHabit', () {
       test('returns habit id on success', () async {
-        when(() => mockWrapper.insertHabit(any())).thenAnswer(
-          (_) async => {'id': tHabitId},
-        );
+        when(
+          () => mockWrapper.insertHabit(any()),
+        ).thenAnswer((_) async => {'id': tHabitId});
 
         final result = await dataSource.createHabit(tHabitEntity);
         expect(result, tHabitId);
@@ -34,9 +34,9 @@ void main() {
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.insertHabit(any())).thenThrow(
-          FormatException('Invalid data'),
-        );
+        when(
+          () => mockWrapper.insertHabit(any()),
+        ).thenThrow(const FormatException('Invalid data'));
 
         expect(
           () => dataSource.createHabit(tHabitEntity),
@@ -45,9 +45,9 @@ void main() {
       });
 
       test('throws NetworkException on SocketException', () async {
-        when(() => mockWrapper.insertHabit(any())).thenThrow(
-          const SocketException('No internet'),
-        );
+        when(
+          () => mockWrapper.insertHabit(any()),
+        ).thenThrow(const SocketException('No internet'));
 
         expect(
           () => dataSource.createHabit(tHabitEntity),
@@ -58,12 +58,12 @@ void main() {
 
     group('getHabitsByUserId', () {
       test('returns list of habits on success', () async {
-        when(() => mockWrapper.queryHabits(userId: any(named: 'userId'))).thenAnswer(
-          (_) async => [tHabitJson],
-        );
-        when(() => mockWrapper.queryHabitLogs(habitId: any(named: 'habitId'))).thenAnswer(
-          (_) async => [],
-        );
+        when(
+          () => mockWrapper.queryHabits(userId: any(named: 'userId')),
+        ).thenAnswer((_) async => [tHabitJson]);
+        when(
+          () => mockWrapper.queryHabitLogs(habitId: any(named: 'habitId')),
+        ).thenAnswer((_) async => []);
 
         final result = await dataSource.getHabitsByUserId(tUserId);
         expect(result.length, 1);
@@ -71,9 +71,9 @@ void main() {
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.queryHabits(userId: any(named: 'userId'))).thenThrow(
-          FormatException('error'),
-        );
+        when(
+          () => mockWrapper.queryHabits(userId: any(named: 'userId')),
+        ).thenThrow(const FormatException('error'));
 
         expect(
           () => dataSource.getHabitsByUserId(tUserId),
@@ -82,9 +82,9 @@ void main() {
       });
 
       test('throws NetworkException on SocketException', () async {
-        when(() => mockWrapper.queryHabits(userId: any(named: 'userId'))).thenThrow(
-          const SocketException('No internet'),
-        );
+        when(
+          () => mockWrapper.queryHabits(userId: any(named: 'userId')),
+        ).thenThrow(const SocketException('No internet'));
 
         expect(
           () => dataSource.getHabitsByUserId(tUserId),
@@ -95,19 +95,19 @@ void main() {
 
     group('getHabitsByUserIdPaginated', () {
       test('returns paginated habits', () async {
-        when(() => mockWrapper.queryHabits(
-          userId: any(named: 'userId'),
-          limit: any(named: 'limit'),
-          offset: any(named: 'offset'),
-        )).thenAnswer(
-          (_) async => [tHabitJson],
-        );
-        when(() => mockWrapper.queryHabitLogs(
-          habitId: any(named: 'habitId'),
-          limit: any(named: 'limit'),
-        )).thenAnswer(
-          (_) async => [],
-        );
+        when(
+          () => mockWrapper.queryHabits(
+            userId: any(named: 'userId'),
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+          ),
+        ).thenAnswer((_) async => [tHabitJson]);
+        when(
+          () => mockWrapper.queryHabitLogs(
+            habitId: any(named: 'habitId'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenAnswer((_) async => []);
 
         final result = await dataSource.getHabitsByUserIdPaginated(
           userId: tUserId,
@@ -118,11 +118,13 @@ void main() {
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.queryHabits(
-          userId: any(named: 'userId'),
-          limit: any(named: 'limit'),
-          offset: any(named: 'offset'),
-        )).thenThrow(FormatException('error'));
+        when(
+          () => mockWrapper.queryHabits(
+            userId: any(named: 'userId'),
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+          ),
+        ).thenThrow(const FormatException('error'));
 
         expect(
           () => dataSource.getHabitsByUserIdPaginated(userId: tUserId),
@@ -133,16 +135,18 @@ void main() {
 
     group('updateHabit', () {
       test('completes successfully', () async {
-        when(() => mockWrapper.updateHabit(any(), any())).thenAnswer((_) async {});
+        when(
+          () => mockWrapper.updateHabit(any(), any()),
+        ).thenAnswer((_) async {});
 
         await dataSource.updateHabit(tHabitEntity);
         verify(() => mockWrapper.updateHabit(any(), any())).called(1);
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.updateHabit(any(), any())).thenThrow(
-          FormatException('error'),
-        );
+        when(
+          () => mockWrapper.updateHabit(any(), any()),
+        ).thenThrow(const FormatException('error'));
 
         expect(
           () => dataSource.updateHabit(tHabitEntity),
@@ -160,9 +164,9 @@ void main() {
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.deleteHabit(any())).thenThrow(
-          FormatException('error'),
-        );
+        when(
+          () => mockWrapper.deleteHabit(any()),
+        ).thenThrow(const FormatException('error'));
 
         expect(
           () => dataSource.deleteHabit(tHabitId),
@@ -173,24 +177,35 @@ void main() {
 
     group('createHabitLog', () {
       test('returns log id on success', () async {
-        when(() => mockWrapper.queryHabitLogs(
-          habitId: any(named: 'habitId'),
-          date: any(named: 'date'),
-        )).thenAnswer((_) async => []);
-        when(() => mockWrapper.insertHabitLog(any())).thenAnswer(
-          (_) async => {'id': tLogId},
-        );
+        when(
+          () => mockWrapper.queryHabitLogs(
+            habitId: any(named: 'habitId'),
+            date: any(named: 'date'),
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockWrapper.insertHabitLog(any()),
+        ).thenAnswer((_) async => {'id': tLogId});
 
         final result = await dataSource.createHabitLog(tHabitLog);
         expect(result, tLogId);
       });
 
       test('returns existing log id when duplicate exists', () async {
-        when(() => mockWrapper.queryHabitLogs(
-          habitId: any(named: 'habitId'),
-          date: any(named: 'date'),
-        )).thenAnswer(
-          (_) async => [{'id': tLogId, 'habit_id': tHabitId, 'date': '2025-01-20', 'value': 1}],
+        when(
+          () => mockWrapper.queryHabitLogs(
+            habitId: any(named: 'habitId'),
+            date: any(named: 'date'),
+          ),
+        ).thenAnswer(
+          (_) async => [
+            {
+              'id': tLogId,
+              'habit_id': tHabitId,
+              'date': '2025-01-20',
+              'value': 1,
+            },
+          ],
         );
 
         final result = await dataSource.createHabitLog(tHabitLog);
@@ -199,10 +214,12 @@ void main() {
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.queryHabitLogs(
-          habitId: any(named: 'habitId'),
-          date: any(named: 'date'),
-        )).thenThrow(FormatException('error'));
+        when(
+          () => mockWrapper.queryHabitLogs(
+            habitId: any(named: 'habitId'),
+            date: any(named: 'date'),
+          ),
+        ).thenThrow(const FormatException('error'));
 
         expect(
           () => dataSource.createHabitLog(tHabitLog),
@@ -213,20 +230,24 @@ void main() {
 
     group('updateHabitLogValue', () {
       test('completes successfully', () async {
-        when(() => mockWrapper.updateHabitLog(any(), any(), any())).thenAnswer((_) async {});
+        when(
+          () => mockWrapper.updateHabitLog(any(), any(), any()),
+        ).thenAnswer((_) async {});
 
         await dataSource.updateHabitLogValue(
           habitId: tHabitId,
           logId: tLogId,
           value: 5,
         );
-        verify(() => mockWrapper.updateHabitLog(tHabitId, tLogId, {'value': 5})).called(1);
+        verify(
+          () => mockWrapper.updateHabitLog(tHabitId, tLogId, {'value': 5}),
+        ).called(1);
       });
 
       test('throws ServerException on FormatException', () async {
-        when(() => mockWrapper.updateHabitLog(any(), any(), any())).thenThrow(
-          FormatException('error'),
-        );
+        when(
+          () => mockWrapper.updateHabitLog(any(), any(), any()),
+        ).thenThrow(const FormatException('error'));
 
         expect(
           () => dataSource.updateHabitLogValue(

@@ -24,7 +24,7 @@ class HabitSheetTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: GoogleFonts.plusJakartaSans(
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: FontWeight.w400,
           color: colorScheme.onSurfaceVariant,
         ),

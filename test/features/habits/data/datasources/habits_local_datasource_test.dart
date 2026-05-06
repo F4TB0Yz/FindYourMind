@@ -20,7 +20,7 @@ void main() {
     await db.close();
   });
 
-  final tHabit = HabitEntity(
+  const tHabit = HabitEntity(
     id: 'h1',
     userId: 'u1',
     title: 'Test Habit',
@@ -30,15 +30,10 @@ void main() {
     trackingType: HabitTrackingType.single,
     targetValue: 1,
     initialDate: '2026-04-29',
-    logs: const [],
+    logs: [],
   );
 
-  final tLog = HabitLog(
-    id: 'l1',
-    habitId: 'h1',
-    date: '2026-04-29',
-    value: 1,
-  );
+  const tLog = HabitLog(id: 'l1', habitId: 'h1', date: '2026-04-29', value: 1);
 
   group('HabitsLocalDatasourceImpl', () {
     test('createHabit should insert habit into database', () async {
@@ -61,24 +56,27 @@ void main() {
       expect(habits.first.logs.first.id, 'l1');
     });
 
-    test('createHabitLog should not insert duplicate logs for same habit/date', () async {
-      await datasource.createHabit(tHabit);
-      final id1 = await datasource.createHabitLog(tLog);
-      
-      final duplicateLog = HabitLog(
-        id: 'l2',
-        habitId: 'h1',
-        date: '2026-04-29',
-        value: 1,
-      );
-      final id2 = await datasource.createHabitLog(duplicateLog);
+    test(
+      'createHabitLog should not insert duplicate logs for same habit/date',
+      () async {
+        await datasource.createHabit(tHabit);
+        final id1 = await datasource.createHabitLog(tLog);
 
-      expect(id1, 'l1');
-      expect(id2, 'l1'); // Should return existing id
+        const duplicateLog = HabitLog(
+          id: 'l2',
+          habitId: 'h1',
+          date: '2026-04-29',
+          value: 1,
+        );
+        final id2 = await datasource.createHabitLog(duplicateLog);
 
-      final habits = await datasource.getHabitsByUserId('u1');
-      expect(habits.first.logs.length, 1);
-    });
+        expect(id1, 'l1');
+        expect(id2, 'l1'); // Should return existing id
+
+        final habits = await datasource.getHabitsByUserId('u1');
+        expect(habits.first.logs.length, 1);
+      },
+    );
 
     test('updateHabitLogValue should update log', () async {
       await datasource.createHabit(tHabit);
@@ -92,7 +90,7 @@ void main() {
 
       final habits = await datasource.getHabitsByUserId('u1');
       expect(habits.first.logs.first.value, 5);
-      
+
       // No more 'synced' column; ensure value updated
     });
 
@@ -120,9 +118,7 @@ void main() {
       expect(habits.length, 1);
       expect(habits.first.logs.length, 1);
 
-      final habitRow = await db.select(db.habitsTable).getSingle();
       // No 'synced' column to assert on
-      final logRow = await db.select(db.habitLogsTable).getSingle();
       // No 'synced' column to assert on
     });
   });

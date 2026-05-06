@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:find_your_mind/core/utils/app_logger.dart';
@@ -29,6 +28,8 @@ class HabitsTable extends Table {
       text().named('tracking_type').withDefault(const Constant('single'))();
   IntColumn get targetValue =>
       integer().named('target_value').withDefault(const Constant(1))();
+  TextColumn get color => text().withDefault(const Constant('random'))();
+  TextColumn get unit => text().nullable()();
   TextColumn get initialDate => text().named('initial_date')();
   TextColumn get createdAt => text().named('created_at')();
   TextColumn get updatedAt => text().named('updated_at')();
@@ -53,8 +54,8 @@ class HabitLogsTable extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {habitId, date},
-      ];
+    {habitId, date},
+  ];
 }
 
 class PendingSyncTable extends Table {
@@ -83,7 +84,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @visibleForTesting
-  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
+  AppDatabase.forTesting(super.executor);
 
   factory AppDatabase() {
     _instance ??= AppDatabase._internal();
@@ -91,28 +92,33 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-          await _createIndexes();
-          AppLogger.i('✅ [DB] AppDatabase inicializada');
-        },
-        onUpgrade: (m, from, to) async {
-          // Phase 5: remove 'synced' column (from v2 to v3)
-          if (from < 3) {
-            // Drop the now-unused column from both tables
-            await customStatement('ALTER TABLE habits DROP COLUMN synced');
-            await customStatement('ALTER TABLE habit_logs DROP COLUMN synced');
-            await _createIndexes();
-          }
-        },
-        beforeOpen: (_) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (m) async {
+      await m.createAll();
+      await _createIndexes();
+      AppLogger.i('✅ [DB] AppDatabase inicializada');
+    },
+    onUpgrade: (m, from, to) async {
+      // Phase 5: remove 'synced' column (from v2 to v3)
+      if (from < 3) {
+        // Drop the now-unused column from both tables
+        await customStatement('ALTER TABLE habits DROP COLUMN synced');
+        await customStatement('ALTER TABLE habit_logs DROP COLUMN synced');
+        await _createIndexes();
+      }
+
+      if (from < 4) {
+        await m.addColumn(habitsTable, habitsTable.color);
+        await m.addColumn(habitsTable, habitsTable.unit);
+      }
+    },
+    beforeOpen: (_) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 
   Future<void> _createIndexes() async {
     await customStatement(
@@ -138,20 +144,6 @@ class AppDatabase extends _$AppDatabase {
     await delete(habitLogsTable).go();
     await delete(habitsTable).go();
     AppLogger.i('✅ [DB] Tablas limpiadas');
-  }
-
-  Future<void> _recreateAllTables(Migrator migrator) async {
-    await customStatement('DROP TABLE IF EXISTS pending_sync');
-    await customStatement('DROP TABLE IF EXISTS habit_logs');
-    await customStatement('DROP TABLE IF EXISTS habit_progress');
-    await customStatement('DROP TABLE IF EXISTS habits');
-    await customStatement('DROP INDEX IF EXISTS idx_habits_user_initial_date');
-    await customStatement('DROP INDEX IF EXISTS idx_habit_logs_habit_id');
-    await customStatement('DROP INDEX IF EXISTS idx_habit_logs_date');
-    await customStatement('DROP INDEX IF EXISTS idx_habit_progress_habit_id');
-    await customStatement('DROP INDEX IF EXISTS idx_habit_progress_date');
-    await customStatement('DROP INDEX IF EXISTS idx_pending_sync_entity');
-    await migrator.createAll();
   }
 
   Future<void> deleteDatabaseFile() async {

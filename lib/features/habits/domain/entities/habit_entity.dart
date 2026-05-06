@@ -13,6 +13,8 @@ class HabitEntity extends Equatable {
   final HabitTrackingType trackingType;
   final int targetValue;
   final String initialDate;
+  final String color;
+  final String? unit;
   final List<HabitLog> logs;
 
   const HabitEntity({
@@ -25,6 +27,8 @@ class HabitEntity extends Equatable {
     required this.trackingType,
     required this.targetValue,
     required this.initialDate,
+    this.color = 'random',
+    this.unit,
     required this.logs,
   });
 
@@ -38,6 +42,8 @@ class HabitEntity extends Equatable {
     HabitTrackingType? trackingType,
     int? targetValue,
     String? initialDate,
+    String? color,
+    String? unit,
     List<HabitLog>? logs,
   }) {
     return HabitEntity(
@@ -50,6 +56,8 @@ class HabitEntity extends Equatable {
       trackingType: trackingType ?? this.trackingType,
       targetValue: targetValue ?? this.targetValue,
       initialDate: initialDate ?? this.initialDate,
+      color: color ?? this.color,
+      unit: unit ?? this.unit,
       logs: logs ?? this.logs,
     );
   }
@@ -252,6 +260,8 @@ class HabitEntity extends Equatable {
     trackingType,
     targetValue,
     initialDate,
+    color,
+    unit,
     logs,
   ];
 }

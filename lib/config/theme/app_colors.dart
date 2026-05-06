@@ -34,17 +34,35 @@ abstract class AppColors {
     return isDark ? const Color(0xFF0D2027) : const Color(0xFFCBEBED);
   }
 
-  static const List<Color> _habitCardPalette = [
-    Color(0xFFDFFECF),
-    Color(0xFFD6F5FF),
-    Color(0xFFE8D8FF),
-    Color(0xFFFFE4CC),
-    Color(0xFFFFD9E6),
+  static const List<Color> habitCardPalette = [
+    Color(0xFFDFFECF), // Menta suave
+    Color(0xFFD6F5FF), // Azul cielo
+    Color(0xFFE8D8FF), // Lavanda
+    Color(0xFFFFE4CC), // Melocotón
+    Color(0xFFFFD9E6), // Rosa pastel
+    Color(0xFFFFF7CC), // Amarillo crema
+    Color(0xFFD1FAE5), // Esmeralda suave
+    Color(0xFFCFFAFE), // Cian claro
+    Color(0xFFFEE2E2), // Rojo suave
+    Color(0xFFF5F3FF), // Violeta muy claro
   ];
 
   static Color habitCardColor(String habitId) {
     final index = habitId.codeUnits.fold<int>(0, (sum, code) => sum + code);
-    return _habitCardPalette[index % _habitCardPalette.length];
+    return habitCardPalette[index % habitCardPalette.length];
+  }
+
+  static Color habitCardColorFromHex(String hex) {
+    if (hex == 'random') return habitCardPalette[0]; // Fallback
+    try {
+      final String cleanHex = hex.replaceFirst('#', '').replaceFirst('0x', '');
+      if (cleanHex.length == 6) {
+        return Color(int.parse('FF$cleanHex', radix: 16));
+      }
+      return Color(int.parse(cleanHex, radix: 16));
+    } catch (_) {
+      return habitCardPalette[0];
+    }
   }
 }
 

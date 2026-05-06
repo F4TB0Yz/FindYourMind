@@ -36,7 +36,9 @@ class HabitCardWrapper extends StatelessWidget {
     final shouldFade = isCompleting && activeFilter == HabitFilter.incompletos;
     final shouldSlideBack = isUncompleting && activeFilter == HabitFilter.completados;
 
-    final color = AppColors.habitCardColor(habit.id);
+    final color = habit.color == 'random'
+        ? AppColors.habitCardColor(habit.id)
+        : AppColors.habitCardColorFromHex(habit.color);
     final card = switch (habit.trackingType) {
       HabitTrackingType.single => OneTimeHabitItemCard(
         habit: habit,

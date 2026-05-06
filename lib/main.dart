@@ -11,6 +11,7 @@ import 'package:find_your_mind/features/habits/presentation/providers/new_habit_
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -261,6 +262,16 @@ class _MainAppState extends State<MainApp> {
 
     return MaterialApp.router(
       routerConfig: AppRouter.router,
+      locale: const Locale('es'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es'),
+        Locale('en'),
+      ],
       theme: AppTheme.getAppTheme(isDark: false),
       darkTheme: AppTheme.getAppTheme(isDark: true),
       themeMode: themeProvider.themeMode,

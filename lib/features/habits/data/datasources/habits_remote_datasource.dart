@@ -81,6 +81,8 @@ class HabitsRemoteDataSourceImpl implements HabitsRemoteDataSource {
           habit.trackingType,
         ),
         'target_value': habit.targetValue,
+        'color': habit.color,
+        'unit': habit.unit,
         'updated_at': DateTime.now().toIso8601String(),
       });
     } on FormatException catch (e) {

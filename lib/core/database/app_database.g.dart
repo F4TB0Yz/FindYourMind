@@ -92,6 +92,25 @@ class $HabitsTableTable extends HabitsTable
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('random'),
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _initialDateMeta = const VerificationMeta(
     'initialDate',
   );
@@ -135,6 +154,8 @@ class $HabitsTableTable extends HabitsTable
     category,
     trackingType,
     targetValue,
+    color,
+    unit,
     initialDate,
     createdAt,
     updatedAt,
@@ -215,6 +236,18 @@ class $HabitsTableTable extends HabitsTable
         ),
       );
     }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
     if (data.containsKey('initial_date')) {
       context.handle(
         _initialDateMeta,
@@ -283,6 +316,14 @@ class $HabitsTableTable extends HabitsTable
         DriftSqlType.int,
         data['${effectivePrefix}target_value'],
       )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      ),
       initialDate: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}initial_date'],
@@ -313,6 +354,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
   final String category;
   final String trackingType;
   final int targetValue;
+  final String color;
+  final String? unit;
   final String initialDate;
   final String createdAt;
   final String updatedAt;
@@ -325,6 +368,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     required this.category,
     required this.trackingType,
     required this.targetValue,
+    required this.color,
+    this.unit,
     required this.initialDate,
     required this.createdAt,
     required this.updatedAt,
@@ -340,6 +385,10 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     map['category'] = Variable<String>(category);
     map['tracking_type'] = Variable<String>(trackingType);
     map['target_value'] = Variable<int>(targetValue);
+    map['color'] = Variable<String>(color);
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
     map['initial_date'] = Variable<String>(initialDate);
     map['created_at'] = Variable<String>(createdAt);
     map['updated_at'] = Variable<String>(updatedAt);
@@ -356,6 +405,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       category: Value(category),
       trackingType: Value(trackingType),
       targetValue: Value(targetValue),
+      color: Value(color),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
       initialDate: Value(initialDate),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -376,6 +427,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       category: serializer.fromJson<String>(json['category']),
       trackingType: serializer.fromJson<String>(json['trackingType']),
       targetValue: serializer.fromJson<int>(json['targetValue']),
+      color: serializer.fromJson<String>(json['color']),
+      unit: serializer.fromJson<String?>(json['unit']),
       initialDate: serializer.fromJson<String>(json['initialDate']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
@@ -393,6 +446,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       'category': serializer.toJson<String>(category),
       'trackingType': serializer.toJson<String>(trackingType),
       'targetValue': serializer.toJson<int>(targetValue),
+      'color': serializer.toJson<String>(color),
+      'unit': serializer.toJson<String?>(unit),
       'initialDate': serializer.toJson<String>(initialDate),
       'createdAt': serializer.toJson<String>(createdAt),
       'updatedAt': serializer.toJson<String>(updatedAt),
@@ -408,6 +463,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     String? category,
     String? trackingType,
     int? targetValue,
+    String? color,
+    Value<String?> unit = const Value.absent(),
     String? initialDate,
     String? createdAt,
     String? updatedAt,
@@ -420,6 +477,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     category: category ?? this.category,
     trackingType: trackingType ?? this.trackingType,
     targetValue: targetValue ?? this.targetValue,
+    color: color ?? this.color,
+    unit: unit.present ? unit.value : this.unit,
     initialDate: initialDate ?? this.initialDate,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -440,6 +499,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
       targetValue: data.targetValue.present
           ? data.targetValue.value
           : this.targetValue,
+      color: data.color.present ? data.color.value : this.color,
+      unit: data.unit.present ? data.unit.value : this.unit,
       initialDate: data.initialDate.present
           ? data.initialDate.value
           : this.initialDate,
@@ -459,6 +520,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           ..write('category: $category, ')
           ..write('trackingType: $trackingType, ')
           ..write('targetValue: $targetValue, ')
+          ..write('color: $color, ')
+          ..write('unit: $unit, ')
           ..write('initialDate: $initialDate, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -476,6 +539,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
     category,
     trackingType,
     targetValue,
+    color,
+    unit,
     initialDate,
     createdAt,
     updatedAt,
@@ -492,6 +557,8 @@ class HabitsTableData extends DataClass implements Insertable<HabitsTableData> {
           other.category == this.category &&
           other.trackingType == this.trackingType &&
           other.targetValue == this.targetValue &&
+          other.color == this.color &&
+          other.unit == this.unit &&
           other.initialDate == this.initialDate &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -506,6 +573,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
   final Value<String> category;
   final Value<String> trackingType;
   final Value<int> targetValue;
+  final Value<String> color;
+  final Value<String?> unit;
   final Value<String> initialDate;
   final Value<String> createdAt;
   final Value<String> updatedAt;
@@ -519,6 +588,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     this.category = const Value.absent(),
     this.trackingType = const Value.absent(),
     this.targetValue = const Value.absent(),
+    this.color = const Value.absent(),
+    this.unit = const Value.absent(),
     this.initialDate = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -533,6 +604,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     this.category = const Value.absent(),
     this.trackingType = const Value.absent(),
     this.targetValue = const Value.absent(),
+    this.color = const Value.absent(),
+    this.unit = const Value.absent(),
     required String initialDate,
     required String createdAt,
     required String updatedAt,
@@ -554,6 +627,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     Expression<String>? category,
     Expression<String>? trackingType,
     Expression<int>? targetValue,
+    Expression<String>? color,
+    Expression<String>? unit,
     Expression<String>? initialDate,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
@@ -568,6 +643,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
       if (category != null) 'category': category,
       if (trackingType != null) 'tracking_type': trackingType,
       if (targetValue != null) 'target_value': targetValue,
+      if (color != null) 'color': color,
+      if (unit != null) 'unit': unit,
       if (initialDate != null) 'initial_date': initialDate,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -584,6 +661,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     Value<String>? category,
     Value<String>? trackingType,
     Value<int>? targetValue,
+    Value<String>? color,
+    Value<String?>? unit,
     Value<String>? initialDate,
     Value<String>? createdAt,
     Value<String>? updatedAt,
@@ -598,6 +677,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
       category: category ?? this.category,
       trackingType: trackingType ?? this.trackingType,
       targetValue: targetValue ?? this.targetValue,
+      color: color ?? this.color,
+      unit: unit ?? this.unit,
       initialDate: initialDate ?? this.initialDate,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -632,6 +713,12 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
     if (targetValue.present) {
       map['target_value'] = Variable<int>(targetValue.value);
     }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
     if (initialDate.present) {
       map['initial_date'] = Variable<String>(initialDate.value);
     }
@@ -658,6 +745,8 @@ class HabitsTableCompanion extends UpdateCompanion<HabitsTableData> {
           ..write('category: $category, ')
           ..write('trackingType: $trackingType, ')
           ..write('targetValue: $targetValue, ')
+          ..write('color: $color, ')
+          ..write('unit: $unit, ')
           ..write('initialDate: $initialDate, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -1475,6 +1564,8 @@ typedef $$HabitsTableTableCreateCompanionBuilder =
       Value<String> category,
       Value<String> trackingType,
       Value<int> targetValue,
+      Value<String> color,
+      Value<String?> unit,
       required String initialDate,
       required String createdAt,
       required String updatedAt,
@@ -1490,6 +1581,8 @@ typedef $$HabitsTableTableUpdateCompanionBuilder =
       Value<String> category,
       Value<String> trackingType,
       Value<int> targetValue,
+      Value<String> color,
+      Value<String?> unit,
       Value<String> initialDate,
       Value<String> createdAt,
       Value<String> updatedAt,
@@ -1568,6 +1661,16 @@ class $$HabitsTableTableFilterComposer
 
   ColumnFilters<int> get targetValue => $composableBuilder(
     column: $table.targetValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1661,6 +1764,16 @@ class $$HabitsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get initialDate => $composableBuilder(
     column: $table.initialDate,
     builder: (column) => ColumnOrderings(column),
@@ -1715,6 +1828,12 @@ class $$HabitsTableTableAnnotationComposer
     column: $table.targetValue,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
 
   GeneratedColumn<String> get initialDate => $composableBuilder(
     column: $table.initialDate,
@@ -1789,6 +1908,8 @@ class $$HabitsTableTableTableManager
                 Value<String> category = const Value.absent(),
                 Value<String> trackingType = const Value.absent(),
                 Value<int> targetValue = const Value.absent(),
+                Value<String> color = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
                 Value<String> initialDate = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
                 Value<String> updatedAt = const Value.absent(),
@@ -1802,6 +1923,8 @@ class $$HabitsTableTableTableManager
                 category: category,
                 trackingType: trackingType,
                 targetValue: targetValue,
+                color: color,
+                unit: unit,
                 initialDate: initialDate,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -1817,6 +1940,8 @@ class $$HabitsTableTableTableManager
                 Value<String> category = const Value.absent(),
                 Value<String> trackingType = const Value.absent(),
                 Value<int> targetValue = const Value.absent(),
+                Value<String> color = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
                 required String initialDate,
                 required String createdAt,
                 required String updatedAt,
@@ -1830,6 +1955,8 @@ class $$HabitsTableTableTableManager
                 category: category,
                 trackingType: trackingType,
                 targetValue: targetValue,
+                color: color,
+                unit: unit,
                 initialDate: initialDate,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

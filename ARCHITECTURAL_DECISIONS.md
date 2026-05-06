@@ -199,9 +199,31 @@ Migrations:
 - Decisión: Eliminar 'synced' de HabitsTable y HabitLogsTable, migrar a schemaVersion 3, regenerar Drift, y actualizar tests. Documentar en ADR-009.
 - Consecuencias: Menor superficie de mantenimiento; tests actualizados; migración DB necesaria; ADR registrado.
 - Verificación: build, analyze y tests; revisar la ausencia de referencias a 'synced'.
+### ADR-010: Extensión de Hábitos con Color y Unidad
+
+**Estado**: PROPUESTO
+
+**Decisión**: Agregar campos `color` y `unit` a la entidad `HabitEntity` y tablas correspondientes.
+
+**Razones**:
+- Personalización visual: Los usuarios identifican hábitos por color.
+- Claridad en el tracking: El tipo "Contador" necesita una unidad (ej. vasos, km) para mostrarse correctamente en la UI.
+- Consistencia con el rediseño de la pantalla de hábitos.
+
+**Implementación**:
+- `HabitEntity`: `color` (String, default 'random'), `unit` (String?, opcional).
+- SQLite: `schemaVersion = 4`. Columnas `color` (NOT NULL DEFAULT 'random') y `unit` (NULLABLE).
+- Supabase: Migración para agregar las mismas columnas.
+
+**SQL Supabase**:
+```sql
+ALTER TABLE habits ADD COLUMN color TEXT NOT NULL DEFAULT 'random';
+ALTER TABLE habits ADD COLUMN unit TEXT;
+```
+
+---
 
 ## Convenciones de Nomenclatura
-
 ### Archivos (snake_case)
 ```
 habit_entity.dart

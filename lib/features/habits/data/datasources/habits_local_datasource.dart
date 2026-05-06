@@ -207,6 +207,8 @@ class HabitsLocalDatasourceImpl implements HabitsLocalDatasource {
             HabitTrackingTypeModel.toStringValue(habit.trackingType),
           ),
           targetValue: Value(habit.targetValue),
+          color: Value(habit.color),
+          unit: Value(habit.unit),
           updatedAt: Value(DateTime.now().toIso8601String()),
         ),
       );

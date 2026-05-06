@@ -1,7 +1,7 @@
 name: find_your_mind
-description: "A new Flutter project."
+description: "Find Your Mind es una aplicación de gestión de hábitos que te ayuda a crear, seguir y mantener tus hábitos diarios. Con una interfaz intuitiva y características personalizables, Find Your Mind te permite establecer metas, recibir recordatorios y visualizar tu progreso a lo largo del tiempo. Ya sea que quieras mejorar tu salud, aumentar tu productividad o simplemente mantener un estilo de vida más organizado, Find Your Mind es la herramienta perfecta para ayudarte a alcanzar tus objetivos."
 publish_to: 'none'
-version: 0.1.0
+version: 0.4.0
 
 environment:
   sdk: ^3.8.1
@@ -11,6 +11,8 @@ dependencies:
   drift: ^2.23.0
   equatable: ^2.0.7
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   flutter_dotenv: 6.0.0
   flutter_lints: 6.0.0

@@ -180,6 +180,10 @@ class _NewHabitScreenState extends State<NewHabitScreen> {
       title: newHabitProvider.titleController.text,
       description: newHabitProvider.descriptionController.text,
       icon: newHabitProvider.selectedIcon,
+      color: newHabitProvider.selectedColor,
+      unit: newHabitProvider.unitController.text.isNotEmpty
+          ? newHabitProvider.unitController.text
+          : null,
       category: newHabitProvider.selectedCategory,
       trackingType: newHabitProvider.trackingType,
       targetValue: newHabitProvider.targetValue,
