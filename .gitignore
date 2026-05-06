@@ -49,5 +49,9 @@ app.*.map.json
 .env.*
 !.env.example
 
+# IA generated files
+.gemini/
+.claude/
+
 # graphify
 graphify-out/
