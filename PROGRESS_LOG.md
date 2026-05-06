@@ -18,6 +18,10 @@ Tipos válidos: `Feature`, `Bugfix`, `Refactor`, `Infra`, `Test`, `Docs`
 
 ---
 
+[2026-05-05] - Refactor: SDD Habits Module Full Stack Refactor v2 — filter state a provider, color determinístico via AppColors, widgets extraídos, disposed guard, lazy cache — Archivos: `lib/config/theme/app_colors.dart`, `lib/features/habits/presentation/providers/habits_provider.dart`, `lib/features/habits/presentation/widgets/habits/*.dart`, `lib/features/habits/presentation/screens/habits_redesign_screen.dart`
+
+---
+
 [2026-04-29] - Feature: Migración de hábitos a tracking unificado, nueva iconografía y robustez de sync — Archivos: `lib/core/database/app_database.dart`, `lib/core/services/sync_service.dart`, `lib/features/habits/*`, `lib/shared/presentation/widgets/*`, `pubspec.yaml`, `test/core/services/sync_service_test.dart`, `test/features/habits/data/datasources/habits_local_datasource_test.dart`
 
 ---

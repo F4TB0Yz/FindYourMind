@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:find_your_mind/config/theme/app_colors.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'card_header.dart';
 import 'complete_button.dart';
 import 'expanded_section.dart';
 
 class OneTimeHabitItemCard extends StatefulWidget {
   const OneTimeHabitItemCard({
+    required this.habit,
     required this.icon,
     required this.title,
     required this.description,
-    required this.streakDays,
-    required this.isCompleted,
     required this.isExpanded,
     required this.onExpandTap,
     this.cardColor,
@@ -23,8 +23,7 @@ class OneTimeHabitItemCard extends StatefulWidget {
   final String icon;
   final String title;
   final String description;
-  final int streakDays;
-  final bool isCompleted;
+  final HabitEntity habit;
   final bool isExpanded;
   final VoidCallback onExpandTap;
   final Color? cardColor;
@@ -132,14 +131,14 @@ class _OneTimeHabitItemCardState extends State<OneTimeHabitItemCard> {
                         resolvedEmoji: resolvedEmoji,
                         title: widget.title,
                         description: widget.description,
-                        streakDays: widget.streakDays,
+                        streakDays: widget.habit.streak,
                         isExpanded: widget.isExpanded,
                         emojiBoxColor: emojiBoxColor,
                       ),
                       const SizedBox(height: 12),
                       CompleteButton(
                         onMarkCompletedTap: widget.onMarkCompletedTap,
-                        isCompleted: widget.isCompleted,
+                        isCompleted: widget.habit.isCompletedToday,
                         resolvedCardColor: resolvedCardColor,
                         cardBorderColor: cardBorderColor,
                         cardFillColor: cardFillColor,
@@ -152,6 +151,7 @@ class _OneTimeHabitItemCardState extends State<OneTimeHabitItemCard> {
                 ),
                 ExpandedSection(
                   isExpanded: widget.isExpanded,
+                  habit: widget.habit,
                   cardFillColor: cardFillColor,
                   expandedSectionFillColor: expandedSectionFillColor,
                 ),

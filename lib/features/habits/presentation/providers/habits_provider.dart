@@ -14,6 +14,8 @@ import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart'
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+enum HabitFilter { todos, completados, incompletos }
+
 class HabitsProvider extends ChangeNotifier {
   final CreateHabitUseCase _createHabitUseCase;
   final UpdateHabitUseCase _updateHabitUseCase;
@@ -33,6 +35,12 @@ class HabitsProvider extends ChangeNotifier {
   Future<void>? _activeLoadFuture;
   final Map<String, Future<void>> _ongoingDbOperations = {};
   SyncProvider? _syncProvider;
+  HabitFilter _activeFilter = HabitFilter.incompletos;
+  final Set<String> _completingIds = {};
+  final Set<String> _uncompletingIds = {};
+  String? _expandedHabitId;
+  bool _disposed = false;
+  Set<String>? _cachedVisibleIds;
 
   static const int _pageSize = 10;
 
@@ -50,6 +58,12 @@ class HabitsProvider extends ChangeNotifier {
        _getCurrentUserUseCase = getCurrentUserUseCase,
        _repository = repository;
 
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   String get titleScreen => _titleScreen;
   String? get lastError => _lastError;
   DateTime? get lastErrorTime => _lastErrorTime;
@@ -58,6 +72,71 @@ class HabitsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get hasMore => _hasMore;
   bool get hasError => _lastError != null;
+
+  HabitFilter get activeFilter => _activeFilter;
+  String? get expandedHabitId => _expandedHabitId;
+
+  bool isCompletingAnimation(String habitId) => _completingIds.contains(habitId);
+  bool isUncompletingAnimation(String habitId) => _uncompletingIds.contains(habitId);
+
+  bool isHabitVisible(String habitId) => _visibleIds.contains(habitId);
+
+  int get visibleHabitCount => _visibleIds.length;
+
+  void _invalidateVisibleIds() {
+    _cachedVisibleIds = null;
+  }
+
+  Set<String> get _visibleIds {
+    return _cachedVisibleIds ??= _habits.where((h) {
+      if (_completingIds.contains(h.id)) return true;
+      if (_uncompletingIds.contains(h.id)) return true;
+      switch (_activeFilter) {
+        case HabitFilter.completados:
+          return h.isCompletedToday;
+        case HabitFilter.incompletos:
+          return !h.isCompletedToday;
+        case HabitFilter.todos:
+          return true;
+      }
+    }).map((h) => h.id).toSet();
+  }
+
+  void setFilter(HabitFilter filter) {
+    if (_activeFilter == filter) return;
+    _activeFilter = filter;
+    _invalidateVisibleIds();
+    notifyListeners();
+  }
+
+  void toggleExpanded(String habitId) {
+    _expandedHabitId = _expandedHabitId == habitId ? null : habitId;
+    notifyListeners();
+  }
+
+  void triggerCompletionAnimation(String habitId) {
+    _completingIds.add(habitId);
+    _invalidateVisibleIds();
+    notifyListeners();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (_disposed) return;
+      _completingIds.remove(habitId);
+      _invalidateVisibleIds();
+      notifyListeners();
+    });
+  }
+
+  void triggerUncompletionAnimation(String habitId) {
+    _uncompletingIds.add(habitId);
+    _invalidateVisibleIds();
+    notifyListeners();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (_disposed) return;
+      _uncompletingIds.remove(habitId);
+      _invalidateVisibleIds();
+      notifyListeners();
+    });
+  }
 
   Future<String?> getUserId() async {
     try {
@@ -203,6 +282,7 @@ class HabitsProvider extends ChangeNotifier {
       _habits
         ..clear()
         ..addAll(updatedHabits);
+      _invalidateVisibleIds();
       notifyListeners();
     } catch (e) {
       AppLogger.w('Error al refrescar desde SQLite', error: e);
@@ -275,6 +355,7 @@ class HabitsProvider extends ChangeNotifier {
 
         _hasMore = habits.length == _pageSize;
         _currentPage = 1;
+        _invalidateVisibleIds();
       } catch (e) {
         _setError('Error al cargar los hábitos: ${e.toString()}');
       } finally {
@@ -343,6 +424,7 @@ class HabitsProvider extends ChangeNotifier {
       _habits[habitIndex] = existingHabit.copyWith(logs: updatedLogs);
     }
 
+    _invalidateVisibleIds();
     notifyListeners();
   }
 

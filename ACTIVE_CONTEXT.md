@@ -2,23 +2,23 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-04-29 — Fase 1 (SQL v2) + Fase 2 (Tests) + Mocking Wrapper completados_
+_Última actualización: 2026-05-05 — CreateHabitSheet refactorizado a Clean Architecture + Performance_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: Persistencia Remota + Test Infrastructure + Mocking Wrapper.
+**Feature/Tarea**: CreateHabitSheet refactor — Clean Architecture + Performance.
 
-**Descripción**: 
-- SQLs actualizados: schema v2 sin `synced`, RLS habilitado (fix: `user_id::uuid = auth.uid()`), migrations/rollback creados, function con user_id filter.
-- Fixtures/mocks centralizados en `test/fixtures/`.
-- Tests repository impl (27 tests) pasando.
-- Tests remote datasource (17 tests) pasando con wrapper abstraction.
-- ADR-008 documentado.
-- `SupabaseClientWrapper` creado - abstracción para testing sin acoplamiento a postgREST.
+**Descripción**:
+- `CreateHabitSheet` extraído a carpeta dedicada `create_habit_sheet/` con 6 widgets independientes.
+- Conexión a `NewHabitProvider` (remove estado duplicado: controllers, tracking type).
+- `TrackingTypeOptionCard` usa `context.select` para rebuild granular.
+- `HabitSheetTextField` unifica campos nombre/descripción (elimina ~60 líneas duplicadas).
+- `const` constructores en todos los widgets.
+- Zero info/warnings en `lib/`.
 
-**Estado**: ✅ Completo.
+**Estado**: ✅ Completado y validado con `flutter analyze` (0 errors en lib/).
 
 ---
 
@@ -27,23 +27,32 @@ _Última actualización: 2026-04-29 — Fase 1 (SQL v2) + Fase 2 (Tests) + Mocki
 | Feature | Capa Domain | Capa Data | Capa Presentation | Tests |
 |---|---|---|---|---|
 | **Auth** | ✅ Completo | ✅ Completo | ✅ Completo | ✅ UseCases cubiertos |
-| **Habits** | ✅ Completo | ✅ Completo | ✅ Completo | ✅ LocalDS + Provider + Sync |
+| **Habits** | ✅ Completo | ✅ Completo | ✅ Refactorizado | ✅ Tests existentes OK |
 | **Notes** | ❌ No implementado | ❌ No implementado | 🚧 Placeholder (SoonWidget) | ❌ Sin tests |
 | **Tasks** | ❌ No implementado | ❌ No implementado | 🚧 Placeholder (SoonWidget) | ❌ Sin tests |
 | **Profile** | ❌ No implementado | ❌ No implementado | 🚧 Placeholder (SoonWidget) | ❌ Sin tests |
 
 ---
 
-## Bloqueos Activos (Blockers)
+## Archivos Modificados/Creados (CreateHabitSheet Refactor)
 
-_Ninguno conocido al momento de inicialización._
+| Archivo | Acción |
+|---|---|
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/` | Carpeta nueva |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/create_habit_sheet.dart` | Nuevo — orquestador con Provider |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/habit_sheet_title.dart` | Nuevo — título "Nuevo hábito" |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/name_description_toggle.dart` | Nuevo — control segmentado |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/habit_sheet_text_field.dart` | Nuevo — TextField reutilizable |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/tracking_type_option_card.dart` | Nuevo — card animada con Selector |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/sheet_tracking_type_row.dart` | Nuevo — fila de 3 opciones |
+| `lib/features/habits/presentation/widgets/habits/create_habit_sheet.dart` | Eliminado (monolítico, 351 líneas) |
+| `lib/features/habits/presentation/widgets/habits/create_habit_button.dart` | Modificado — import actualizado |
 
 ---
 
 ## Decisiones Pendientes
 
-- [x] ✅ Definir política de retry en `SyncService` (Max 5 reintentos).
-- [x] ✅ Migrar queries de `sqflite` a `drift` puro — Completado 2026-04-24.
+- [x] ✅ SDD Habits Module Full Stack Refactor v2 aplicado.
 - [ ] Evaluar implementación de `home_widget`.
 - [ ] Definir diseño de features Notes y Tasks.
 
@@ -51,34 +60,22 @@ _Ninguno conocido al momento de inicialización._
 
 ## Próximos Pasos (Next Actions)
 
- Ordenados por prioridad:
-
- 1. **UX detail/edit**: Afinar edición por tipo (`single` fija meta, `timed` quizá input de minutos más rico).
- 2. **Implementar feature Notes o Tasks**: Elegir una para próximo sprint.
- 3. **Evaluar implementación de `home_widget`**.
- 4. **Definir diseño de features Notes y Tasks**.
+1. **Implementar feature Notes o Tasks**: Elegir una para próximo sprint.
+2. **Evaluar implementación de `home_widget`**.
+3. **Definir diseño de features Notes y Tasks**.
+4. **Correr tests**: `flutter test` para validar todo sigue funcionando.
 
 ---
 
 ## Contexto Técnico Activo
 
- - **Branch actual**: `main`
- - **Cambio en sesión**:
-   - SQL: `init.sql`, `tables/habits.sql`, `tables/habit_logs.sql`, `functions/get_habits_with_logs.sql`, `migrations/v1_to_v2_migration.sql`, `migrations/v2_rollback.sql`
-   - Docs: `ARCHITECTURAL_DECISIONS.md` (ADR-008)
-   - Fixtures: `test/fixtures/habit_fixtures.dart`, `test/fixtures/mocks.dart`
-   - Tests: `habits_remote_datasource_test.dart` (rewrite con wrapper), `habit_repository_impl_test.dart` (new - 27 tests), `sync_service_test.dart` (expanded)
-   - **NEW**: `lib/core/network/supabase_client_wrapper.dart` (abstracción para testing)
+- **Branch actual**: `main`
+- **Cambio en sesión**: SDD v2 implementado — 10 archivos modificados/creados.
+- **Validación**: `flutter analyze` sin errors en lib/.
 
 ---
 
 ## Notas de Sesión
 
- - **Sesión 2026-04-29**: Fase 1 (SQL) + Fase 2 (Tests). Schema v2 sin synced, RLS, migrations. Repository tests (27) pasando, sync tests (14/17) con 3 failures menores en nuevos grupos (markPendingSync upsert, dependency chain).
- - **Sesión 2026-04-29b**: Abstracción `SupabaseClientWrapper` creada. Tests remote datasource (17/17) pasando. decoupling de postgREST.
-
----
-## Notas de Actualización
-- ADR-009 documentado para justificar la eliminación de la columna 'synced' y migración a schema v3.
-- Archivos actualizados: `lib/core/database/app_database.dart`, `lib/core/services/sync_service.dart`, `lib/features/habits/data/datasources/habits_local_datasource.dart`, `ADR-009.md`, `ARCHITECTURAL_DECISIONS.md`.
-- Próximo paso: ejecutar build y tests; revisar referencias a 'synced'.
+- **2026-05-05 (Sesión 1)**: SDD Habits Full Stack Refactor v2 aplicado. 6 defectos corregidos (C1-C6). `flutter analyze` limpio.
+- **2026-05-05 (Sesión 2)**: CreateHabitSheet refactorizado — 351 líneas monolíticas → 6 widgets en carpeta dedicada. Conectado a `NewHabitProvider` (elimina estado duplicado). `context.select` en TrackingTypeOptionCard para rebuilds granulares. `const` constructores en todos los widgets. `flutter analyze` 0 issues en lib/.

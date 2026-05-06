@@ -142,6 +142,72 @@ class HabitEntity extends Equatable {
 
   bool get isCompletedToday => todayValue >= targetValue;
 
+  int get completedDaysCount {
+    final completedDates = <String>{};
+
+    for (final log in logs) {
+      if (log.value >= targetValue) {
+        completedDates.add(log.date.substring(0, 10));
+      }
+    }
+
+    return completedDates.length;
+  }
+
+  double get completionRate {
+    final totalDays = daysSinceStart + 1;
+
+    if (totalDays <= 0) {
+      return 0;
+    }
+
+    return completedDaysCount / totalDays * 100;
+  }
+
+  int get longestStreak {
+    if (logs.isEmpty) {
+      return 0;
+    }
+
+    final completedDates = <DateTime>{};
+
+    for (final log in logs) {
+      if (log.value < targetValue) {
+        continue;
+      }
+
+      final date = DateTime.parse(log.date);
+      completedDates.add(DateTime(date.year, date.month, date.day));
+    }
+
+    if (completedDates.isEmpty) {
+      return 0;
+    }
+
+    final orderedDates = completedDates.toList()
+      ..sort((left, right) => left.compareTo(right));
+
+    var bestStreak = 1;
+    var currentStreak = 1;
+
+    for (var i = 1; i < orderedDates.length; i++) {
+      final previousDate = orderedDates[i - 1];
+      final currentDate = orderedDates[i];
+      final difference = currentDate.difference(previousDate).inDays;
+
+      if (difference == 1) {
+        currentStreak++;
+        if (currentStreak > bestStreak) {
+          bestStreak = currentStreak;
+        }
+      } else {
+        currentStreak = 1;
+      }
+    }
+
+    return bestStreak;
+  }
+
   int get streak {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);

@@ -28,16 +28,37 @@ class SyncService {
     required Map<String, dynamic> data,
   }) async {
     try {
-      await _db.into(_db.pendingSyncTable).insertOnConflictUpdate(
-            PendingSyncTableCompanion(
-              entityType: Value(entityType),
-              entityId: Value(entityId),
-              actionType: Value(action),
-              data: Value(jsonEncode(data)),
-              createdAt: Value(DateTime.now().toIso8601String()),
-              retryCount: const Value(0),
-            ),
-          );
+      final existing = await (_db.select(_db.pendingSyncTable)
+            ..where((t) =>
+                t.entityType.equals(entityType) &
+                t.entityId.equals(entityId)))
+          .getSingleOrNull();
+      final nowIso = DateTime.now().toIso8601String();
+
+      if (existing == null) {
+        await _db.into(_db.pendingSyncTable).insert(
+              PendingSyncTableCompanion(
+                entityType: Value(entityType),
+                entityId: Value(entityId),
+                actionType: Value(action),
+                data: Value(jsonEncode(data)),
+                createdAt: Value(nowIso),
+                retryCount: const Value(0),
+              ),
+            );
+        return;
+      }
+
+      await (_db.update(_db.pendingSyncTable)
+            ..where((t) => t.id.equals(existing.id)))
+          .write(
+        PendingSyncTableCompanion(
+          actionType: Value(action),
+          data: Value(jsonEncode(data)),
+          createdAt: Value(nowIso),
+          retryCount: const Value(0),
+        ),
+      );
     } catch (e) {
       throw CacheException(
         'Error al marcar para sincronización: ${e.toString()}',
@@ -86,7 +107,6 @@ class SyncService {
             await (_db.delete(_db.pendingSyncTable)
                   ..where((t) => t.id.equals(item.id)))
                 .go();
-            await _markAsSynced(entityType, entityId);
             successCount++;
           } else {
             if (entityType == 'habit') {
@@ -125,11 +145,6 @@ class SyncService {
     } catch (e) {
       throw CacheException('Error al sincronizar: ${e.toString()}');
     }
-  }
-
-  // Backward-compat: _markAsSynced is no longer required (synced column removed).
-  Future<void> _markAsSynced(String entityType, String entityId) async {
-    // no-op
   }
 
   String _resolveHabitId({
@@ -220,8 +235,6 @@ class SyncService {
       return false;
     }
   }
-
-  // Removed: _markAsSynced column no longer exists (synced dropped).
 
   Future<int> getPendingCount() async {
     try {

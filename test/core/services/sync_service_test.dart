@@ -18,6 +18,31 @@ void main() {
   late MockHabitsRemoteDataSource mockRemoteDataSource;
   late SyncService syncService;
 
+  setUpAll(() {
+    registerFallbackValue(
+      HabitEntity(
+        id: 'fallback-habit',
+        userId: 'fallback-user',
+        title: 'Fallback',
+        description: 'Fallback',
+        icon: 'icon',
+        category: HabitCategory.none,
+        trackingType: HabitTrackingType.single,
+        targetValue: 1,
+        initialDate: '2025-01-01',
+        logs: const [],
+      ),
+    );
+    registerFallbackValue(
+      HabitLog(
+        id: 'fallback-log',
+        habitId: 'fallback-habit',
+        date: '2025-01-01',
+        value: 1,
+      ),
+    );
+  });
+
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     mockRemoteDataSource = MockHabitsRemoteDataSource();
@@ -295,6 +320,12 @@ void main() {
         'id': 'h1',
         'user_id': 'u1',
         'title': 'Updated',
+        'description': 'Desc',
+        'icon': 'icon',
+        'category': 'none',
+        'tracking_type': 'single',
+        'target_value': 1,
+        'initial_date': '2025-01-01',
       });
 
       await db.into(db.pendingSyncTable).insert(
@@ -464,7 +495,7 @@ void main() {
     });
   });
 
-  group('getPendingCount', () {
+group('getPendingCount', () {
     test('returns correct count', () async {
       await db.into(db.pendingSyncTable).insert(
             PendingSyncTableCompanion.insert(
@@ -492,7 +523,74 @@ void main() {
 
     test('returns 0 when empty', () async {
       final count = await syncService.getPendingCount();
+
       expect(count, 0);
+    });
+  });
+
+  group('FIFO ordering', () {
+    test('syncs items in createdAt ASC order regardless of insert order', () async {
+      final earlierTime = DateTime(2025, 1, 1, 10, 0);
+      final laterTime = DateTime(2025, 1, 1, 11, 0);
+
+      final habitLaterJson = jsonEncode({
+        'id': 'h2',
+        'user_id': 'u1',
+        'title': 'Later',
+        'description': '',
+        'icon': 'icon',
+        'category': 'none',
+        'tracking_type': 'single',
+        'target_value': 1,
+        'initial_date': '2025-01-01',
+      });
+
+      final habitEarlierJson = jsonEncode({
+        'id': 'h1',
+        'user_id': 'u1',
+        'title': 'Earlier',
+        'description': '',
+        'icon': 'icon',
+        'category': 'none',
+        'tracking_type': 'single',
+        'target_value': 1,
+        'initial_date': '2025-01-01',
+      });
+
+      // Insert later item first in DB
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h2',
+              actionType: 'create',
+              data: habitLaterJson,
+              createdAt: laterTime.toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      // Insert earlier item second in DB
+      await db.into(db.pendingSyncTable).insert(
+            PendingSyncTableCompanion.insert(
+              entityType: 'habit',
+              entityId: 'h1',
+              actionType: 'create',
+              data: habitEarlierJson,
+              createdAt: earlierTime.toIso8601String(),
+              retryCount: const Value(0),
+            ),
+          );
+
+      final callOrder = <String>[];
+      when(() => mockRemoteDataSource.createHabit(any())).thenAnswer((inv) async {
+        final habit = inv.positionalArguments[0] as HabitEntity;
+        callOrder.add(habit.id);
+        return habit.id;
+      });
+
+      await syncService.syncPendingChanges();
+
+      expect(callOrder, ['h1', 'h2']);
     });
   });
 }

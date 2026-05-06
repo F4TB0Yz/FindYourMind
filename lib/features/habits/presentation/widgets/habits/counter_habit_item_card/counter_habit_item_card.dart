@@ -1,14 +1,16 @@
 import 'package:find_your_mind/config/theme/app_colors.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/habits/one_time_habit_item_card/card_header.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/habits/one_time_habit_item_card/expanded_section.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 class CounterHabitItemCard extends StatelessWidget {
   const CounterHabitItemCard({
+    required this.habit,
     required this.icon,
     required this.title,
     required this.description,
-    required this.streakDays,
     required this.currentCount,
     required this.goalCount,
     required this.isExpanded,
@@ -19,10 +21,10 @@ class CounterHabitItemCard extends StatelessWidget {
     super.key,
   });
 
+  final HabitEntity habit;
   final String icon;
   final String title;
   final String description;
-  final int streakDays;
   final int currentCount;
   final int goalCount;
   final bool isExpanded;
@@ -80,7 +82,7 @@ class CounterHabitItemCard extends StatelessWidget {
                     resolvedEmoji: icon.isNotEmpty ? icon : '🔢',
                     title: title,
                     description: description,
-                    streakDays: streakDays,
+                    streakDays: habit.streak,
                     isExpanded: isExpanded,
                     emojiBoxColor: emojiBoxColor,
                   ),
@@ -102,11 +104,31 @@ class CounterHabitItemCard extends StatelessWidget {
                             Expanded(
                               child: Column(
                                 children: [
-                                  Text(
-                                    '$currentCount/$goalCount',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                          fontWeight: FontWeight.w700,
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    transitionBuilder:
+                                        (Widget child, Animation<double> animation) {
+                                      return FadeTransition(
+                                        opacity: animation,
+                                        child: SlideTransition(
+                                          position: Tween<Offset>(
+                                            begin: const Offset(0.0, 0.2),
+                                            end: Offset.zero,
+                                          ).animate(animation),
+                                          child: child,
                                         ),
+                                      );
+                                    },
+                                    child: Text(
+                                      '$currentCount/$goalCount',
+                                      key: ValueKey<int>(currentCount),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   ClipRRect(
@@ -133,39 +155,11 @@ class CounterHabitItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            AnimatedCrossFade(
-              duration: const Duration(milliseconds: 180),
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstChild: const SizedBox.shrink(),
-              secondChild: Column(
-                children: [
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color.alphaBlend(
-                      Colors.black.withValues(alpha: 0.12),
-                      cardFillColor,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: expandedSectionFillColor,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(18),
-                        bottomRight: Radius.circular(18),
-                      ),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                    child: Text(
-                      'Hoy: $currentCount de $goalCount repeticiones',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
+            ExpandedSection(
+              isExpanded: isExpanded,
+              habit: habit,
+              cardFillColor: cardFillColor,
+              expandedSectionFillColor: expandedSectionFillColor,
             ),
           ],
         ),
@@ -174,7 +168,7 @@ class CounterHabitItemCard extends StatelessWidget {
   }
 }
 
-class _RoundActionButton extends StatelessWidget {
+class _RoundActionButton extends StatefulWidget {
   final List<List<dynamic>> icon;
   final VoidCallback? onTap;
 
@@ -184,27 +178,41 @@ class _RoundActionButton extends StatelessWidget {
   });
 
   @override
+  State<_RoundActionButton> createState() => _RoundActionButtonState();
+}
+
+class _RoundActionButtonState extends State<_RoundActionButton> {
+  double _scale = 1.0;
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          color: onTap == null
-              ? cs.surfaceContainerLow
-              : cs.primary.withValues(alpha: 0.12),
-          shape: BoxShape.circle,
-          border: Border.all(color: cs.outlineVariant),
-        ),
-        child: Center(
-          child: HugeIcon(
-            icon: icon,
-            size: 18,
-            color: onTap == null ? cs.outline : cs.primary,
+      onTapDown: widget.onTap == null ? null : (_) => setState(() => _scale = 0.92),
+      onTapUp: widget.onTap == null ? null : (_) => setState(() => _scale = 1.0),
+      onTapCancel: widget.onTap == null ? null : () => setState(() => _scale = 1.0),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: 42,
+          height: 42,
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: widget.onTap == null
+                ? cs.onSurface.withValues(alpha: 0.08)
+                : cs.primary.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+            border: Border.all(color: cs.outlineVariant),
+          ),
+          child: Center(
+            child: HugeIcon(
+              icon: widget.icon,
+              size: 18,
+              color: widget.onTap == null ? cs.outline : cs.primary,
+            ),
           ),
         ),
       ),

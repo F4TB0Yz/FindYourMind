@@ -1,16 +1,18 @@
 import 'dart:async';
 
 import 'package:find_your_mind/config/theme/app_colors.dart';
+import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/habits/one_time_habit_item_card/card_header.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/habits/one_time_habit_item_card/expanded_section.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 class TimedHabitItemCard extends StatefulWidget {
   const TimedHabitItemCard({
+    required this.habit,
     required this.icon,
     required this.title,
     required this.description,
-    required this.streakDays,
     required this.targetSeconds,
     required this.elapsedSeconds,
     required this.isExpanded,
@@ -20,10 +22,10 @@ class TimedHabitItemCard extends StatefulWidget {
     super.key,
   });
 
+  final HabitEntity habit;
   final String icon;
   final String title;
   final String description;
-  final int streakDays;
   final int targetSeconds;
   final int elapsedSeconds;
   final bool isExpanded;
@@ -164,59 +166,101 @@ class _TimedHabitItemCardState extends State<TimedHabitItemCard>
                     resolvedEmoji: widget.icon.isNotEmpty ? widget.icon : _defaultEmoji,
                     title: widget.title,
                     description: widget.description,
-                    streakDays: widget.streakDays,
+                    streakDays: widget.habit.streak,
                     isExpanded: widget.isExpanded,
                     emojiBoxColor: emojiBoxColor,
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
                       color: expandedSectionFillColor,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Column(
+                    child: Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                transitionBuilder: (Widget child,
+                                    Animation<double> animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                                child: Text(
+                                  _formatSeconds(_elapsedSeconds),
+                                  key: ValueKey<int>(_elapsedSeconds),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displaySmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        color: _elapsedSeconds >=
+                                                widget.targetSeconds
+                                            ? Theme.of(context).colorScheme.tertiary
+                                            : Theme.of(context).colorScheme.primary,
+                                        fontFeatures: [
+                                          const FontFeature.tabularFigures()
+                                        ],
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _elapsedSeconds >= widget.targetSeconds
+                                          ? Theme.of(context).colorScheme.tertiary
+                                          : Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Meta: ${_formatSeconds(widget.targetSeconds)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Text(
-                              _formatSeconds(_elapsedSeconds),
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                            SizedBox(
+                              width: 62,
+                              height: 62,
+                              child: CircularProgressIndicator(
+                                value: progress,
+                                strokeWidth: 5,
+                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                color: _elapsedSeconds >= widget.targetSeconds
+                                    ? Theme.of(context).colorScheme.tertiary
+                                    : Theme.of(context).colorScheme.primary,
+                                strokeCap: StrokeCap.round,
+                              ),
                             ),
-                            Text(
-                              '/ ${_formatSeconds(widget.targetSeconds)}',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
+                            _TimerControlButton(
+                              isRunning: _isRunning,
+                              isCompleted: _elapsedSeconds >= widget.targetSeconds,
+                              onTap: _toggleTimer,
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 10,
-                            backgroundColor: Colors.black.withValues(alpha: 0.08),
-                            color: Theme.of(context).colorScheme.tertiary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.tonalIcon(
-                            onPressed: _toggleTimer,
-                            icon: HugeIcon(
-                              icon: _isRunning
-                                  ? HugeIcons.strokeRoundedPause
-                                  : HugeIcons.strokeRoundedPlay,
-                              size: 18,
-                            ),
-                            label: Text(_isRunning ? 'Pausar' : 'Iniciar'),
-                          ),
                         ),
                       ],
                     ),
@@ -224,41 +268,85 @@ class _TimedHabitItemCardState extends State<TimedHabitItemCard>
                 ],
               ),
             ),
-            AnimatedCrossFade(
-              duration: const Duration(milliseconds: 180),
-              crossFadeState: widget.isExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstChild: const SizedBox.shrink(),
-              secondChild: Column(
-                children: [
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Color.alphaBlend(
-                      Colors.black.withValues(alpha: 0.12),
-                      cardFillColor,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: expandedSectionFillColor,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(18),
-                        bottomRight: Radius.circular(18),
-                      ),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                    child: Text(
-                      'Hoy: ${_formatSeconds(_elapsedSeconds)} de ${_formatSeconds(widget.targetSeconds)}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
+            ExpandedSection(
+              isExpanded: widget.isExpanded,
+              habit: widget.habit,
+              cardFillColor: cardFillColor,
+              expandedSectionFillColor: expandedSectionFillColor,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TimerControlButton extends StatefulWidget {
+  final bool isRunning;
+  final bool isCompleted;
+  final VoidCallback onTap;
+
+  const _TimerControlButton({
+    required this.isRunning,
+    required this.isCompleted,
+    required this.onTap,
+  });
+
+  @override
+  State<_TimerControlButton> createState() => _TimerControlButtonState();
+}
+
+class _TimerControlButtonState extends State<_TimerControlButton> {
+  double _scale = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    if (widget.isCompleted) {
+      return Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: cs.tertiary.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: HugeIcon(
+            icon: HugeIcons.strokeRoundedTick01,
+            size: 24,
+            color: cs.tertiary,
+          ),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _scale = 0.9),
+      onTapUp: (_) => setState(() => _scale = 1.0),
+      onTapCancel: () => setState(() => _scale = 1.0),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: widget.isRunning
+                ? cs.primary.withValues(alpha: 0.1)
+                : cs.primary,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: HugeIcon(
+              icon: widget.isRunning
+                  ? HugeIcons.strokeRoundedPause
+                  : HugeIcons.strokeRoundedPlay,
+              size: 24,
+              color: widget.isRunning ? cs.primary : Colors.white,
+            ),
+          ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:find_your_mind/features/habits/presentation/widgets/habits/streak_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
@@ -62,25 +63,7 @@ class CardHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: 2,
-            horizontal: 6,
-          ),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3C282),
-            borderRadius: BorderRadius.circular(99),
-          ),
-          child: Center(
-            child: Text(
-              '🔥 ${streakDays}d',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF92400d),
-                  ),
-            ),
-          ),
-        ),
+        StreakBadge(streakDays: streakDays),
         const SizedBox(width: 8),
         AnimatedRotation(
           turns: isExpanded ? 0.5 : 0.0,

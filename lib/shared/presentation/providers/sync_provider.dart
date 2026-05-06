@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/core/config/dependency_injection.dart';
+import 'package:find_your_mind/core/network/network_info.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:flutter/foundation.dart';
@@ -35,6 +36,11 @@ class SyncProvider extends ChangeNotifier {
   // Timer para sincronización automática
   Timer? _syncTimer;
 
+  // Network info para listener de conectividad
+  final NetworkInfo _networkInfo = DependencyInjection().networkInfo;
+  StreamSubscription<bool>? _connectivitySubscription;
+  bool _wasDisconnected = false;
+
   // Callback para recargar datos después de la sincronización
   VoidCallback? _onSyncComplete;
 
@@ -47,6 +53,7 @@ class SyncProvider extends ChangeNotifier {
 
   SyncProvider() {
     _startAutoSync();
+    _startConnectivityListener();
     Future<void>.delayed(_initialPendingCountDelay, () async {
       if (_disposed) return;
       await _updatePendingCount();
@@ -73,6 +80,7 @@ class SyncProvider extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _syncTimer?.cancel();
+    _connectivitySubscription?.cancel();
     super.dispose();
   }
 
@@ -91,6 +99,18 @@ class SyncProvider extends ChangeNotifier {
     _syncTimer = Timer.periodic(_autoSyncInterval, (_) async {
       await _syncInBackground();
     });
+  }
+
+  /// Escucha cambios de conectividad y sincroniza al reconectar
+  void _startConnectivityListener() {
+    _connectivitySubscription = _networkInfo.onConnectivityChanged.listen(
+      (isConnected) async {
+        if (isConnected && _wasDisconnected) {
+          await _syncInBackground();
+        }
+        _wasDisconnected = !isConnected;
+      },
+    );
   }
 
   /// Actualiza el contador de cambios pendientes
@@ -211,6 +231,8 @@ class SyncProvider extends ChangeNotifier {
   /// Resetea el estado de sincronización (llamar en logout)
   void resetSyncState() {
     _syncTimer?.cancel();
+    _connectivitySubscription?.cancel();
+    _wasDisconnected = false;
     _isSyncing = false;
     _pendingChangesCount = 0;
     _lastSyncTime = null;
