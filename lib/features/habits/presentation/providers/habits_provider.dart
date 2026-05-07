@@ -297,6 +297,42 @@ class HabitsProvider extends ChangeNotifier {
     _syncProvider?.markPendingChanges();
   }
 
+  void handleOneTimeToggle(String habitId, bool isCompletedToday) {
+    if (isCompletedToday) {
+      triggerUncompletionAnimation(habitId);
+      setHabitLogValue(habitId, 0);
+    } else {
+      triggerCompletionAnimation(habitId);
+      updateHabitCounter(habitId);
+    }
+  }
+
+  void handleTimerTick(String habitId, int seconds, int targetValue) {
+    setHabitLogValue(habitId, seconds);
+    if (seconds >= targetValue) {
+      triggerCompletionAnimation(habitId);
+    }
+  }
+
+  void handleCounterIncrement(String habitId) {
+    final habitIndex = _habits.indexWhere((h) => h.id == habitId);
+    if (habitIndex == -1) return;
+    final habit = _habits[habitIndex];
+    if (habit.todayValue + 1 >= habit.targetValue) {
+      triggerCompletionAnimation(habitId);
+    }
+    updateHabitCounter(habitId);
+  }
+
+  void handleCounterDecrement(String habitId) {
+    final habitIndex = _habits.indexWhere((h) => h.id == habitId);
+    if (habitIndex == -1) return;
+    if (_habits[habitIndex].isCompletedToday) {
+      triggerUncompletionAnimation(habitId);
+    }
+    decrementHabitProgress(habitId);
+  }
+
   void clearAllData() {
     _habits.clear();
     notifyListeners();

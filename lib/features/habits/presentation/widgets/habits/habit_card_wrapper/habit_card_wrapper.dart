@@ -3,6 +3,7 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart
 import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/habits/counter_habit_item_card/counter_habit_item_card.dart';
+import 'package:find_your_mind/features/habits/presentation/widgets/habits/habit_card_wrapper/habit_card_animated_container.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/habits/one_time_habit_item_card/one_time_habit_item_card.dart';
 import 'package:find_your_mind/features/habits/presentation/widgets/habits/timed_habit_item_card/timed_habit_item_card.dart';
 import 'package:flutter/material.dart';
@@ -33,12 +34,10 @@ class HabitCardWrapper extends StatelessWidget {
     );
     final provider = context.read<HabitsProvider>();
 
-    final shouldFade = isCompleting && activeFilter == HabitFilter.incompletos;
-    final shouldSlideBack = isUncompleting && activeFilter == HabitFilter.completados;
-
     final color = habit.color == 'random'
         ? AppColors.habitCardColor(habit.id)
         : AppColors.habitCardColorFromHex(habit.color);
+
     final card = switch (habit.trackingType) {
       HabitTrackingType.single => OneTimeHabitItemCard(
         habit: habit,
@@ -48,15 +47,10 @@ class HabitCardWrapper extends StatelessWidget {
         cardColor: color,
         isExpanded: isExpanded,
         onExpandTap: () => provider.toggleExpanded(habit.id),
-        onMarkCompletedTap: habit.isCompletedToday
-            ? () {
-                provider.triggerUncompletionAnimation(habit.id);
-                provider.setHabitLogValue(habit.id, 0);
-              }
-            : () {
-                provider.triggerCompletionAnimation(habit.id);
-                provider.updateHabitCounter(habit.id);
-              },
+        onMarkCompletedTap: () => provider.handleOneTimeToggle(
+          habit.id,
+          habit.isCompletedToday,
+        ),
       ),
       HabitTrackingType.timed => TimedHabitItemCard(
         habit: habit,
@@ -68,12 +62,11 @@ class HabitCardWrapper extends StatelessWidget {
         cardColor: color,
         isExpanded: isExpanded,
         onExpandTap: () => provider.toggleExpanded(habit.id),
-        onTimerTick: (seconds) {
-          provider.setHabitLogValue(habit.id, seconds);
-          if (seconds >= habit.targetValue) {
-            provider.triggerCompletionAnimation(habit.id);
-          }
-        },
+        onTimerTick: (seconds) => provider.handleTimerTick(
+          habit.id,
+          seconds,
+          habit.targetValue,
+        ),
       ),
       HabitTrackingType.counter => CounterHabitItemCard(
         habit: habit,
@@ -87,52 +80,21 @@ class HabitCardWrapper extends StatelessWidget {
         onExpandTap: () => provider.toggleExpanded(habit.id),
         onIncrement: habit.isCompletedToday
             ? null
-            : () {
-                if (habit.todayValue + 1 >= habit.targetValue) {
-                  provider.triggerCompletionAnimation(habit.id);
-                }
-                provider.updateHabitCounter(habit.id);
-              },
+            : () => provider.handleCounterIncrement(habit.id),
         onDecrement: habit.todayValue > 0
-            ? () {
-                if (habit.isCompletedToday) {
-                  provider.triggerUncompletionAnimation(habit.id);
-                }
-                provider.decrementHabitProgress(habit.id);
-              }
+            ? () => provider.handleCounterDecrement(habit.id)
             : null,
       ),
     };
 
-    final animated = AnimatedOpacity(
-      key: ValueKey(habit.id),
-      opacity: shouldFade || shouldSlideBack ? 0.0 : 1.0,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeIn,
-      child: AnimatedSlide(
-        offset: shouldFade
-            ? const Offset(0.0, -0.12)
-            : shouldSlideBack
-                ? const Offset(0.12, 0.0)
-                : Offset.zero,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOut,
-        child: GestureDetector(
-          onLongPress: () => context.push('/habits/${habit.id}', extra: habit),
-          child: card,
-        ),
-      ),
+    return HabitCardAnimatedContainer(
+      habitId: habit.id,
+      isVisible: isVisible,
+      shouldFade: isCompleting && activeFilter == HabitFilter.incompletos,
+      shouldSlideBack: isUncompleting && activeFilter == HabitFilter.completados,
+      isTimed: habit.trackingType == HabitTrackingType.timed,
+      onLongPress: () => context.push('/habits/${habit.id}', extra: habit),
+      child: card,
     );
-
-    if (habit.trackingType == HabitTrackingType.timed) {
-      return Offstage(
-        key: ValueKey('os_${habit.id}'),
-        offstage: !isVisible,
-        child: animated,
-      );
-    }
-
-    if (!isVisible) return const SizedBox.shrink();
-    return animated;
   }
 }
