@@ -21,6 +21,7 @@ class CreateHabitSheet extends StatefulWidget {
 
 class _CreateHabitSheetState extends State<CreateHabitSheet> {
   int _selectedTabIndex = 0;
+  String? _titleError;
   late final TextEditingController _titleController;
 
   @override
@@ -38,6 +39,9 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
   }
 
   void _onTitleChanged() {
+    if (_titleError != null) {
+      setState(() => _titleError = null);
+    }
     if (mounted) setState(() {});
   }
 
@@ -46,10 +50,7 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
     final habitsProvider = context.read<HabitsProvider>();
 
     if (newHabitProvider.titleController.text.trim().isEmpty) {
-      CustomToast.showToast(
-        context: context,
-        message: 'El título es requerido',
-      );
+      setState(() => _titleError = 'El título es obligatorio.');
       return;
     }
 
@@ -122,6 +123,7 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
                                 key: const ValueKey('name_input'),
                                 controller: provider.titleController,
                                 hintText: 'ej. Beber agua',
+                                errorText: _titleError,
                               )
                             : HabitSheetTextField(
                                 key: const ValueKey('desc_input'),
@@ -133,6 +135,7 @@ class _CreateHabitSheetState extends State<CreateHabitSheet> {
                         const SizedBox(height: 24),
                         const SheetTrackingConfigSection(),
                         const SheetIconColorSection(),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
