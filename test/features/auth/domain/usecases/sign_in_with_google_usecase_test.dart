@@ -6,6 +6,8 @@ import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
@@ -23,7 +25,7 @@ void main() {
     createdAt: DateTime.now(),
   );
 
-  test('should return UserEntity from repository when Google sign in is successful', () async {
+  test(label('devuelve UserEntity cuando Google sign-in es exitoso'), () async {
     // Arrange
     when(() => mockRepository.signInWithGoogle())
         .thenAnswer((_) async => Right(tUser));
@@ -37,7 +39,7 @@ void main() {
     verifyNoMoreInteractions(mockRepository);
   });
 
-  test('should return ServerFailure when Google sign in fails', () async {
+  test(label('devuelve ServerFailure cuando Google sign-in falla'), () async {
     // Arrange
     const tErrorMessage = 'Canceled by user';
     when(() => mockRepository.signInWithGoogle())

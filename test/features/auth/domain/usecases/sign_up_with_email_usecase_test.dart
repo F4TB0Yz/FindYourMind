@@ -6,6 +6,8 @@ import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/sign_up_with_email_usecase.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
@@ -25,7 +27,7 @@ void main() {
     createdAt: DateTime.now(),
   );
 
-  test('should return UserEntity from the repository when registration is successful', () async {
+  test(label('devuelve UserEntity cuando el registro es exitoso'), () async {
     // Arrange
     when(() => mockRepository.signUpWithEmail(any(), any()))
         .thenAnswer((_) async => Right(tUser));
@@ -39,7 +41,7 @@ void main() {
     verifyNoMoreInteractions(mockRepository);
   });
 
-  test('should return ValidationFailure when password is too short', () async {
+  test(label('devuelve ValidationFailure si contraseña es muy corta'), () async {
     // Act
     final result = await usecase(email: tEmail, password: '123'); // < 6 characters
 
@@ -48,7 +50,7 @@ void main() {
     verifyNever(() => mockRepository.signUpWithEmail(any(), any()));
   });
 
-  test('should return ValidationFailure when email is invalid', () async {
+  test(label('devuelve ValidationFailure si email es inválido'), () async {
     // Act
     final result = await usecase(email: 'invalid-email', password: tPassword);
 
@@ -57,7 +59,7 @@ void main() {
     verifyNever(() => mockRepository.signUpWithEmail(any(), any()));
   });
 
-  test('should return ServerFailure when registration fails in repository', () async {
+  test(label('devuelve ServerFailure si el registro falla en repositorio'), () async {
     // Arrange
     const tErrorMessage = 'Este correo ya está registrado.';
     when(() => mockRepository.signUpWithEmail(any(), any()))

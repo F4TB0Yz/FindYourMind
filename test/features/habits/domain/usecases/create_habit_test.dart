@@ -9,6 +9,8 @@ import 'package:find_your_mind/features/habits/domain/usecases/create_habit.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockHabitRepository extends Mock implements HabitRepository {}
 
 void main() {
@@ -40,7 +42,7 @@ void main() {
     usecase = CreateHabitUseCase(mockRepository);
   });
 
-  test('calls repository createHabit and createHabitLog when valid', () async {
+  test(label('llama repositorio createHabit y createHabitLog cuando es válido'), () async {
     when(() => mockRepository.createHabit(any()))
         .thenAnswer((_) async => const Right('1'));
     when(() => mockRepository.createHabitLog(habitLog: any(named: 'habitLog')))
@@ -55,14 +57,14 @@ void main() {
     ).called(1);
   });
 
-  test('returns ValidationFailure when title is empty', () async {
+  test(label('devuelve ValidationFailure cuando título está vacío'), () async {
     final result = await usecase.execute(habit: tHabit.copyWith(title: '  '));
 
     expect(result.isLeft(), true);
     verifyNever(() => mockRepository.createHabit(any()));
   });
 
-  test('returns ValidationFailure when target is below 1', () async {
+  test(label('devuelve ValidationFailure cuando target < 1'), () async {
     final result = await usecase.execute(habit: tHabit.copyWith(targetValue: 0));
 
     expect(result.isLeft(), true);

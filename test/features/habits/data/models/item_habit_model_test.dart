@@ -5,8 +5,10 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 void main() {
-  group('ItemHabitModel', () {
+  group(label('ItemHabitModel'), () {
     final tJson = {
       'id': '1',
       'user_id': 'user123',
@@ -30,7 +32,7 @@ void main() {
 
     final tModel = ItemHabitModel.fromJson(tJson);
 
-    test('fromJson builds valid model', () {
+    test(label('fromJson construye modelo válido'), () {
       expect(tModel.id, '1');
       expect(tModel.userId, 'user123');
       expect(tModel.category, 'health');
@@ -44,7 +46,7 @@ void main() {
       );
     });
 
-    test('toEntity maps to new domain shape', () {
+    test(label('toEntity mapea a nueva forma de dominio'), () {
       final result = tModel.toEntity();
 
       expect(result, isA<HabitEntity>());

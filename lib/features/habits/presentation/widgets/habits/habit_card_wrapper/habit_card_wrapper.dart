@@ -38,7 +38,7 @@ class HabitCardWrapper extends StatelessWidget {
         ? AppColors.habitCardColor(habit.id)
         : AppColors.habitCardColorFromHex(habit.color);
 
-    final card = switch (habit.trackingType) {
+    final Widget card = switch (habit.trackingType) {
       HabitTrackingType.single => OneTimeHabitItemCard(
         habit: habit,
         icon: habit.icon,

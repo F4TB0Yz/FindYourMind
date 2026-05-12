@@ -2,27 +2,19 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-05-06 — Pre-commit validation clean_
+_Última actualización: 2026-05-12 — Tests en español + resaltado magenta_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: CreateHabitSheet fixed title scroll body.
+**Feature/Tarea**: Traducir mensajes de tests a español + diferenciarlos con color.
 
 **Descripción**:
-- `CreateHabitSheet` extraído a carpeta dedicada `create_habit_sheet/` con 6 widgets independientes.
-- Conexión a `NewHabitProvider` (remove estado duplicado: controllers, tracking type).
-- `TrackingTypeOptionCard` usa `context.select` para rebuild granular.
-- `HabitSheetTextField` unifica campos nombre/descripción (elimina ~60 líneas duplicadas).
-- `const` constructores en todos los widgets.
-- Componentes de `create_habit_sheet/` usan `GoogleFonts` para textos; no queda `fontFamily: 'Plus Jakarta Sans'`.
-- `sheet_icon_color_section.dart` limita el ancho del título con `Expanded` para evitar overflow contra el toggle de emoji/color.
-- `sheet_tab_toggle.dart` ahora adapta el color del texto por brillo para mantener contraste en modo oscuro.
-- `CreateHabitSheet` mantiene el título fijo arriba, con el cuerpo y footer al final del scroll.
-- El bottom sheet permite guardar con `HabitCategory.none`; solo valida título y usuario autenticado.
+- Traducción de descripciones en `group(...)`, `test(...)` y `testWidgets(...)` dentro de `test/**`.
+- Helper de salida para envolver esas etiquetas en ANSI **magenta** cuando hay soporte (fallback a texto plano si `NO_COLOR=1` o no hay ANSI).
 
-**Estado**: ✅ Título fijo, footer en scroll y guardado aplicados. `flutter analyze` y `flutter test` pasan limpios.
+**Estado**: ✅ `flutter test` y `NO_COLOR=1 flutter test` pasan.
 
 ---
 
@@ -38,22 +30,12 @@ _Última actualización: 2026-05-06 — Pre-commit validation clean_
 
 ---
 
-## Archivos Modificados/Creados (CreateHabitSheet Refactor)
+## Archivos Modificados/Creados (Tests en español + magenta)
 
 | Archivo | Acción |
 |---|---|
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/` | Carpeta nueva |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/create_habit_sheet.dart` | Nuevo — orquestador con Provider |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/habit_sheet_title.dart` | Nuevo — título "Nuevo hábito" |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/name_description_toggle.dart` | Nuevo — control segmentado |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/habit_sheet_text_field.dart` | Nuevo — TextField reutilizable |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/tracking_type_option_card.dart` | Nuevo — card animada con Selector |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/sheet_tracking_type_row.dart` | Nuevo — fila de 3 opciones |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/sheet_icon_color_section.dart` | Modificado — límite de ancho para el título de vista previa |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/sheet_tab_toggle.dart` | Modificado — contraste de texto adaptado a modo oscuro |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet/sheet_footer_actions.dart` | Nuevo — footer con Cancelar/Guardar hábito al final del scroll |
-| `lib/features/habits/presentation/widgets/habits/create_habit_sheet.dart` | Eliminado (monolítico, 351 líneas) |
-| `lib/features/habits/presentation/widgets/habits/create_habit_button.dart` | Modificado — import actualizado |
+| `test/test_utils/test_output_style.dart` | Nuevo — helper `label(...)` para magenta ANSI con fallback (`NO_COLOR`, `TERM=dumb`) y soporte de `CI`/`FORCE_COLOR`. |
+| `test/**` | Modificado — traducción de descripciones y envoltura `label(...)` en `group/test/testWidgets` (múltiples archivos). |
 
 ---
 
@@ -77,8 +59,8 @@ _Última actualización: 2026-05-06 — Pre-commit validation clean_
 ## Contexto Técnico Activo
 
 - **Branch actual**: `main`
-- **Cambio en sesión**: Título fijo en `CreateHabitSheet`; cuerpo y footer quedan dentro del scroll con acciones Cancelar/Guardar y creación de hábito desde el bottom sheet.
-- **Validación**: `flutter analyze` sin issues; `flutter test` pasa completo (100 tests).
+- **Cambio en sesión**: Traducción de labels de tests a español y helper de resaltado ANSI magenta (con fallback `NO_COLOR`).
+- **Validación**: `flutter test` y `NO_COLOR=1 flutter test` OK. `graphify update .` ejecutado.
 
 ---
 
@@ -94,3 +76,4 @@ _Última actualización: 2026-05-06 — Pre-commit validation clean_
 - **2026-05-06 (Sesión 6)**: Implementado footer de `CreateHabitSheet` al final del scroll con divider, botones Cancelar/Guardar hábito y funcionalidad de creación vía `HabitsProvider`. El título queda fijo arriba. Se permite `HabitCategory.none` en bottom sheet. Validación puntual limpia.
 - **2026-05-06 (Sesión 7)**: Limpieza pre-commit para dejar validación global en verde. Corregidos analyzer issues en `app_database.dart`, `sheet_color_grid.dart` y tests. `graphify update .` ejecutado tras tocar código. `flutter analyze` y `flutter test` pasan.
 - **2026-05-06 (Sesión 8)**: Validación inline del título en `CreateHabitSheet`. Reemplazado `CustomToast` por error inline debajo del campo. `HabitSheetTextField` ahora acepta `errorText` y muestra borde rojo + texto de error con `GoogleFonts.plusJakartaSans`. `flutter analyze` limpio.
+- **2026-05-12 (Sesión 1)**: Traducción de descripciones de tests (`group/test/testWidgets`) a español y resaltado en magenta via helper ANSI (se activa en terminal con ANSI, o forzado con `CI`/`FORCE_COLOR`; se desactiva con `NO_COLOR`). `flutter test` OK. `graphify update .` ejecutado.

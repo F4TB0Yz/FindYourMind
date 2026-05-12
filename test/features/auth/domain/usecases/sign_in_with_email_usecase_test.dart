@@ -6,6 +6,8 @@ import 'package:find_your_mind/features/auth/domain/entities/user_entity.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/sign_in_with_email_usecase.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
@@ -25,7 +27,7 @@ void main() {
     createdAt: DateTime.now(),
   );
 
-  test('should return UserEntity from the repository when sign in is successful', () async {
+  test(label('devuelve UserEntity cuando inicio sesión es exitoso'), () async {
     // Arrange
     when(() => mockRepository.signInWithEmail(any(), any()))
         .thenAnswer((_) async => Right(tUser));
@@ -39,7 +41,7 @@ void main() {
     verifyNoMoreInteractions(mockRepository);
   });
 
-  test('should return ServerFailure when repository fails', () async {
+  test(label('devuelve ServerFailure cuando repositorio falla'), () async {
     // Arrange
     when(() => mockRepository.signInWithEmail(any(), any()))
         .thenAnswer((_) async => Left(ServerFailure(message: 'Error de servidor')));
@@ -52,7 +54,7 @@ void main() {
     verify(() => mockRepository.signInWithEmail(tEmail, tPassword)).called(1);
   });
 
-  test('should return ValidationFailure when email is empty', () async {
+  test(label('devuelve ValidationFailure cuando email está vacío'), () async {
     // Act
     final result = await usecase(email: '', password: tPassword);
 
@@ -61,7 +63,7 @@ void main() {
     verifyNever(() => mockRepository.signInWithEmail(any(), any()));
   });
 
-  test('should return ValidationFailure when password is empty', () async {
+  test(label('devuelve ValidationFailure cuando contraseña está vacía'), () async {
     // Act
     final result = await usecase(email: tEmail, password: '');
 
@@ -70,7 +72,7 @@ void main() {
     verifyNever(() => mockRepository.signInWithEmail(any(), any()));
   });
 
-  test('should return ValidationFailure when email format is invalid', () async {
+  test(label('devuelve ValidationFailure cuando formato email es inválido'), () async {
     // Act
     final result = await usecase(email: 'invalid-email', password: tPassword);
 

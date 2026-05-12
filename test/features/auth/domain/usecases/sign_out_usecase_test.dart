@@ -6,6 +6,8 @@ import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/features/auth/domain/repositories/auth_repository.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/sign_out_usecase.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockAuthRepository extends Mock implements AuthRepository {}
 class MockDatabaseHelper extends Mock implements AppDatabase {}
 
@@ -23,7 +25,7 @@ void main() {
     );
   });
 
-  test('should clear local tables and sign out from repository', () async {
+  test(label('limpia tablas locales y cierra sesión vía repositorio'), () async {
     // Arrange
     when(() => mockDatabaseHelper.clearAllTables()).thenAnswer((_) async {});
     when(() => mockRepository.signOut()).thenAnswer((_) async => const Right(null));
@@ -39,7 +41,7 @@ void main() {
     verifyNoMoreInteractions(mockDatabaseHelper);
   });
 
-  test('should return CacheFailure when database helper fails to clear tables', () async {
+  test(label('devuelve CacheFailure si DB falla limpiando tablas'), () async {
     // Arrange
     when(() => mockDatabaseHelper.clearAllTables()).thenThrow(Exception('DB Error'));
 
@@ -59,7 +61,7 @@ void main() {
     verifyNever(() => mockRepository.signOut());
   });
 
-  test('should return ServerFailure when repository fails to sign out', () async {
+  test(label('devuelve ServerFailure si repositorio falla al cerrar sesión'), () async {
     // Arrange
     when(() => mockDatabaseHelper.clearAllTables()).thenAnswer((_) async {});
     const tErrorMessage = 'Connection error during logout';

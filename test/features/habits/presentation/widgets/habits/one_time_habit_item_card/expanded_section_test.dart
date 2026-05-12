@@ -6,6 +6,8 @@ import 'package:find_your_mind/features/habits/presentation/widgets/habits/one_t
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../../../test_utils/test_output_style.dart';
+
 String _dateDaysAgo(int daysAgo) {
   final now = DateTime.now();
   final date = DateTime(now.year, now.month, now.day).subtract(
@@ -16,7 +18,7 @@ String _dateDaysAgo(int daysAgo) {
 }
 
 void main() {
-  testWidgets('renders real one-time habit metrics when expanded', (tester) async {
+  testWidgets(label('renderiza métricas reales de hábito one-time al expandir'), (tester) async {
     final habit = HabitEntity(
       id: 'habit-1',
       userId: 'user-1',

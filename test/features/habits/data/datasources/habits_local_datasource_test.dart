@@ -7,6 +7,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 void main() {
   late AppDatabase db;
   late HabitsLocalDatasourceImpl datasource;
@@ -35,8 +37,8 @@ void main() {
 
   const tLog = HabitLog(id: 'l1', habitId: 'h1', date: '2026-04-29', value: 1);
 
-  group('HabitsLocalDatasourceImpl', () {
-    test('createHabit should insert habit into database', () async {
+  group(label('HabitsLocalDatasourceImpl'), () {
+    test(label('createHabit inserta hábito en DB'), () async {
       final result = await datasource.createHabit(tHabit);
       expect(result, 'h1');
 
@@ -46,7 +48,7 @@ void main() {
       expect(habits.first.title, 'Test Habit');
     });
 
-    test('getHabitsByUserId should return habits with their logs', () async {
+    test(label('getHabitsByUserId devuelve hábitos con sus logs'), () async {
       await datasource.createHabit(tHabit);
       await datasource.createHabitLog(tLog);
 
@@ -57,7 +59,7 @@ void main() {
     });
 
     test(
-      'createHabitLog should not insert duplicate logs for same habit/date',
+      label('createHabitLog no inserta logs duplicados para mismo hábito/fecha'),
       () async {
         await datasource.createHabit(tHabit);
         final id1 = await datasource.createHabitLog(tLog);
@@ -78,7 +80,7 @@ void main() {
       },
     );
 
-    test('updateHabitLogValue should update log', () async {
+    test(label('updateHabitLogValue actualiza log'), () async {
       await datasource.createHabit(tHabit);
       await datasource.createHabitLog(tLog);
 
@@ -94,7 +96,7 @@ void main() {
       // No more 'synced' column; ensure value updated
     });
 
-    test('deleteHabit should remove habit and its logs (cascade)', () async {
+    test(label('deleteHabit elimina hábito y sus logs (cascade)'), () async {
       await datasource.createHabit(tHabit);
       await datasource.createHabitLog(tLog);
 
@@ -107,7 +109,7 @@ void main() {
       expect(logs.isEmpty, true);
     });
 
-    test('saveHabits should perform batch upsert', () async {
+    test(label('saveHabits hace upsert en batch'), () async {
       final habitsToSave = [
         tHabit.copyWith(logs: [tLog]),
       ];

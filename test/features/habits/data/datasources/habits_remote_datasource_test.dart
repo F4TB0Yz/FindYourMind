@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:find_your_mind/features/habits/data/datasources/habits_remote_datasource.dart';
 import 'package:find_your_mind/core/error/exceptions.dart';
+
+import '../../../../test_utils/test_output_style.dart';
 import '../../../../fixtures/habit_fixtures.dart';
 import '../../../../fixtures/mocks.dart';
 
@@ -21,9 +23,9 @@ void main() {
     registerFallbackValue(tHabitLog);
   });
 
-  group('HabitsRemoteDataSource', () {
-    group('createHabit', () {
-      test('returns habit id on success', () async {
+  group(label('HabitsRemoteDataSource'), () {
+    group(label('createHabit'), () {
+      test(label('devuelve id de hábito si éxito'), () async {
         when(
           () => mockWrapper.insertHabit(any()),
         ).thenAnswer((_) async => {'id': tHabitId});
@@ -33,7 +35,7 @@ void main() {
         verify(() => mockWrapper.insertHabit(any())).called(1);
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.insertHabit(any()),
         ).thenThrow(const FormatException('Invalid data'));
@@ -44,7 +46,7 @@ void main() {
         );
       });
 
-      test('throws NetworkException on SocketException', () async {
+      test(label('lanza NetworkException ante SocketException'), () async {
         when(
           () => mockWrapper.insertHabit(any()),
         ).thenThrow(const SocketException('No internet'));
@@ -56,8 +58,8 @@ void main() {
       });
     });
 
-    group('getHabitsByUserId', () {
-      test('returns list of habits on success', () async {
+    group(label('getHabitsByUserId'), () {
+      test(label('devuelve lista de hábitos si éxito'), () async {
         when(
           () => mockWrapper.queryHabits(userId: any(named: 'userId')),
         ).thenAnswer((_) async => [tHabitJson]);
@@ -70,7 +72,7 @@ void main() {
         expect(result.first.id, tHabitId);
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.queryHabits(userId: any(named: 'userId')),
         ).thenThrow(const FormatException('error'));
@@ -81,7 +83,7 @@ void main() {
         );
       });
 
-      test('throws NetworkException on SocketException', () async {
+      test(label('lanza NetworkException ante SocketException'), () async {
         when(
           () => mockWrapper.queryHabits(userId: any(named: 'userId')),
         ).thenThrow(const SocketException('No internet'));
@@ -93,8 +95,8 @@ void main() {
       });
     });
 
-    group('getHabitsByUserIdPaginated', () {
-      test('returns paginated habits', () async {
+    group(label('getHabitsByUserIdPaginated'), () {
+      test(label('devuelve hábitos paginados'), () async {
         when(
           () => mockWrapper.queryHabits(
             userId: any(named: 'userId'),
@@ -117,7 +119,7 @@ void main() {
         expect(result.length, 1);
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.queryHabits(
             userId: any(named: 'userId'),
@@ -133,8 +135,8 @@ void main() {
       });
     });
 
-    group('updateHabit', () {
-      test('completes successfully', () async {
+    group(label('updateHabit'), () {
+      test(label('completa sin error'), () async {
         when(
           () => mockWrapper.updateHabit(any(), any()),
         ).thenAnswer((_) async {});
@@ -143,7 +145,7 @@ void main() {
         verify(() => mockWrapper.updateHabit(any(), any())).called(1);
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.updateHabit(any(), any()),
         ).thenThrow(const FormatException('error'));
@@ -155,15 +157,15 @@ void main() {
       });
     });
 
-    group('deleteHabit', () {
-      test('completes successfully', () async {
+    group(label('deleteHabit'), () {
+      test(label('completa sin error'), () async {
         when(() => mockWrapper.deleteHabit(any())).thenAnswer((_) async {});
 
         await dataSource.deleteHabit(tHabitId);
         verify(() => mockWrapper.deleteHabit(tHabitId)).called(1);
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.deleteHabit(any()),
         ).thenThrow(const FormatException('error'));
@@ -175,8 +177,8 @@ void main() {
       });
     });
 
-    group('createHabitLog', () {
-      test('returns log id on success', () async {
+    group(label('createHabitLog'), () {
+      test(label('devuelve id de log si éxito'), () async {
         when(
           () => mockWrapper.queryHabitLogs(
             habitId: any(named: 'habitId'),
@@ -191,7 +193,7 @@ void main() {
         expect(result, tLogId);
       });
 
-      test('returns existing log id when duplicate exists', () async {
+      test(label('devuelve id existente cuando hay duplicado'), () async {
         when(
           () => mockWrapper.queryHabitLogs(
             habitId: any(named: 'habitId'),
@@ -213,7 +215,7 @@ void main() {
         verifyNever(() => mockWrapper.insertHabitLog(any()));
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.queryHabitLogs(
             habitId: any(named: 'habitId'),
@@ -228,8 +230,8 @@ void main() {
       });
     });
 
-    group('updateHabitLogValue', () {
-      test('completes successfully', () async {
+    group(label('updateHabitLogValue'), () {
+      test(label('completa sin error'), () async {
         when(
           () => mockWrapper.updateHabitLog(any(), any(), any()),
         ).thenAnswer((_) async {});
@@ -244,7 +246,7 @@ void main() {
         ).called(1);
       });
 
-      test('throws ServerException on FormatException', () async {
+      test(label('lanza ServerException ante FormatException'), () async {
         when(
           () => mockWrapper.updateHabitLog(any(), any(), any()),
         ).thenThrow(const FormatException('error'));

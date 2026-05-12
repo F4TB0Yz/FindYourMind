@@ -6,6 +6,8 @@ import 'package:find_your_mind/features/habits/domain/usecases/save_habit_progre
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockHabitRepository extends Mock implements HabitRepository {}
 
 void main() {
@@ -35,7 +37,7 @@ void main() {
     usecase = SaveHabitProgressUseCase(mockRepository);
   });
 
-  test('creates new log when isNew is true', () async {
+  test(label('crea nuevo log cuando isNew es true'), () async {
     when(() => mockRepository.createHabitLog(habitLog: any(named: 'habitLog')))
         .thenAnswer((_) async => const Right('l1'));
 
@@ -45,7 +47,7 @@ void main() {
     verify(() => mockRepository.createHabitLog(habitLog: tLogNew)).called(1);
   });
 
-  test('updates existing log when isNew is false', () async {
+  test(label('actualiza log existente cuando isNew es false'), () async {
     when(
       () => mockRepository.updateHabitLogValue(
         habitId: any(named: 'habitId'),
@@ -66,7 +68,7 @@ void main() {
     ).called(1);
   });
 
-  test('returns ValidationFailure when value is below 0', () async {
+  test(label('devuelve ValidationFailure cuando value < 0'), () async {
     final result = await usecase.execute(
       progress: tLogNew.copyWith(value: -1),
       isNew: false,

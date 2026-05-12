@@ -16,6 +16,8 @@ import 'package:find_your_mind/features/habits/presentation/providers/habits_pro
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 class MockCreateHabitUseCase extends Mock implements CreateHabitUseCase {}
 
 class MockUpdateHabitUseCase extends Mock implements UpdateHabitUseCase {}
@@ -82,8 +84,8 @@ void main() {
     );
   });
 
-  group('loadHabits', () {
-    test('loads habits from repository', () async {
+  group(label('loadHabits'), () {
+    test(label('carga hábitos desde repositorio'), () async {
       when(() => mockGetCurrentUserUseCase()).thenAnswer((_) async => tUser);
       when(
         () => mockRepository.getHabitsByEmailPaginated(
@@ -104,8 +106,8 @@ void main() {
     });
   });
 
-  group('createHabit', () {
-    test('adds habit immediately and calls usecase', () async {
+  group(label('createHabit'), () {
+    test(label('agrega hábito al instante y llama al usecase'), () async {
       when(
         () => mockCreateHabitUseCase.execute(habit: any(named: 'habit')),
       ).thenAnswer((invocation) async {
@@ -126,8 +128,8 @@ void main() {
     });
   });
 
-  group('counter logs', () {
-    test('increments counter optimistically', () async {
+  group(label('logs de contador'), () {
+    test(label('incrementa contador optimistamente'), () async {
       final habitWithLog = tCounterHabit.copyWith(
         logs: [
           HabitLog(
@@ -162,7 +164,7 @@ void main() {
       expect(provider.getTodayCount('1'), 3);
     });
 
-    test('decrements counter optimistically', () async {
+    test(label('decrementa contador optimistamente'), () async {
       final habitWithLog = tCounterHabit.copyWith(
         logs: [
           HabitLog(
@@ -198,8 +200,8 @@ void main() {
     });
   });
 
-  group('timed logs', () {
-    test('sets absolute log value', () async {
+  group(label('logs de tiempo'), () {
+    test(label('setea valor absoluto del log'), () async {
       const timedHabit = HabitEntity(
         id: 't1',
         userId: 'user123',
@@ -237,7 +239,7 @@ void main() {
     });
   });
 
-  group('single logs', () {
+  group(label('logs single'), () {
     const singleHabit = HabitEntity(
       id: 's1',
       userId: 'user123',
@@ -251,7 +253,7 @@ void main() {
       logs: [],
     );
 
-    test('uncompletes a single habit by setting value to 0', () async {
+    test(label('descompleta hábito single seteando value a 0'), () async {
       final existingLog = HabitLog(
         id: 'sl1',
         habitId: 's1',
@@ -299,7 +301,7 @@ void main() {
     });
 
     test(
-      'completes a single habit creating a new log when none exists',
+      label('completa hábito single creando log nuevo si no existe'),
       () async {
         when(() => mockGetCurrentUserUseCase()).thenAnswer((_) async => tUser);
         when(
@@ -338,7 +340,7 @@ void main() {
       },
     );
 
-    test('rolls back optimistic uncomplete on failure', () async {
+    test(label('revierte descompletar optimista si falla'), () async {
       final existingLog = HabitLog(
         id: 'sl1',
         habitId: 's1',

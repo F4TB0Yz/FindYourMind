@@ -4,6 +4,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:find_your_mind/core/error/failures.dart';
 import 'package:find_your_mind/core/services/sync_service.dart';
 import 'package:find_your_mind/features/habits/data/repositories/habit_repository_impl.dart';
+
+import '../../../../test_utils/test_output_style.dart';
 import '../../../../fixtures/habit_fixtures.dart';
 import '../../../../fixtures/mocks.dart';
 
@@ -34,8 +36,8 @@ void main() {
     );
   });
 
-  group('createHabit', () {
-    test('online + remote success: returns habit id', () async {
+  group(label('createHabit'), () {
+    test(label('online + remote OK: devuelve id de hábito'), () async {
       when(
         () => mockLocalDataSource.createHabit(any()),
       ).thenAnswer((_) async => tHabitId);
@@ -59,7 +61,7 @@ void main() {
       );
     });
 
-    test('online + remote fail: queues to sync', () async {
+    test(label('online + remote falla: encola para sync'), () async {
       when(
         () => mockLocalDataSource.createHabit(any()),
       ).thenAnswer((_) async => tHabitId);
@@ -89,7 +91,7 @@ void main() {
       ).called(1);
     });
 
-    test('offline: queues to sync', () async {
+    test(label('offline: encola para sync'), () async {
       when(
         () => mockLocalDataSource.createHabit(any()),
       ).thenAnswer((_) async => tHabitId);
@@ -116,7 +118,7 @@ void main() {
       ).called(1);
     });
 
-    test('local fail: returns Left CacheFailure', () async {
+    test(label('local falla: devuelve Left CacheFailure'), () async {
       when(
         () => mockLocalDataSource.createHabit(any()),
       ).thenThrow(Exception('DB error'));
@@ -127,8 +129,8 @@ void main() {
     });
   });
 
-  group('updateHabit', () {
-    test('online + remote success: returns Right(null)', () async {
+  group(label('updateHabit'), () {
+    test(label('online + remote OK: devuelve Right(null)'), () async {
       when(
         () => mockLocalDataSource.updateHabit(any()),
       ).thenAnswer((_) async {});
@@ -144,7 +146,7 @@ void main() {
       verify(() => mockRemoteDataSource.updateHabit(any())).called(1);
     });
 
-    test('online + remote fail: queues to sync, returns Right(null)', () async {
+    test(label('online + remote falla: encola para sync y devuelve Right(null)'), () async {
       when(
         () => mockLocalDataSource.updateHabit(any()),
       ).thenAnswer((_) async {});
@@ -174,7 +176,7 @@ void main() {
       ).called(1);
     });
 
-    test('offline: queues to sync', () async {
+    test(label('offline: encola para sync'), () async {
       when(
         () => mockLocalDataSource.updateHabit(any()),
       ).thenAnswer((_) async {});
@@ -201,7 +203,7 @@ void main() {
       ).called(1);
     });
 
-    test('local fail: returns Left CacheFailure', () async {
+    test(label('local falla: devuelve Left CacheFailure'), () async {
       when(
         () => mockLocalDataSource.updateHabit(any()),
       ).thenThrow(Exception('DB error'));
@@ -212,8 +214,8 @@ void main() {
     });
   });
 
-  group('deleteHabit', () {
-    test('online + remote success: returns Right(null)', () async {
+  group(label('deleteHabit'), () {
+    test(label('online + remote OK: devuelve Right(null)'), () async {
       when(
         () => mockLocalDataSource.deleteHabit(any()),
       ).thenAnswer((_) async {});
@@ -230,7 +232,7 @@ void main() {
       expect(result, const Right(null));
     });
 
-    test('online + remote fail: queues to sync', () async {
+    test(label('online + remote falla: encola para sync'), () async {
       when(
         () => mockLocalDataSource.deleteHabit(any()),
       ).thenAnswer((_) async {});
@@ -255,7 +257,7 @@ void main() {
       expect(result, const Right(null));
     });
 
-    test('offline: queues to sync', () async {
+    test(label('offline: encola para sync'), () async {
       when(
         () => mockLocalDataSource.deleteHabit(any()),
       ).thenAnswer((_) async {});
@@ -277,7 +279,7 @@ void main() {
       expect(result, const Right(null));
     });
 
-    test('local fail: returns Left CacheFailure', () async {
+    test(label('local falla: devuelve Left CacheFailure'), () async {
       when(
         () => mockLocalDataSource.deleteHabit(any()),
       ).thenThrow(Exception('DB error'));
@@ -288,8 +290,8 @@ void main() {
     });
   });
 
-  group('createHabitLog', () {
-    test('online: returns log id (remote is unawaited)', () async {
+  group(label('createHabitLog'), () {
+    test(label('online: devuelve id de log (remote sin await)'), () async {
       when(
         () => mockLocalDataSource.createHabitLog(any()),
       ).thenAnswer((_) async => tLogId);
@@ -304,7 +306,7 @@ void main() {
       verify(() => mockLocalDataSource.createHabitLog(any())).called(1);
     });
 
-    test('offline + remote fail: queues to sync', () async {
+    test(label('offline: encola para sync'), () async {
       when(
         () => mockLocalDataSource.createHabitLog(any()),
       ).thenAnswer((_) async => tLogId);
@@ -331,7 +333,7 @@ void main() {
       ).called(1);
     });
 
-    test('local fail: returns Left ServerFailure', () async {
+    test(label('local falla: devuelve Left ServerFailure'), () async {
       when(
         () => mockLocalDataSource.createHabitLog(any()),
       ).thenThrow(Exception('DB error'));
@@ -342,8 +344,8 @@ void main() {
     });
   });
 
-  group('updateHabitLogValue', () {
-    test('online + log exists: returns Right(null)', () async {
+  group(label('updateHabitLogValue'), () {
+    test(label('online + log existe: devuelve Right(null)'), () async {
       when(
         () => mockLocalDataSource.getHabitLogById(any()),
       ).thenAnswer((_) async => tHabitLog);
@@ -372,7 +374,7 @@ void main() {
       expect(result, const Right(null));
     });
 
-    test('offline + log exists: queues to sync', () async {
+    test(label('offline + log existe: encola para sync'), () async {
       when(
         () => mockLocalDataSource.getHabitLogById(any()),
       ).thenAnswer((_) async => tHabitLog);
@@ -410,7 +412,7 @@ void main() {
       ).called(1);
     });
 
-    test('log not found: returns Left CacheFailure', () async {
+    test(label('log no encontrado: devuelve Left CacheFailure'), () async {
       when(
         () => mockLocalDataSource.getHabitLogById(any()),
       ).thenAnswer((_) async => null);
@@ -425,8 +427,8 @@ void main() {
     });
   });
 
-  group('getHabitsByEmail', () {
-    test('local hit: returns local + background sync', () async {
+  group(label('getHabitsByEmail'), () {
+    test(label('local hit: devuelve local + sync en background'), () async {
       when(
         () => mockLocalDataSource.getHabitsByUserId(any()),
       ).thenAnswer((_) async => [tHabitEntity]);
@@ -444,7 +446,7 @@ void main() {
       expect(result.first.id, tHabitId);
     });
 
-    test('local empty + online: fetches from remote', () async {
+    test(label('local vacío + online: trae de remote'), () async {
       when(
         () => mockLocalDataSource.getHabitsByUserId(any()),
       ).thenAnswer((_) async => []);
@@ -462,7 +464,7 @@ void main() {
       verify(() => mockLocalDataSource.saveHabits(any())).called(1);
     });
 
-    test('local empty + offline: returns empty', () async {
+    test(label('local vacío + offline: devuelve vacío'), () async {
       when(
         () => mockLocalDataSource.getHabitsByUserId(any()),
       ).thenAnswer((_) async => []);
@@ -474,8 +476,8 @@ void main() {
     });
   });
 
-  group('getHabitsByEmailPaginated', () {
-    test('local hit: returns local + delayed sync', () async {
+  group(label('getHabitsByEmailPaginated'), () {
+    test(label('local hit: devuelve local + sync diferido'), () async {
       when(
         () => mockLocalDataSource.getHabitsByUserIdPaginated(
           userId: any(named: 'userId'),
@@ -506,7 +508,7 @@ void main() {
       expect(result.length, 1);
     });
 
-    test('local empty + online: fetches and saves', () async {
+    test(label('local vacío + online: trae y guarda'), () async {
       when(
         () => mockLocalDataSource.getHabitsByUserIdPaginated(
           userId: any(named: 'userId'),
@@ -531,7 +533,7 @@ void main() {
       expect(result.length, 1);
     });
 
-    test('local empty + offline: returns empty', () async {
+    test(label('local vacío + offline: devuelve vacío'), () async {
       when(
         () => mockLocalDataSource.getHabitsByUserIdPaginated(
           userId: any(named: 'userId'),
@@ -551,8 +553,8 @@ void main() {
     });
   });
 
-  group('syncWithRemote', () {
-    test('online: delegates to sync service', () async {
+  group(label('syncWithRemote'), () {
+    test(label('online: delega a sync service'), () async {
       when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(
         () => mockSyncService.syncPendingChanges(),
@@ -572,7 +574,7 @@ void main() {
       expect(result.success, 2);
     });
 
-    test('offline: returns error result', () async {
+    test(label('offline: devuelve resultado con error'), () async {
       when(() => mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
       final result = await repository.syncWithRemote(tUserId);
@@ -583,8 +585,8 @@ void main() {
     });
   });
 
-  group('getPendingSyncCount', () {
-    test('delegates to sync service', () async {
+  group(label('getPendingSyncCount'), () {
+    test(label('delega a sync service'), () async {
       when(() => mockSyncService.getPendingCount()).thenAnswer((_) async => 5);
 
       final result = await repository.getPendingSyncCount();

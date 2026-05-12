@@ -4,6 +4,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_log.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../test_utils/test_output_style.dart';
+
 String _dateDaysAgo(int daysAgo) {
   final now = DateTime.now();
   final date = DateTime(now.year, now.month, now.day).subtract(
@@ -14,7 +16,7 @@ String _dateDaysAgo(int daysAgo) {
 }
 
 void main() {
-  test('computes one-time habit metrics from logs', () {
+  test(label('calcula métricas de hábito one-time desde logs'), () {
     final habit = HabitEntity(
       id: 'habit-1',
       userId: 'user-1',

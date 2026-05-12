@@ -11,6 +11,8 @@ import 'package:find_your_mind/features/habits/domain/entities/habit_tracking_ty
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../test_utils/test_output_style.dart';
+
 class MockHabitsRemoteDataSource extends Mock
     implements HabitsRemoteDataSource {}
 
@@ -57,7 +59,7 @@ void main() {
     await db.close();
   });
 
-  group('SyncService Retry Policy', () {
+  group(label('Política de reintentos de SyncService'), () {
     final String fullHabitJson = jsonEncode({
       'id': '1',
       'user_id': 'u1',
@@ -70,7 +72,7 @@ void main() {
       'initial_date': DateTime.now().toIso8601String(),
     });
 
-    test('should include items with retryCount < maxRetryCount', () async {
+    test(label('incluye items con retryCount < maxRetryCount'), () async {
       // Arrange
       await db
           .into(db.pendingSyncTable)
@@ -113,7 +115,7 @@ void main() {
       expect(pending.isEmpty, true);
     });
 
-    test('should exclude items with retryCount >= maxRetryCount', () async {
+    test(label('excluye items con retryCount >= maxRetryCount'), () async {
       // Arrange
       await db
           .into(db.pendingSyncTable)
@@ -138,7 +140,7 @@ void main() {
       expect(pending.length, 1);
     });
 
-    test('should increment retryCount on failure', () async {
+    test(label('incrementa retryCount cuando hay fallo'), () async {
       // Arrange
       await db
           .into(db.pendingSyncTable)
@@ -165,7 +167,7 @@ void main() {
       expect(pending.retryCount, 1);
     });
 
-    test('should increment retryCount on exception', () async {
+    test(label('incrementa retryCount cuando hay excepción'), () async {
       // Arrange
       await db
           .into(db.pendingSyncTable)
@@ -193,7 +195,7 @@ void main() {
     });
 
     test(
-      'getFailedItems returns only items with retryCount >= maxRetryCount',
+      label('getFailedItems devuelve solo items con retryCount >= maxRetryCount'),
       () async {
         // Arrange
         await db
@@ -231,7 +233,7 @@ void main() {
     );
 
     test(
-      'purgeFailedItems removes only items with retryCount >= maxRetryCount',
+      label('purgeFailedItems borra solo items con retryCount >= maxRetryCount'),
       () async {
         // Arrange
         await db
@@ -270,8 +272,8 @@ void main() {
     );
   });
 
-  group('markPendingSync', () {
-    test('inserts new pending sync item', () async {
+  group(label('markPendingSync'), () {
+    test(label('inserta nuevo item pendiente de sync'), () async {
       await syncService.markPendingSync(
         entityType: 'habit',
         entityId: 'h1',
@@ -285,7 +287,7 @@ void main() {
       expect(pending.first.actionType, 'create');
     });
 
-    test('upserts when entity already pending', () async {
+    test(label('hace upsert cuando entidad ya está pendiente'), () async {
       await syncService.markPendingSync(
         entityType: 'habit',
         entityId: 'h1',
@@ -306,8 +308,8 @@ void main() {
     });
   });
 
-  group('syncPendingChanges full flow', () {
-    test('habit create success: removes from queue', () async {
+  group(label('syncPendingChanges (flujo completo)'), () {
+    test(label('crear hábito OK: remueve de la cola'), () async {
       final habitJson = jsonEncode({
         'id': 'h1',
         'user_id': 'u1',
@@ -344,7 +346,7 @@ void main() {
       expect(pending.isEmpty, true);
     });
 
-    test('habit update success', () async {
+    test(label('actualizar hábito OK'), () async {
       final habitJson = jsonEncode({
         'id': 'h1',
         'user_id': 'u1',
@@ -379,7 +381,7 @@ void main() {
       expect(result.success, 1);
     });
 
-    test('habit delete success', () async {
+    test(label('eliminar hábito OK'), () async {
       await db
           .into(db.pendingSyncTable)
           .insert(
@@ -404,7 +406,7 @@ void main() {
       expect(pending.isEmpty, true);
     });
 
-    test('log create success', () async {
+    test(label('crear log OK'), () async {
       final logJson = jsonEncode({
         'id': 'l1',
         'habit_id': 'h1',
@@ -434,7 +436,7 @@ void main() {
       expect(result.success, 1);
     });
 
-    test('log update success', () async {
+    test(label('actualizar log OK'), () async {
       await db
           .into(db.pendingSyncTable)
           .insert(
@@ -462,8 +464,8 @@ void main() {
     });
   });
 
-  group('dependency chain', () {
-    test('habit create fails: logs blocked (retryCount incremented)', () async {
+  group(label('cadena de dependencias'), () {
+    test(label('crear hábito falla: logs bloqueados (retryCount incrementa)'), () async {
       final habitJson = jsonEncode({
         'id': 'h1',
         'user_id': 'u1',
@@ -514,8 +516,8 @@ void main() {
     });
   });
 
-  group('clearPendingSync', () {
-    test('clears entire queue', () async {
+  group(label('clearPendingSync'), () {
+    test(label('limpia toda la cola'), () async {
       await db
           .into(db.pendingSyncTable)
           .insert(
@@ -546,8 +548,8 @@ void main() {
     });
   });
 
-  group('getPendingCount', () {
-    test('returns correct count', () async {
+  group(label('getPendingCount'), () {
+    test(label('devuelve conteo correcto'), () async {
       await db
           .into(db.pendingSyncTable)
           .insert(
@@ -576,16 +578,16 @@ void main() {
       expect(count, 2);
     });
 
-    test('returns 0 when empty', () async {
+    test(label('devuelve 0 cuando está vacío'), () async {
       final count = await syncService.getPendingCount();
 
       expect(count, 0);
     });
   });
 
-  group('FIFO ordering', () {
+  group(label('orden FIFO'), () {
     test(
-      'syncs items in createdAt ASC order regardless of insert order',
+      label('sincroniza items por createdAt ASC sin importar orden de inserción'),
       () async {
         final earlierTime = DateTime(2025, 1, 1, 10, 0);
         final laterTime = DateTime(2025, 1, 1, 11, 0);
