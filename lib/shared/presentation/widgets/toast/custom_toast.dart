@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CustomToast {
   static void showToast({
@@ -8,77 +7,119 @@ class CustomToast {
     required String message,
     Duration duration = const Duration(seconds: 2),
   }) {
-    final MediaQueryData mediaQuery = MediaQuery.of(context);
-    const fadeDuration = Duration(milliseconds: 350);
-    late OverlayEntry overlayEntry;
-    double opacity = 0.0;
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => _ToastWidget(
+        message: message,
+        duration: duration,
+        onDismiss: entry.remove,
+      ),
+    );
+    Overlay.of(context).insert(entry);
+  }
+}
 
-    overlayEntry = OverlayEntry(
-      builder: (context) {
-        return Positioned(
-          top: mediaQuery.size.height * 0.5 - 25,
-          left: mediaQuery.size.width * 0.2,
-          child: Material(
-            color: Colors.transparent,
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return AnimatedOpacity(
-                  opacity: opacity,
-                  duration: fadeDuration,
-                    child: Container(
-                    width: mediaQuery.size.width * 0.6,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                      color: Colors.white70,
-                      width: 0.5,
-                      ),
-                      color: Colors.transparent,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                        color: const Color.fromRGBO(42, 42, 42, 0.1),
-                        child: Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.2,
-                          color: Colors.white,
-                        ),
-                        ),
-                      ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
+class _ToastWidget extends StatefulWidget {
+  const _ToastWidget({
+    required this.message,
+    required this.duration,
+    required this.onDismiss,
+  });
+
+  final String message;
+  final Duration duration;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_ToastWidget> createState() => _ToastWidgetState();
+}
+
+class _ToastWidgetState extends State<_ToastWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      reverseDuration: const Duration(milliseconds: 220),
     );
 
-    Overlay.of(context).insert(overlayEntry);
+    final curve = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
 
-    // Fade in
-    Future.delayed(const Duration(milliseconds: 10), () {
-      opacity = 1.0;
-      overlayEntry.markNeedsBuild();
-    });
+    _opacity = Tween<double>(begin: 0, end: 1).animate(curve);
+    _slide = Tween<Offset>(
+      begin: const Offset(0, -0.5),
+      end: Offset.zero,
+    ).animate(curve);
 
-    // Fade out y remover
-    Future.delayed(duration, () {
-      opacity = 0.0;
-      overlayEntry.markNeedsBuild();
-      Future.delayed(fadeDuration, () {
-        overlayEntry.remove();
+    _controller.forward().then((_) {
+      Future.delayed(widget.duration, () async {
+        if (mounted) {
+          await _controller.reverse();
+          widget.onDismiss();
+        }
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1C2930) : const Color(0xFFF5F5F3);
+
+    return Positioned(
+      top: mediaQuery.padding.top + 12,
+      left: 24,
+      right: 24,
+      child: SlideTransition(
+        position: _slide,
+        child: FadeTransition(
+          opacity: _opacity,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Text(
+                widget.message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
