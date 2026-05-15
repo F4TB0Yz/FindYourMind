@@ -2,7 +2,22 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-05-14 — Profile screen settings sections_
+_Última actualización: 2026-05-15 — Google Sign-In SDK nativo implementado y probado_
+
+---
+
+## Foco Actual
+
+**Feature/Tarea**: ✅ COMPLETADO — Implementar Google Sign-In SDK nativo para eliminar visualización del dominio de Supabase.
+
+**Descripción**:
+- ✅ Agregada dependencia `google_sign_in: ^6.2.2` en `pubspec.yaml`.
+- ✅ Configurado `AndroidManifest.xml` con intent-filter para deep link `findyourmind://auth/callback`.
+- ✅ Reimplementado `SupabaseAuthService.signInWithGoogle()` usando SDK nativo de Google.
+- ✅ Configurado `serverClientId` con Client ID Web para autenticación con Supabase.
+- ✅ El flujo OAuth ahora usa el selector de cuentas nativo de Google sin mostrar el dominio de Supabase.
+
+**Estado**: ✅ **COMPLETADO Y PROBADO** — Commit `0e4ebdb` creado.
 
 ---
 
@@ -75,6 +90,7 @@ _Última actualización: 2026-05-14 — Profile screen settings sections_
 
 ## Notas de Sesión
 
+- **2026-05-15 (Sesión 1)**: Implementado Deep Linking para OAuth con Google. Configurado scheme personalizado `findyourmind://auth/callback` en AndroidManifest.xml y SupabaseAuthService. El usuario ya configuró la URL en Supabase Dashboard. Pendiente: probar en emulador.
 - **2026-05-05 (Sesión 1)**: SDD Habits Full Stack Refactor v2 aplicado. 6 defectos corregidos (C1-C6). `flutter analyze` limpio.
 - **2026-05-05 (Sesión 2)**: CreateHabitSheet refactorizado — 351 líneas monolíticas → 6 widgets en carpeta dedicada. Conectado a `NewHabitProvider` (elimina estado duplicado). `context.select` en TrackingTypeOptionCard para rebuilds granulares. `const` constructores en todos los widgets. `flutter analyze` 0 issues en lib/.
 - **2026-05-06 (Sesión 1)**: Deuda técnica saldada en `CreateHabitSheet`. Implementado `dispose` correcto del listener de `titleController` almacenando referencia local. `flutter analyze` limpio.
