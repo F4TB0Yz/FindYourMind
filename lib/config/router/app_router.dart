@@ -1,5 +1,5 @@
 import 'package:find_your_mind/features/auth/presentation/providers/auth_service_locator.dart';
-import 'package:find_your_mind/features/auth/presentation/screens/login_screen.dart';
+import 'package:find_your_mind/features/auth/presentation/screens/welcome_screen.dart';
 import 'package:find_your_mind/features/habits/domain/entities/habit_entity.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habit_detail_screen/habit_detail_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/screens/habits_redesign_screen.dart';
@@ -7,6 +7,7 @@ import 'package:find_your_mind/features/habits/presentation/screens/new_habit_sc
 import 'package:find_your_mind/features/notes/presentation/screens/notes_screen.dart';
 import 'package:find_your_mind/features/profile/presentation/screens/profile_screen.dart';
 import 'package:find_your_mind/features/tasks/presentation/screens/tasks_screen.dart';
+import 'package:find_your_mind/shared/presentation/screens/mascot_test_screen.dart';
 import 'package:find_your_mind/shared/presentation/widgets/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,7 +21,7 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/habits',
+    initialLocation: '/mascot-test',
     refreshListenable: _authNotifier,
     redirect: (context, state) {
       final session = Supabase.instance.client.auth.currentSession;
@@ -31,6 +32,13 @@ class AppRouter {
       return null;
     },
     routes: [
+      // ─── Mascota (pantalla de prueba, fuera del shell) ───────────────────
+      GoRoute(
+        path: '/mascot-test',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const MascotTestScreen(),
+      ),
+
       // ─── Login (fuera del shell) ──────────────────────────────────────────
       GoRoute(
         path: '/login',
@@ -204,13 +212,13 @@ class _AuthChangeNotifier extends ChangeNotifier {
   }
 }
 
-/// Pasa use-cases desde AuthServiceLocator al LoginScreen.
+/// Pasa use-cases desde AuthServiceLocator al WelcomeScreen.
 class _LoginWrapper extends StatelessWidget {
   const _LoginWrapper();
 
   @override
   Widget build(BuildContext context) {
-    return LoginScreen(
+    return WelcomeScreen(
       signInUseCase: AuthServiceLocator().signInWithEmailUseCase,
       signUpUseCase: AuthServiceLocator().signUpWithEmailUseCase,
       signInWithGoogleUseCase: AuthServiceLocator().signInWithGoogleUseCase,

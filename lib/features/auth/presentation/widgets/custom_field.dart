@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-/// Capa: Presentation → Widgets
-/// Campo de texto reutilizable para los formularios de autenticación.
-/// Usa [TextFormField] internamente para integrarse con [Form] y [GlobalKey<FormState>].
-/// Incluye soporte para:
-///   - Validación declarativa vía [validator].
-///   - Campo de contraseña con toggle show/hide.
-///   - Navegación por teclado mediante [textInputAction] y [onSubmitted].
 class AuthInputField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
@@ -16,9 +9,6 @@ class AuthInputField extends StatefulWidget {
   final FocusNode? focusNode;
   final TextInputAction textInputAction;
   final VoidCallback? onSubmitted;
-
-  /// Función de validación compatible con [Form]. Si retorna una cadena,
-  /// se muestra como mensaje de error debajo del campo.
   final String? Function(String?)? validator;
 
   const AuthInputField({
@@ -46,13 +36,16 @@ class _AuthInputFieldState extends State<AuthInputField> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           widget.label,
-          style: const TextStyle(
-            color: Color(0xFFc9d1d9),
+          style: textTheme.bodyMedium?.copyWith(
+            color: cs.onSurface,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -65,22 +58,21 @@ class _AuthInputFieldState extends State<AuthInputField> {
           obscureText: widget.isPassword && _obscureText,
           validator: widget.validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: const TextStyle(
-            color: Color(0xFFc9d1d9),
+          style: textTheme.bodyMedium?.copyWith(
+            color: cs.onSurface,
             fontSize: 14,
           ),
           onFieldSubmitted: (_) => widget.onSubmitted?.call(),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFF161b22),
+            fillColor: cs.surfaceContainer,
             hintText: widget.hint,
-            hintStyle: const TextStyle(
-              color: Color(0xFF8b949e),
+            hintStyle: TextStyle(
+              color: cs.onSurfaceVariant,
               fontSize: 14,
             ),
-            // Mensaje de error alineado debajo del campo, sin romper el layout.
-            errorStyle: const TextStyle(
-              color: Color(0xFFf85149),
+            errorStyle: TextStyle(
+              color: cs.error,
               fontSize: 11,
               height: 1.4,
             ),
@@ -91,7 +83,7 @@ class _AuthInputFieldState extends State<AuthInputField> {
                       icon: _obscureText
                           ? HugeIcons.strokeRoundedViewOffSlash
                           : HugeIcons.strokeRoundedView,
-                      color: const Color(0xFF8b949e),
+                      color: cs.onSurfaceVariant,
                       size: 18,
                     ),
                     onPressed: _toggleVisibility,
@@ -102,44 +94,21 @@ class _AuthInputFieldState extends State<AuthInputField> {
               horizontal: 12,
               vertical: 12,
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(
-                color: Color(0xFF30363d),
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(
-                color: Color(0xFF30363d),
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(
-                color: Color(0xFF58a6ff),
-                width: 1,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(
-                color: Color(0xFFf85149),
-                width: 1,
-              ),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(
-                color: Color(0xFFf85149),
-                width: 1.5,
-              ),
-            ),
+            border: _outlineBorder(cs.outlineVariant),
+            enabledBorder: _outlineBorder(cs.outlineVariant),
+            focusedBorder: _outlineBorder(cs.primary, width: 2),
+            errorBorder: _outlineBorder(cs.error),
+            focusedErrorBorder: _outlineBorder(cs.error, width: 1.5),
           ),
         ),
       ],
+    );
+  }
+
+  static OutlineInputBorder _outlineBorder(Color color, {double width = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(color: color, width: width),
     );
   }
 }

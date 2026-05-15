@@ -1,25 +1,18 @@
+import 'package:find_your_mind/config/theme/app_text_styles.dart';
 import 'package:find_your_mind/core/utils/validators.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_auth_button.dart';
 import 'package:find_your_mind/features/auth/presentation/widgets/custom_field.dart';
+import 'package:find_your_mind/shared/presentation/widgets/layouts/feature_layout.dart';
 import 'package:find_your_mind/shared/presentation/widgets/toast/custom_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-/// Capa: Presentation → Screens
-/// Pantalla de registro de nuevos usuarios.
-/// Utiliza [Form] y [GlobalKey<FormState>] para validación robusta de campos,
-/// delegando las reglas de validación a [AppValidators] (Core → Utils).
 class RegisterScreen extends StatefulWidget {
   final SignUpWithEmailUseCase signUpUseCase;
-  final SignInWithEmailUseCase signInUseCase;
-  final SignInWithGoogleUseCase signInWithGoogleUseCase;
 
   const RegisterScreen({
     super.key,
     required this.signUpUseCase,
-    required this.signInUseCase,
-    required this.signInWithGoogleUseCase,
   });
 
   @override
@@ -55,7 +48,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _onRegisterPressed() async {
-    // Dispara la validación de todos los campos del Form.
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isLoading = true);
@@ -77,140 +69,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _onGoogleRegisterPressed() async {
-    final result = await widget.signInWithGoogleUseCase();
-    if (mounted) {
-      result.fold(
-        (failure) => _showError(failure.message),
-        (_) => CustomToast.showToast(
-          context: context,
-          message: 'Redirigiendo a Google...',
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0d1117),
-      body: Center(
-        child: SingleChildScrollView(
+      backgroundColor: cs.surface,
+      body: FeatureLayout(
+        scrollable: true,
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 48),
-                Center(
-                  child: Image.asset('assets/images/app_logo.png', width: 150),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Crear cuenta',
-                  style: TextStyle(
-                    color: Color(0xFFc9d1d9),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 58),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    onPressed: () => Navigator.of(context).pop(),
+                    splashRadius: 20,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Ingresa tus datos para registrarte',
-                  style: TextStyle(
-                    color: Color(0xFF8b949e),
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                AuthInputField(
-                  controller: _emailController,
-                  label: 'Correo electrónico',
-                  hint: 'tu@correo.com',
-                  textInputAction: TextInputAction.next,
-                  onSubmitted: () => _passwordFocusNode.requestFocus(),
-                  validator: AppValidators.email,
-                ),
-                const SizedBox(height: 12),
-                AuthInputField(
-                  controller: _passwordController,
-                  label: 'Contraseña',
-                  hint: 'Mínimo 6 caracteres',
-                  isPassword: true,
-                  focusNode: _passwordFocusNode,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: _onRegisterPressed,
-                  validator: AppValidators.password,
-                ),
-                const SizedBox(height: 20),
-                AuthPrimaryButton(
-                  onTap: _onRegisterPressed,
-                  isLoading: _isLoading,
-                  child: const Text(
-                    'Crear cuenta',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _OrDivider(),
-                const SizedBox(height: 12),
-                AuthSecondaryButton(
-                  onTap: _onGoogleRegisterPressed,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/icons/google.svg',
-                        width: 18,
-                        height: 18,
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Continuar con Google',
-                        style: TextStyle(
-                          color: Color(0xFFc9d1d9),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
                 Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        '¿Ya tienes una cuenta?',
-                        style: TextStyle(
-                          color: Color(0xFF8b949e),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: const Text(
-                          'Inicia sesión',
-                          style: TextStyle(
-                            color: Color(0xFF58a6ff),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                  child: Image.asset('assets/images/app_logo.png', width: 96),
+                ),
+                const SizedBox(height: 28),
+                Card(
+                  color: cs.surfaceContainer,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(color: cs.outlineVariant, width: 1),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Crear cuenta', style: AppTextStyles.h2(context)),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Ingresa tus datos para registrarte',
+                          style: AppTextStyles.bodyMedium(context).copyWith(
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        AuthInputField(
+                          controller: _emailController,
+                          label: 'Correo electrónico',
+                          hint: 'tu@correo.com',
+                          textInputAction: TextInputAction.next,
+                          onSubmitted: () => _passwordFocusNode.requestFocus(),
+                          validator: AppValidators.email,
+                        ),
+                        const SizedBox(height: 16),
+                        AuthInputField(
+                          controller: _passwordController,
+                          label: 'Contraseña',
+                          hint: 'Mínimo 6 caracteres',
+                          isPassword: true,
+                          focusNode: _passwordFocusNode,
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: _onRegisterPressed,
+                          validator: AppValidators.password,
+                        ),
+                        const SizedBox(height: 24),
+                        AuthPrimaryButton(
+                          onTap: _onRegisterPressed,
+                          isLoading: _isLoading,
+                          child: Text(
+                            'Crear cuenta',
+                            style: AppTextStyles.bodyMedium(context).copyWith(
+                              color: cs.onPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -219,25 +161,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _OrDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        Expanded(child: Divider(color: Color(0xFF30363d), thickness: 1)),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'o',
-            style: TextStyle(color: Color(0xFF8b949e), fontSize: 12),
-          ),
-        ),
-        Expanded(child: Divider(color: Color(0xFF30363d), thickness: 1)),
-      ],
     );
   }
 }

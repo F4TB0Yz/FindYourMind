@@ -1,6 +1,6 @@
 import 'package:find_your_mind/core/services/auth_service.dart';
 import 'package:find_your_mind/features/auth/domain/usecases/usecases.dart';
-import 'package:find_your_mind/features/auth/presentation/screens/login_screen.dart';
+import 'package:find_your_mind/features/auth/presentation/screens/welcome_screen.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -51,7 +51,6 @@ class _AuthScreenState extends State<AuthScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            backgroundColor: Color(0xFF0d1117),
             body: SizedBox.shrink(),
           );
         }
@@ -62,13 +61,13 @@ class _AuthScreenState extends State<AuthScreen> {
         if (session != null) {
           _loadHabitsForUser(session.user.id);
           // El router ya manejó la redirección a /habits — devuelve placeholder.
-          return const Scaffold(backgroundColor: Color(0xFF0d1117));
+          return const Scaffold();
         }
 
         _lastLoadedUserId = null;
         _isLoadingHabits = false;
 
-        return LoginScreen(
+        return WelcomeScreen(
           signInUseCase: widget.signInUseCase,
           signUpUseCase: widget.signUpUseCase,
           signInWithGoogleUseCase: widget.signInWithGoogleUseCase,

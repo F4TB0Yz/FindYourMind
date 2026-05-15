@@ -9,10 +9,17 @@ class ProfileSettingsSection extends StatelessWidget {
   final String? title;
   final List<ProfileSettingsItem> items;
 
+  static const _cardLight = Color(0xFFF5F5F3);
+  static const _cardDark = Color(0xFF1C2930);
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final dividerColor = cs.outlineVariant;
+    final isDark = cs.brightness == Brightness.dark;
+    final cardColor = isDark ? _cardDark : _cardLight;
+    final dividerColor = isDark
+        ? const Color(0xFF243840)
+        : const Color(0xFFE8E8E6);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +40,7 @@ class ProfileSettingsSection extends StatelessWidget {
         ],
         Container(
           decoration: BoxDecoration(
-            color: cs.surfaceContainer,
+            color: cardColor,
             borderRadius: BorderRadius.circular(16),
           ),
           clipBehavior: Clip.antiAlias,
@@ -46,7 +53,6 @@ class ProfileSettingsSection extends StatelessWidget {
                     height: 1,
                     thickness: 0.5,
                     color: dividerColor,
-                    indent: 68,
                   ),
               ],
             ],

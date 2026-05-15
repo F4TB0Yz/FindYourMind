@@ -2,22 +2,31 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-05-15 — Google Sign-In SDK nativo implementado y probado_
+_Última actualización: 2026-05-15 — Refactorización completa de autenticación completada_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: ✅ COMPLETADO — Implementar Google Sign-In SDK nativo para eliminar visualización del dominio de Supabase.
+**Feature/Tarea**: ✅ COMPLETADO — Refactorizar flujo de autenticación con WelcomeScreen y Google Sign-In nativo.
 
 **Descripción**:
-- ✅ Agregada dependencia `google_sign_in: ^6.2.2` en `pubspec.yaml`.
-- ✅ Configurado `AndroidManifest.xml` con intent-filter para deep link `findyourmind://auth/callback`.
-- ✅ Reimplementado `SupabaseAuthService.signInWithGoogle()` usando SDK nativo de Google.
-- ✅ Configurado `serverClientId` con Client ID Web para autenticación con Supabase.
-- ✅ El flujo OAuth ahora usa el selector de cuentas nativo de Google sin mostrar el dominio de Supabase.
 
-**Estado**: ✅ **COMPLETADO Y PROBADO** — Commit `0e4ebdb` creado.
+### 1. Google Sign-In SDK Nativo (Commit `d1ae163`):
+- ✅ Agregada dependencia `google_sign_in: ^6.2.2` en `pubspec.yaml`.
+- ✅ Configurado `AndroidManifest.xml` con intent-filter para deep link.
+- ✅ Reimplementado `SupabaseAuthService.signInWithGoogle()` usando SDK nativo.
+- ✅ Configurado `serverClientId` con Client ID Web para autenticación con Supabase.
+- ✅ El flujo OAuth ahora usa el selector de cuentas nativo de Google.
+
+### 2. Refactorización UI de Auth (Commit `80721b5`):
+- ✅ Creado `WelcomeScreen` como nueva pantalla de entrada.
+- ✅ Creado `AuthDivider` widget para separadores visuales.
+- ✅ Refactorizados `LoginScreen` y `RegisterScreen` con diseño moderno.
+- ✅ Actualizados `CustomAuthButton` y `CustomField` con mejoras visuales.
+- ✅ Actualizado `AppRouter` para usar `WelcomeScreen` en ruta `/login`.
+
+**Estado**: ✅ **COMPLETADO Y PROBADO** — Dos commits creados.
 
 ---
 
