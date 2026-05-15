@@ -2,19 +2,24 @@
 
 > **INSTRUCCIÓN PARA EL AGENTE**: Este archivo es tu estado mental del proyecto. Al inicio de cada sesión, léelo y verifica que su contenido coincide con el estado real del código. Si hay discrepancias, corrígelas. Al finalizar cualquier cambio significativo, actualiza este archivo antes de reportar al usuario.
 
-_Última actualización: 2026-05-12 — Tests en español + resaltado magenta_
+_Última actualización: 2026-05-14 — Profile screen settings sections_
 
 ---
 
 ## Foco Actual
 
-**Feature/Tarea**: Traducir mensajes de tests a español + diferenciarlos con color.
+**Feature/Tarea**: Profile screen — secciones de ajustes (Cuenta, Preferencias, Cerrar sesión).
 
 **Descripción**:
-- Traducción de descripciones en `group(...)`, `test(...)` y `testWidgets(...)` dentro de `test/**`.
-- Helper de salida para envolver esas etiquetas en ANSI **magenta** cuando hay soporte (fallback a texto plano si `NO_COLOR=1` o no hay ANSI).
+- Nuevo widget `ProfileSettingsSection` + `ProfileSettingsItem` en `lib/features/profile/presentation/widgets/profile_settings_section.dart`.
+- `ProBadge` (chip PRO teal) y `DarkModeToggle` (Switch conectado a `ThemeProvider`) en el mismo archivo.
+- `profile_screen.dart` reemplaza el `Column` vacío con `_ProfileSettings` que renderiza las 3 secciones.
+- Sección **Cuenta**: Plan (+ PRO badge), Editar perfil, Notificaciones.
+- Sección **Preferencias**: Modo oscuro (toggle real), Recordatorios, Privacidad y datos.
+- Sección standalone **Cerrar sesión** (destructive, con diálogo de confirmación).
+- Ítems placeholder muestran Snackbar "Próximamente". Sign-out redirige automáticamente vía `_AuthChangeNotifier`.
 
-**Estado**: ✅ `flutter test` y `NO_COLOR=1 flutter test` pasan.
+**Estado**: ✅ `flutter analyze` 0 issues.
 
 ---
 
@@ -36,6 +41,10 @@ _Última actualización: 2026-05-12 — Tests en español + resaltado magenta_
 |---|---|
 | `test/test_utils/test_output_style.dart` | Nuevo — helper `label(...)` para magenta ANSI con fallback (`NO_COLOR`, `TERM=dumb`) y soporte de `CI`/`FORCE_COLOR`. |
 | `test/**` | Modificado — traducción de descripciones y envoltura `label(...)` en `group/test/testWidgets` (múltiples archivos). |
+| `lib/features/profile/presentation/widgets/profile_header.dart` | Modificado — altura finita para evitar constraints infinitos en `Stack` dentro de scroll. |
+| `lib/features/profile/presentation/widgets/profile_stats_row.dart` | Nuevo — fila de stats (racha, hábitos, cumplimiento) usando HabitsProvider + fuente Fraunces. |
+| `lib/features/profile/presentation/screens/profile_screen.dart` | Modificado — incluye `ProfileStatsRow` + secciones de ajustes. |
+| `lib/features/profile/presentation/widgets/profile_settings_section.dart` | Nuevo — `ProfileSettingsSection`, `ProfileSettingsItem`, `ProBadge`, `DarkModeToggle`. |
 
 ---
 
@@ -59,8 +68,8 @@ _Última actualización: 2026-05-12 — Tests en español + resaltado magenta_
 ## Contexto Técnico Activo
 
 - **Branch actual**: `main`
-- **Cambio en sesión**: Traducción de labels de tests a español y helper de resaltado ANSI magenta (con fallback `NO_COLOR`).
-- **Validación**: `flutter test` y `NO_COLOR=1 flutter test` OK. `graphify update .` ejecutado.
+- **Cambio en sesión**: Fix de constraints infinitos en `ProfileHeader`.
+- **Validación**: `flutter test` OK. `graphify update .` ejecutado.
 
 ---
 
@@ -77,3 +86,4 @@ _Última actualización: 2026-05-12 — Tests en español + resaltado magenta_
 - **2026-05-06 (Sesión 7)**: Limpieza pre-commit para dejar validación global en verde. Corregidos analyzer issues en `app_database.dart`, `sheet_color_grid.dart` y tests. `graphify update .` ejecutado tras tocar código. `flutter analyze` y `flutter test` pasan.
 - **2026-05-06 (Sesión 8)**: Validación inline del título en `CreateHabitSheet`. Reemplazado `CustomToast` por error inline debajo del campo. `HabitSheetTextField` ahora acepta `errorText` y muestra borde rojo + texto de error con `GoogleFonts.plusJakartaSans`. `flutter analyze` limpio.
 - **2026-05-12 (Sesión 1)**: Traducción de descripciones de tests (`group/test/testWidgets`) a español y resaltado en magenta via helper ANSI (se activa en terminal con ANSI, o forzado con `CI`/`FORCE_COLOR`; se desactiva con `NO_COLOR`). `flutter test` OK. `graphify update .` ejecutado.
+- **2026-05-12 (Sesión 2)**: Fix de `ProfileHeader` en `SingleChildScrollView`: se limita altura finita para evitar `BoxConstraints(w=..., h=Infinity)`. `flutter test` OK. `graphify update .` ejecutado.

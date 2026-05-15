@@ -131,12 +131,8 @@ class AppRouter {
               GoRoute(
                 name: 'perfil',
                 path: '/profile',
-                pageBuilder: (context, state) => NoTransitionPage(
-                  child: ProfileScreen(
-                    getCurrentUserUseCase:
-                        AuthServiceLocator().getCurrentUserUseCase,
-                    signOutUseCase: AuthServiceLocator().signOutUseCase,
-                  ),
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: ProfileScreen(),
                 ),
               ),
             ],

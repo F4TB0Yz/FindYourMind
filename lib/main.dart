@@ -8,6 +8,7 @@ import 'package:find_your_mind/core/utils/app_logger.dart';
 import 'package:find_your_mind/features/auth/presentation/providers/auth_service_locator.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/habits_provider.dart';
 import 'package:find_your_mind/features/habits/presentation/providers/new_habit_provider.dart';
+import 'package:find_your_mind/features/profile/presentation/providers/profile_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/sync_provider.dart';
 import 'package:find_your_mind/shared/presentation/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
@@ -172,6 +173,12 @@ class _BootstrapAppState extends State<BootstrapApp> {
           ),
         ),
         ChangeNotifierProvider(create: (_) => SyncProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ProfileProvider(
+            getCurrentUserUseCase: dependencies.getCurrentUserUseCase,
+            signOutUseCase: dependencies.signOutUseCase,
+          ),
+        ),
       ],
       child: _showMainApp
           ? const MainApp()
